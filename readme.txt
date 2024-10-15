@@ -1,0 +1,27 @@
+Verify node installation (https://nodejs.org/):
+node -v
+npm -v
+
+Install Angular CLI:
+npm install -g @angular/cli
+
+Verify Angular CLI with:
+ng version
+
+Verify dotnet (https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-8.0.403-windows-x64-installer):
+dotnet --version
+
+Download and Install PostgreSQL (Install the pgAdmin for a graphical interface) (Currently on Version 17.0)
+https://www.postgresql.org/download/
+Port is on: 5432
+Password is: admin
+
+Install Tailwind:
+cd Frontend
+npm install -D tailwindcss postcss autoprefixer
+
+Install Tailwind Intellisense in Extensions:
+Tailwind CSS IntelliSense
+
+Trust the Dotnet Developer Certificate:
+dotnet dev-certs https --trust
