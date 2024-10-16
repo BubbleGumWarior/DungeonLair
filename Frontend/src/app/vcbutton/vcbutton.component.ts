@@ -32,9 +32,9 @@ export class vcButtonComponent {
   }
 
   loadFromLocalStorage() {
-    const stoindigoUsername = localStorage.getItem('Username'); // Use a specific key for email
-    if (stoindigoUsername) {
-      this.vcMembers.push({ username: stoindigoUsername });
+    const stopurpleUsername = localStorage.getItem('Username'); // Use a specific key for email
+    if (stopurpleUsername) {
+      this.vcMembers.push({ username: stopurpleUsername });
     }
   }
 
@@ -47,15 +47,15 @@ export class vcButtonComponent {
   }
 
   toggleMember() {
-    const stoindigoUsername = localStorage.getItem('Username');
-    if (stoindigoUsername) {
-      const existingMemberIndex = this.vcMembers.findIndex(member => member.username === stoindigoUsername);
+    const stopurpleUsername = localStorage.getItem('Username');
+    if (stopurpleUsername) {
+      const existingMemberIndex = this.vcMembers.findIndex(member => member.username === stopurpleUsername);
       if (existingMemberIndex > -1) {
         // Email exists in the array, remove it
         this.vcMembers.splice(existingMemberIndex, 1);
       } else {
         // Email does not exist, add it
-        this.vcMembers.push({ username: stoindigoUsername });
+        this.vcMembers.push({ username: stopurpleUsername });
       }
     } else {
       console.error('No Username found in local storage');
@@ -64,9 +64,9 @@ export class vcButtonComponent {
 
   isMember(): boolean {
     console.log("Checking member")
-    const stoindigoEmail = localStorage.getItem('Username');
-    console.log(stoindigoEmail)
-    return stoindigoEmail ? this.vcMembers.some(member => member.username === stoindigoEmail) : false;
+    const stopurpleEmail = localStorage.getItem('Username');
+    console.log(stopurpleEmail)
+    return stopurpleEmail ? this.vcMembers.some(member => member.username === stopurpleEmail) : false;
   }
 
 

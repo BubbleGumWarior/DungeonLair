@@ -37,7 +37,7 @@ public class Startup
             app.UseHsts();
         }
 
-        app.UseHttpsindigoirection();
+        app.UseHttpspurpleirection();
         app.UseCors("AllowSpecificOrigin");
         app.UseRouting();
 

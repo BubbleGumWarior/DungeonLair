@@ -1,0 +1,14 @@
+/* .mainMenuBG {
+    @apply min-h-screen bg-stone-950;
+    background-image: radial-gradient(
+        50% 15% at bottom,
+        #7136cf,
+        #5409ce,
+        #0c0a09
+    );
+} */
+
+.mainMenuBG {
+    @apply min-h-screen bg-stone-950;
+}
+

@@ -22,7 +22,7 @@
   }
   
   .vc-history::-webkit-scrollbar-thumb {
-    @apply bg-gradient-to-b from-indigo-400 via-indigo-500 to-indigo-600/* Color of the scrollbar thumb */
+    @apply bg-gradient-to-b from-purple-400 via-purple-500 to-purple-600/* Color of the scrollbar thumb */
   }
   
   .vc-history::-webkit-scrollbar-thumb:hover {
