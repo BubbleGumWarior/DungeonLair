@@ -8,22 +8,24 @@ import { InventoryComponent } from '../inventory/inventory.component';
 import { SkillsComponent } from '../skills/skills.component';
 import { NotesComponent } from '../notes/notes.component';
 import { ChatButtonComponent } from '../chat-button/chat-button.component';
+import { RollButtonComponent } from '../roll-button/roll-button.component';
+import { vcButtonComponent } from '../vcbutton/vcbutton.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, BoardComponent, FamilyComponent, FriendsComponent, InventoryComponent, SkillsComponent, NotesComponent, ChatButtonComponent],
+  imports: [CommonModule, BoardComponent, FamilyComponent, FriendsComponent, InventoryComponent, SkillsComponent, NotesComponent, ChatButtonComponent, RollButtonComponent, vcButtonComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent {
   constructor(private router: Router) {}
 
-  email: string | null = '';
+  username: string | null = '';
 
   ngOnInit() {
-    this.email = localStorage.getItem('Email');
-    if (!this.email) {
+    this.username = localStorage.getItem('Username');
+    if (!this.username) {
       this.router.navigate(['/login']);
     }
   }

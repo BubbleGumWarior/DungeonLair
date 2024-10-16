@@ -858,7 +858,7 @@
         "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.xml",
         "microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",
         "microsoft.bcl.asyncinterfaces.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "Microsoft.CodeAnalysis.Analyzers/3.3.3": {
@@ -1396,7 +1396,7 @@
         "lib/netstandard2.0/Microsoft.Extensions.Caching.Abstractions.xml",
         "microsoft.extensions.caching.abstractions.8.0.0.nupkg.sha512",
         "microsoft.extensions.caching.abstractions.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "Microsoft.Extensions.Caching.Memory/8.0.1": {
@@ -1426,7 +1426,7 @@
         "lib/netstandard2.0/Microsoft.Extensions.Caching.Memory.xml",
         "microsoft.extensions.caching.memory.8.0.1.nupkg.sha512",
         "microsoft.extensions.caching.memory.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "Microsoft.Extensions.Configuration.Abstractions/8.0.0": {
@@ -1456,7 +1456,7 @@
         "lib/netstandard2.0/Microsoft.Extensions.Configuration.Abstractions.xml",
         "microsoft.extensions.configuration.abstractions.8.0.0.nupkg.sha512",
         "microsoft.extensions.configuration.abstractions.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "Microsoft.Extensions.DependencyInjection/8.0.1": {
@@ -1488,7 +1488,7 @@
         "lib/netstandard2.1/Microsoft.Extensions.DependencyInjection.xml",
         "microsoft.extensions.dependencyinjection.8.0.1.nupkg.sha512",
         "microsoft.extensions.dependencyinjection.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "Microsoft.Extensions.DependencyInjection.Abstractions/8.0.2": {
@@ -1520,7 +1520,7 @@
         "lib/netstandard2.1/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
         "microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
         "microsoft.extensions.dependencyinjection.abstractions.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "Microsoft.Extensions.DependencyModel/8.0.2": {
@@ -1550,7 +1550,7 @@
         "lib/netstandard2.0/Microsoft.Extensions.DependencyModel.xml",
         "microsoft.extensions.dependencymodel.8.0.2.nupkg.sha512",
         "microsoft.extensions.dependencymodel.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "Microsoft.Extensions.Logging/8.0.1": {
@@ -1582,7 +1582,7 @@
         "lib/netstandard2.1/Microsoft.Extensions.Logging.xml",
         "microsoft.extensions.logging.8.0.1.nupkg.sha512",
         "microsoft.extensions.logging.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "Microsoft.Extensions.Logging.Abstractions/8.0.2": {
@@ -1655,7 +1655,7 @@
         "lib/netstandard2.0/Microsoft.Extensions.Logging.Abstractions.xml",
         "microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512",
         "microsoft.extensions.logging.abstractions.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "Microsoft.Extensions.Options/8.0.2": {
@@ -1702,7 +1702,7 @@
         "lib/netstandard2.1/Microsoft.Extensions.Options.xml",
         "microsoft.extensions.options.8.0.2.nupkg.sha512",
         "microsoft.extensions.options.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "Microsoft.Extensions.Primitives/8.0.0": {
@@ -1732,7 +1732,7 @@
         "lib/netstandard2.0/Microsoft.Extensions.Primitives.xml",
         "microsoft.extensions.primitives.8.0.0.nupkg.sha512",
         "microsoft.extensions.primitives.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "Mono.TextTemplating/2.2.1": {
@@ -1803,7 +1803,7 @@
         "ref/netstandard2.0/System.CodeDom.xml",
         "system.codedom.4.4.0.nupkg.sha512",
         "system.codedom.nuspec",
-        "useSharedDesignerContext.txt",
+        "useShaindigoDesignerContext.txt",
         "version.txt"
       ]
     },
@@ -1827,7 +1827,7 @@
         "lib/netstandard2.0/System.Collections.Immutable.xml",
         "system.collections.immutable.6.0.0.nupkg.sha512",
         "system.collections.immutable.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "System.Composition/6.0.0": {
@@ -1844,7 +1844,7 @@
         "buildTransitive/netcoreapp3.1/_._",
         "system.composition.6.0.0.nupkg.sha512",
         "system.composition.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "System.Composition.AttributedModel/6.0.0": {
@@ -1867,7 +1867,7 @@
         "lib/netstandard2.0/System.Composition.AttributedModel.xml",
         "system.composition.attributedmodel.6.0.0.nupkg.sha512",
         "system.composition.attributedmodel.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "System.Composition.Convention/6.0.0": {
@@ -1890,7 +1890,7 @@
         "lib/netstandard2.0/System.Composition.Convention.xml",
         "system.composition.convention.6.0.0.nupkg.sha512",
         "system.composition.convention.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "System.Composition.Hosting/6.0.0": {
@@ -1913,7 +1913,7 @@
         "lib/netstandard2.0/System.Composition.Hosting.xml",
         "system.composition.hosting.6.0.0.nupkg.sha512",
         "system.composition.hosting.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "System.Composition.Runtime/6.0.0": {
@@ -1936,7 +1936,7 @@
         "lib/netstandard2.0/System.Composition.Runtime.xml",
         "system.composition.runtime.6.0.0.nupkg.sha512",
         "system.composition.runtime.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "System.Composition.TypedParts/6.0.0": {
@@ -1959,7 +1959,7 @@
         "lib/netstandard2.0/System.Composition.TypedParts.xml",
         "system.composition.typedparts.6.0.0.nupkg.sha512",
         "system.composition.typedparts.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "System.IO.Pipelines/6.0.3": {
@@ -1984,7 +1984,7 @@
         "lib/netstandard2.0/System.IO.Pipelines.xml",
         "system.io.pipelines.6.0.3.nupkg.sha512",
         "system.io.pipelines.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "System.Reflection.Metadata/6.0.1": {
@@ -2007,7 +2007,7 @@
         "lib/netstandard2.0/System.Reflection.Metadata.xml",
         "system.reflection.metadata.6.0.1.nupkg.sha512",
         "system.reflection.metadata.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "System.Runtime.CompilerServices.Unsafe/6.0.0": {
@@ -2032,7 +2032,7 @@
         "lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.xml",
         "system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
         "system.runtime.compilerservices.unsafe.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "System.Text.Encoding.CodePages/6.0.0": {
@@ -2071,7 +2071,7 @@
         "runtimes/win/lib/netstandard2.0/System.Text.Encoding.CodePages.xml",
         "system.text.encoding.codepages.6.0.0.nupkg.sha512",
         "system.text.encoding.codepages.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     },
     "System.Threading.Channels/6.0.0": {
@@ -2098,7 +2098,7 @@
         "lib/netstandard2.1/System.Threading.Channels.xml",
         "system.threading.channels.6.0.0.nupkg.sha512",
         "system.threading.channels.nuspec",
-        "useSharedDesignerContext.txt"
+        "useShaindigoDesignerContext.txt"
       ]
     }
   },

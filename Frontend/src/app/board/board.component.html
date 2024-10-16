@@ -1,1 +1,167 @@
-<p class="text-white">board works!</p>
+<div class="grid grid-cols-3 gap-6 p-6">
+    <!-- Column 1: Strength, Dexterity, Constitution -->
+    <div class="space-y-4 p-4 text-indigo-500 h-full w-full bg-indigo-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-indigo-500">
+        <div>            
+            <div class="flex justify-between">
+                <h2 class="text-4xl font-bold">Strength</h2>
+                <p class="text-4xl font-bold">18</p>
+            </div>
+            <div class="flex justify-center">
+                <p class="text-2xl font-semibold cursor-pointer hover:text-white">(+4)</p>
+            </div>            
+            <ul class="text-sm">
+                <li class="flex justify-between">
+                    <span>Athletics</span>
+                    <span class="cursor-pointer hover:text-white">+6</span>
+                </li>
+            </ul>
+        </div>
+
+        <div>            
+            <div class="flex justify-between">
+                <h2 class="text-4xl font-bold">Dexterity</h2>
+                <p class="text-4xl font-bold">14</p>
+            </div>
+            <div class="flex justify-center">
+                <p class="text-2xl font-semibold cursor-pointer hover:text-white">(+2)</p>
+            </div>            
+            <ul class="text-sm">
+                <li class="flex justify-between">
+                    <span>Acrobatics</span>
+                    <span class="cursor-pointer hover:text-white">+4</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Sleight of Hand</span>
+                    <span class="cursor-pointer hover:text-white">+3</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Sindigoth</span>
+                    <span class="cursor-pointer hover:text-white">+5</span>
+                </li>
+            </ul>
+        </div>
+        <div>            
+            <div class="flex justify-between">
+                <h2 class="text-4xl font-bold">Constitution</h2>
+                <p class="text-4xl font-bold">16</p>
+            </div>
+            <div class="flex justify-center">
+                <p class="text-2xl font-semibold cursor-pointer hover:text-white">(+3)</p>
+            </div>            
+            <ul class="text-sm">
+                <li class="flex justify-between">
+                    <span>-</span>
+                    <span>-</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Column 2: Character Bio and Image -->
+    <div class="flex flex-col items-center p-4 text-indigo-500 h-full w-full bg-indigo-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-indigo-500">
+        <div class="bg-white w-full h-full mb-4">
+            
+        </div>
+        <div class="text-center">
+            <h2 class="text-3xl font-bold">{{ username }}</h2>
+            <p class="text-sm">Race: Elf</p>
+            <p class="text-sm">Class: Ranger</p>
+            <p class="text-sm">Level: 5</p>
+        </div>
+    </div>
+
+    <!-- Column 3: Intelligence, Wisdom, Charisma -->
+    <div class="space-y-4 p-4 text-indigo-500 h-full w-full bg-indigo-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-indigo-500">
+        <div>            
+            <div class="flex justify-between">
+                <h2 class="text-4xl font-bold">Intelligence</h2>
+                <p class="text-4xl font-bold">12</p>
+            </div>
+            <div class="flex justify-center">
+                <p class="text-2xl font-semibold cursor-pointer hover:text-white">(+1)</p>
+            </div>            
+            <ul class="text-sm">
+                <li class="flex justify-between">
+                    <span>Arcana</span>
+                    <span class="cursor-pointer hover:text-white">+2</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>History</span>
+                    <span class="cursor-pointer hover:text-white">+1</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Investigation</span>
+                    <span class="cursor-pointer hover:text-white">+3</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Nature</span>
+                    <span class="cursor-pointer hover:text-white">+2</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Religion</span>
+                    <span class="cursor-pointer hover:text-white">+1</span>
+                </li>
+            </ul>
+        </div>
+
+        <div>            
+            <div class="flex justify-between">
+                <h2 class="text-4xl font-bold">Wisdom</h2>
+                <p class="text-4xl font-bold">15</p>
+            </div>
+            <div class="flex justify-center">
+                <p class="text-2xl font-semibold cursor-pointer hover:text-white">(+2)</p>
+            </div>            
+            <ul class="text-sm">
+                <li class="flex justify-between">
+                    <span>Animal handling</span>
+                    <span class="cursor-pointer hover:text-white">+4</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Insight</span>
+                    <span class="cursor-pointer hover:text-white">+3</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Medicine</span>
+                    <span class="cursor-pointer hover:text-white">+2</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Perception</span>
+                    <span class="cursor-pointer hover:text-white">+5</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Survival</span>
+                    <span class="cursor-pointer hover:text-white">+4</span>
+                </li>
+            </ul>
+        </div>
+
+        <div>            
+            <div class="flex justify-between">
+                <h2 class="text-4xl font-bold">Charisma</h2>
+                <p class="text-4xl font-bold">10</p>
+            </div>
+            <div class="flex justify-center">
+                <p class="text-2xl font-semibold cursor-pointer hover:text-white">(+0)</p>
+            </div>            
+            <ul class="text-sm">
+                <li class="flex justify-between">
+                    <span>Deception</span>
+                    <span class="cursor-pointer hover:text-white">+1</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Intimidation</span>
+                    <span class="cursor-pointer hover:text-white">+2</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Performance</span>
+                    <span class="cursor-pointer hover:text-white">+0</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Persuasion</span>
+                    <span class="cursor-pointer hover:text-white">+2</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+  </div>

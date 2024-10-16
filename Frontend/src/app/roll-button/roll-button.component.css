@@ -1,31 +1,31 @@
-.chat-button {
+.roll-button {
     position: relative;
     z-index: 1000;
   }
   
-  .chat-modal {
+  .roll-modal {
     z-index: 999;
   }
   
-  .chat-history {
-    max-height: 66vh; /* Set maximum height for chat history */
+  .roll-history {
+    max-height: 66vh; /* Set maximum height for roll history */
     overflow-y: auto; /* Enable vertical scrolling */
   }
   
   /* Custom scrollbar styles */
-  .chat-history::-webkit-scrollbar {
+  .roll-history::-webkit-scrollbar {
     width: 8px; /* Width of the scrollbar */
   }
   
-  .chat-history::-webkit-scrollbar-track {
+  .roll-history::-webkit-scrollbar-track {
     @apply bg-stone-950/* Background of the scrollbar track */
   }
   
-  .chat-history::-webkit-scrollbar-thumb {
+  .roll-history::-webkit-scrollbar-thumb {
     @apply bg-gradient-to-b from-indigo-400 via-indigo-500 to-indigo-600/* Color of the scrollbar thumb */
   }
   
-  .chat-history::-webkit-scrollbar-thumb:hover {
+  .roll-history::-webkit-scrollbar-thumb:hover {
     background: #555; /* Darker color on hover */
   }
   

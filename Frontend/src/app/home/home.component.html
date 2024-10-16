@@ -1,16 +1,16 @@
 <div class="home-screen">
-  <nav class="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 p-4">
+  <nav class="bg-gradient-to-r from-indigo-400 via-indigo-500 to-indigo-600 p-4">
     <div class="container mx-auto flex justify-between items-center">
       <ul class="flex space-x-4">
         <li><a class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer" (click)="navigateView('home')">Home</a></li>
       </ul>
       <ul class="flex space-x-4">
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('board')">Board</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('family')">Family</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('friends')">Friends</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('inventory')">Inventory</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('skills')">Skills</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('notes')">Notes</a></li>
+        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('board')" [ngClass]="{'underline font-bold': currentView === 'board'}">Board</a></li>
+        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('family')"[ngClass]="{'underline font-bold': currentView === 'family'}">Family</a></li>
+        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('friends')"[ngClass]="{'underline font-bold': currentView === 'friends'}">Friends</a></li>
+        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('inventory')"[ngClass]="{'underline font-bold': currentView === 'inventory'}">Inventory</a></li>
+        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('skills')"[ngClass]="{'underline font-bold': currentView === 'skills'}">Skills</a></li>
+        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('notes')"[ngClass]="{'underline font-bold': currentView === 'notes'}">Notes</a></li>
       </ul>
       <ul class="flex space-x-4">
         <li><a class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer" (click)="navigateTo('login')">Log Out</a></li>
@@ -19,8 +19,8 @@
   </nav>
 
   <div class="container mx-auto mt-10">
-    <h1 class="text-3xl font-bold text-center text-amber-500" *ngIf="currentView === 'home'">Welcome to the Home Page!</h1>
-    <app-board *ngIf="currentView === 'board'"></app-board>
+    <h1 class="text-3xl font-bold text-center text-indigo-500" *ngIf="currentView === 'home'">Welcome to the Home Page!</h1>
+    <app-board *ngIf="currentView === 'board'" [username]= "username"></app-board>
     <app-family *ngIf="currentView === 'family'"></app-family>
     <app-friends *ngIf="currentView === 'friends'"></app-friends>
     <app-inventory *ngIf="currentView === 'inventory'"></app-inventory>
@@ -29,5 +29,7 @@
   </div>
 
   <app-chat-button></app-chat-button>
+  <app-roll-button></app-roll-button>
+  <app-vc-button></app-vc-button>
 
 </div>

@@ -18,6 +18,7 @@ export class LoginComponent {
   onSubmit() {
     localStorage.setItem('Email', this.email);
     localStorage.setItem('Password', this.password);
+    localStorage.setItem('Username', "TestUser");
 
     this.navigateTo('/')
   }
