@@ -5,6 +5,7 @@ interface Item {
   name: string;
   type: string;
   damage: string;
+  mainStat: string;
   description: string;
   photo: string; // This will now hold Base64 strings
 }
@@ -27,6 +28,7 @@ export class InventoryComponent implements OnInit {
       name: 'Bow master', 
       type: 'Bow', 
       damage: 'd10', 
+      mainStat: 'Dexterity', 
       description: 'Shoots arrows',
       photo: this.base64Photo
     },
@@ -34,6 +36,7 @@ export class InventoryComponent implements OnInit {
       name: 'Bow masters Crow', 
       type: 'Sword', 
       damage: 'd12', 
+      mainStat: 'Dexterity', 
       description: 'Slices people',
       photo: this.base64Photo
     },
@@ -41,6 +44,7 @@ export class InventoryComponent implements OnInit {
       name: 'Bow masters Pig', 
       type: 'Bow', 
       damage: 'd10', 
+      mainStat: 'Dexterity', 
       description: 'Shoots arrows',
       photo: this.base64Photo
     },
@@ -48,6 +52,7 @@ export class InventoryComponent implements OnInit {
       name: 'Bow masters Cow', 
       type: 'Sword', 
       damage: 'd12', 
+      mainStat: 'Dexterity', 
       description: 'Slices people',
       photo: this.base64Photo
     },
@@ -55,6 +60,7 @@ export class InventoryComponent implements OnInit {
       name: 'Bow master', 
       type: 'Bow', 
       damage: 'd10', 
+      mainStat: 'Dexterity', 
       description: 'Shoots arrows',
       photo: this.base64Photo
     },
@@ -62,6 +68,7 @@ export class InventoryComponent implements OnInit {
       name: 'Bow masters horse', 
       type: 'Sword', 
       damage: 'd12', 
+      mainStat: 'Dexterity', 
       description: 'Slices people',
       photo: this.base64Photo
     },
@@ -69,6 +76,7 @@ export class InventoryComponent implements OnInit {
       name: 'Bow masters Cat', 
       type: 'Bow', 
       damage: 'd10', 
+      mainStat: 'Dexterity', 
       description: 'Shoots arrows',
       photo: this.base64Photo
     },
@@ -76,6 +84,7 @@ export class InventoryComponent implements OnInit {
       name: 'Bow masters Lion', 
       type: 'Sword', 
       damage: 'd12', 
+      mainStat: 'Dexterity', 
       description: 'Slices people',
       photo: this.base64Photo
     },
