@@ -10,11 +10,12 @@ import { NotesComponent } from '../notes/notes.component';
 import { ChatButtonComponent } from '../chat-button/chat-button.component';
 import { RollButtonComponent } from '../roll-button/roll-button.component';
 import { vcButtonComponent } from '../vcbutton/vcbutton.component';
+import { SoundbarComponent } from '../soundbar/soundbar.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, BoardComponent, FamilyComponent, FriendsComponent, InventoryComponent, SkillsComponent, NotesComponent, ChatButtonComponent, RollButtonComponent, vcButtonComponent],
+  imports: [CommonModule, BoardComponent, FamilyComponent, FriendsComponent, InventoryComponent, SkillsComponent, NotesComponent, ChatButtonComponent, RollButtonComponent, vcButtonComponent, SoundbarComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
@@ -37,7 +38,6 @@ export class HomeComponent {
   }
 
   navigateTo(route: string) {
-    console.log(route)
     if (route == 'login') {      
       localStorage.clear()
     }

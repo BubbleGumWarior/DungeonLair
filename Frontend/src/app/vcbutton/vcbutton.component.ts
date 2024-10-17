@@ -28,7 +28,6 @@ export class vcButtonComponent {
     this.vcMembers = Array.from({ length: 5 }, (_, index) => ({
         username: `Bot${index}`
     }));
-    console.log(this.vcMembers); // Log the members to check the values
   }
 
   loadFromLocalStorage() {
@@ -63,9 +62,7 @@ export class vcButtonComponent {
   }
 
   isMember(): boolean {
-    console.log("Checking member")
     const stopurpleEmail = localStorage.getItem('Username');
-    console.log(stopurpleEmail)
     return stopurpleEmail ? this.vcMembers.some(member => member.username === stopurpleEmail) : false;
   }
 

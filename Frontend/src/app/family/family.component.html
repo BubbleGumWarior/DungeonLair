@@ -1,1 +1,18 @@
-<p class="text-white">family works!</p>
+<div class="grid grid-cols-4 gap-6 p-6">
+    <div *ngFor="let character of characters" class="flex flex-row items-start p-4 text-purple-500 h-full w-full bg-purple-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-purple-500 mb-4">
+        <div class="flex flex-col w-full">
+            <div class="text-center">
+                <div class="h-full mb-4 flex items-center justify-center"> <!-- Added flex classes -->
+                    <img [src]="character.photo" alt="{{ character.name }}" class="h-32 w-32 object-cover rounded-md">
+                </div>
+                <h2 class="text-3xl font-bold">{{ character.name }}</h2>
+                <p class="text-sm">Age: {{ character.age }}</p>
+                <p class="text-sm">Race: {{ character.race }}</p>
+                <p class="text-sm">Relationship: {{ character.relationship }}</p>
+            </div>
+        </div>
+    </div>    
+</div>
+<div class="grid grid-cols-2 gap-6 p-6 h-20">
+
+</div>
