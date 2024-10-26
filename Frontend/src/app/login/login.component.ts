@@ -17,7 +17,7 @@ export class LoginComponent {
 
   onSubmit() {
     // Use fetch API to send login request
-    fetch('http://localhost:3000/login', {
+    fetch('http://102.182.41.110:3000/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
