@@ -50,7 +50,7 @@ app.post('/login', async (req, res) => {
     }
   
     // Generate JWT including characterName
-    const token = jwt.sign({ email: user.email, role: user.role, characterName: user.characterName }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ email: user.email, role: user.role, characterName: user.characterName, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
     res.json({ token });
 });
 

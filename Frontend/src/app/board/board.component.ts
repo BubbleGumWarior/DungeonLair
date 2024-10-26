@@ -8,7 +8,7 @@ import { Component, Input, EventEmitter, Output  } from '@angular/core';
   styleUrl: './board.component.css'
 })
 export class BoardComponent {
-  @Input() username: string | null = '';
+  @Input() characterName: string | null = '';
 
   showPopup: boolean = false;
   rollResult: number = 0;

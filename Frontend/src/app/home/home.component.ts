@@ -35,22 +35,24 @@ import { jwtDecode } from 'jwt-decode';
 export class HomeComponent {
   diceResult: string = '';
   username: string | null = null; // Initialize username as null
+  characterName: string | null = null;
 
   constructor(private router: Router) {}
 
   ngOnInit() {
-    this.loadUsernameFromToken();
+    this.loadDataFromToken();
     if (!this.username) {
       this.router.navigate(['/login']);
     }
   }
 
-  loadUsernameFromToken() {
+  loadDataFromToken() {
     const token = localStorage.getItem('token'); // Get the JWT from localStorage
     if (token) {
       try {
         const decoded: any = jwtDecode(token); // Decode the JWT
         this.username = decoded.username; // Extract the username
+        this.characterName = decoded.characterName;
       } catch (error) {
         console.error('Failed to decode token:', error);
       }
