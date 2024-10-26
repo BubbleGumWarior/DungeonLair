@@ -20,17 +20,16 @@
 
   <div class="container mx-auto mt-10">
     <h1 class="text-3xl font-bold text-center text-purple-500" *ngIf="currentView === 'home'">Welcome to the Home Page!</h1>
-    <app-board *ngIf="currentView === 'board'" [username]= "username"></app-board>
+    <app-board *ngIf="currentView === 'board'" [username]= "username" (resultRolled)="handleDiceResult($event)"></app-board>
     <app-family *ngIf="currentView === 'family'"></app-family>
     <app-friends *ngIf="currentView === 'friends'"></app-friends>
-    <app-inventory *ngIf="currentView === 'inventory'"></app-inventory>
-    <app-skills *ngIf="currentView === 'skills'"></app-skills>
+    <app-inventory *ngIf="currentView === 'inventory'" (resultRolled)="handleDiceResult($event)"></app-inventory>
+    <app-skills *ngIf="currentView === 'skills'" (resultRolled)="handleDiceResult($event)"></app-skills>
     <app-notes *ngIf="currentView === 'notes'"></app-notes>
   </div>
 
-  <app-chat-button></app-chat-button>
-  <app-roll-button></app-roll-button>
+  <app-chat-button [newMessage]="diceResult" [username]="username || 'DefaultUser'"></app-chat-button>
+  <app-roll-button (resultRolled)="handleDiceResult($event)"></app-roll-button>
   <app-vc-button></app-vc-button>
   <app-soundbar></app-soundbar>
-
 </div>

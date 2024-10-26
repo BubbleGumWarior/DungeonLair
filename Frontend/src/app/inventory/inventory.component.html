@@ -9,10 +9,13 @@
                 <p class="text-sm">Type: {{ item.type }}</p>
                 <p class="text-sm">Main Stat: {{ item.mainStat }}</p>                
                 <p class="text-sm">Description: {{ item.description }}</p>
-                <div class="flex justify-center items-center">
-                    <p class="text-sm ml-2 mr-5">Damage:</p>
-                    <p class="text-xl ml-2 cursor-pointer hover:text-white">{{ item.damage }}</p>
+                <br>
+                <p class="text-xl">Damage</p>
+                <div class="flex justify-around hover:text-white cursor-pointer" (click)="rollDice($event)">
+                    <p class="text-3xl">{{ item.damage }}</p>
+                    <p class="text-3xl">{{ item.modifier }}</p>
                 </div>
+                
             </div>
         </div>
     </div>    

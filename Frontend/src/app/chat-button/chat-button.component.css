@@ -10,6 +10,8 @@
 .chat-history {
   max-height: 66vh; /* Set maximum height for chat history */
   overflow-y: auto; /* Enable vertical scrolling */
+  display: flex;
+  flex-direction: column-reverse;
 }
 
 /* Custom scrollbar styles */

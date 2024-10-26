@@ -11,7 +11,7 @@
     <div class="p-4 h-full">
       <h2 class="font-bold h-min mb-2 text-purple-500">Chat</h2>
       <div class="chat-history h-5/6 overflow-y-auto border-b border-black mb-2">
-        <div *ngFor="let chat of chatHistory" class="message p-2 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 mr-4">
+        <div #scrollContainer *ngFor="let chat of chatHistory" class="message p-2 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 mr-4">
           <strong>{{ chat.sender }}:</strong> {{ chat.message }}
         </div>
       </div>

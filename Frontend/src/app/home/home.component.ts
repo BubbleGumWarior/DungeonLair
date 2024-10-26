@@ -20,9 +20,14 @@ import { SoundbarComponent } from '../soundbar/soundbar.component';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent {
+  diceResult: string = '';
+  handleDiceResult(result: string) {
+    this.diceResult = result;  // Update the result when emitted
+  }
+  
   constructor(private router: Router) {}
 
-  username: string | null = '';
+  username: string | null = 'DefaultUser';
 
   ngOnInit() {
     this.username = localStorage.getItem('Username');
