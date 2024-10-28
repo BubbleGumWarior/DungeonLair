@@ -19,7 +19,7 @@ export class RegisterComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       role: ['Player'],
-      characterName: ['Daeron Brightflame']
+      characterName: ['User' + Math.floor(Math.random() * 1000) + 1]
     });
   }
 

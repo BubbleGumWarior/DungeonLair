@@ -6,6 +6,7 @@ const User = sequelize.define('User', {
   username: {
     type: DataTypes.STRING,
     allowNull: false,
+    unique: true,
   },
   email: {
     type: DataTypes.STRING,
@@ -23,8 +24,10 @@ const User = sequelize.define('User', {
   characterName: {
     type: DataTypes.STRING,
     allowNull: false,
-    // Optionally define associations here if needed
+    unique: true,
   },
+}, {
+  tableName: 'users', // Explicitly define table name in lowercase
 });
 
 module.exports = User;

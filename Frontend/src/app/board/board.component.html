@@ -4,15 +4,19 @@
         <div>            
             <div class="flex justify-between">
                 <h2 class="text-4xl font-bold">Strength</h2>
-                <p class="text-4xl font-bold">18</p>
+                <p class="text-4xl font-bold">{{ strength }}</p>
             </div>
             <div class="flex justify-center">
-                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">(+4)</p>
+                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{strengthMod}})</p>
             </div>            
             <ul class="text-sm">
                 <li class="flex justify-between">
                     <span>Athletics</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+6</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ athletics }}</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Swordsmanship</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ swordsmanship }}</span>
                 </li>
             </ul>
         </div>
@@ -20,33 +24,41 @@
         <div>            
             <div class="flex justify-between">
                 <h2 class="text-4xl font-bold">Dexterity</h2>
-                <p class="text-4xl font-bold">14</p>
+                <p class="text-4xl font-bold">{{ dexterity }}</p>
             </div>
             <div class="flex justify-center">
-                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">(+2)</p>
+                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{dexterityMod}})</p>
             </div>            
             <ul class="text-sm">
                 <li class="flex justify-between">
                     <span>Acrobatics</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+4</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ acrobatics }}</span>
                 </li>
                 <li class="flex justify-between">
                     <span>Sleight of Hand</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+3</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ sleightOfHand }}</span>
                 </li>
                 <li class="flex justify-between">
                     <span>Stealth</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+5</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ stealth }}</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Marksmanship</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ marksmanship }}</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Pilot</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ pilot }}</span>
                 </li>
             </ul>
         </div>
         <div>            
             <div class="flex justify-between">
                 <h2 class="text-4xl font-bold">Constitution</h2>
-                <p class="text-4xl font-bold">16</p>
+                <p class="text-4xl font-bold">{{ constitution }}</p>
             </div>
             <div class="flex justify-center">
-                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">(+3)</p>
+                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{constitutionMod}})</p>
             </div>            
             <ul class="text-sm">
                 <li class="flex justify-between">
@@ -60,13 +72,13 @@
     <!-- Column 2: Character Bio and Image -->
     <div class="flex flex-col items-center p-4 text-purple-500 h-full w-full bg-purple-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-purple-500">
         <div class="bg-white w-full h-full mb-4">
-            
+            <img *ngIf="photo" [src]="'data:image/jpeg;base64,' + photo" alt="Character Photo" class="w-full h-full" />
         </div>
         <div class="text-center">
             <h2 class="text-3xl font-bold">{{ characterName }}</h2>
-            <p class="text-sm">Race: Elf</p>
-            <p class="text-sm">Class: Ranger</p>
-            <p class="text-sm">Level: 5</p>
+            <p class="text-sm">Race: {{race}}</p>
+            <p class="text-sm">Class: {{class}}</p>
+            <p class="text-sm">Level: {{level}}</p>
         </div>
     </div>
 
@@ -75,31 +87,31 @@
         <div>            
             <div class="flex justify-between">
                 <h2 class="text-4xl font-bold">Intelligence</h2>
-                <p class="text-4xl font-bold">12</p>
+                <p class="text-4xl font-bold">{{ intelligence }}</p>
             </div>
             <div class="flex justify-center">
-                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">(+1)</p>
+                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{intelligenceMod}})</p>
             </div>            
             <ul class="text-sm">
                 <li class="flex justify-between">
-                    <span>Arcana</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+2</span>
-                </li>
-                <li class="flex justify-between">
                     <span>History</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+1</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ history }}</span>
                 </li>
                 <li class="flex justify-between">
                     <span>Investigation</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+3</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ investigation }}</span>
                 </li>
                 <li class="flex justify-between">
                     <span>Nature</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+2</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ nature }}</span>
                 </li>
                 <li class="flex justify-between">
-                    <span>Religion</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+1</span>
+                    <span>Force Strength</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ forceStrength }}</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Splicing</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ splicing }}</span>
                 </li>
             </ul>
         </div>
@@ -107,31 +119,39 @@
         <div>            
             <div class="flex justify-between">
                 <h2 class="text-4xl font-bold">Wisdom</h2>
-                <p class="text-4xl font-bold">15</p>
+                <p class="text-4xl font-bold">{{ wisdom }}</p>
             </div>
             <div class="flex justify-center">
-                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">(+2)</p>
+                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{wisdomMod}})</p>
             </div>            
             <ul class="text-sm">
                 <li class="flex justify-between">
                     <span>Animal handling</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+4</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ animalHandling }}</span>
                 </li>
                 <li class="flex justify-between">
                     <span>Insight</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+3</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ insight }}</span>
                 </li>
                 <li class="flex justify-between">
                     <span>Medicine</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+2</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ medicine }}</span>
                 </li>
                 <li class="flex justify-between">
                     <span>Perception</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+5</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ perception }}</span>
                 </li>
                 <li class="flex justify-between">
                     <span>Survival</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+4</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ survival }}</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>Force Capacity</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ forceCapacity }}</span>
+                </li>
+                <li class="flex justify-between">
+                    <span>mapping</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ mapping }}</span>
                 </li>
             </ul>
         </div>
@@ -139,27 +159,27 @@
         <div>            
             <div class="flex justify-between">
                 <h2 class="text-4xl font-bold">Charisma</h2>
-                <p class="text-4xl font-bold">10</p>
+                <p class="text-4xl font-bold">{{ charisma }}</p>
             </div>
             <div class="flex justify-center">
-                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">(+0)</p>
+                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{charismaMod}})</p>
             </div>            
             <ul class="text-sm">
                 <li class="flex justify-between">
                     <span>Deception</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+1</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ deception }}</span>
                 </li>
                 <li class="flex justify-between">
                     <span>Intimidation</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+2</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ intimidation }}</span>
                 </li>
                 <li class="flex justify-between">
                     <span>Performance</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">-5</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ performance }}</span>
                 </li>
                 <li class="flex justify-between">
                     <span>Persuasion</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">+2</span>
+                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ persuasion }}</span>
                 </li>
             </ul>
         </div>
