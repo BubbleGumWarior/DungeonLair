@@ -32,7 +32,6 @@ export class LoginComponent {
     })
     .then(data => {
       // Log the response from the server
-      console.log('Server response:', data);
       
       // Store the JWT token in localStorage
       localStorage.setItem('token', data.token);

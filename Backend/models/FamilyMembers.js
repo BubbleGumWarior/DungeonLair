@@ -4,14 +4,7 @@ const sequelize = require('../db');
 const CharacterInfo = require('./CharacterInfo'); // Import the CharacterInfo model
 
 const FamilyMember = sequelize.define('FamilyMember', {
-  characterID: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'character_infos', // Explicitly specify the lowercase table name
-      key: 'id',
-    },
-  },
+  characterID: DataTypes.INTEGER,
   characterName: DataTypes.STRING,
   age: DataTypes.INTEGER,
   race: DataTypes.STRING,

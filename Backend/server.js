@@ -161,7 +161,6 @@ app.get('/character-info/:characterName', async (req, res) => {
 
 // Endpoint for familyMembers get
 app.get('/family-member/:familyMemberID', async (req, res) => {
-  console.log("_________________________________");
   
   // Extract familyMemberID from request parameters
   const { familyMemberID } = req.params;
@@ -175,6 +174,48 @@ app.get('/family-member/:familyMemberID', async (req, res) => {
     }
     
     res.json(familyMember);
+  } catch (error) {
+    console.error('Error fetching character info:', error);
+    res.status(500).json({ error: 'Failed to fetch Character Info' });
+  }
+});
+
+// Endpoint for friendMembers get
+app.get('/friend-member/:friendMemberID', async (req, res) => {
+  
+  // Extract friendMemberID from request parameters
+  const { friendMemberID } = req.params;
+
+  try {
+    // Query using friendMemberID
+    const friendMember = await FriendMembers.findOne({ where: { id: friendMemberID } }); // Assuming the column name is 'id'
+    
+    if (!friendMember) {
+      return res.status(404).json({ error: 'Character Info not found' });
+    }
+    
+    res.json(friendMember);
+  } catch (error) {
+    console.error('Error fetching character info:', error);
+    res.status(500).json({ error: 'Failed to fetch Character Info' });
+  }
+});
+
+// Endpoint for ItemList get
+app.get('/item-list/:ItemID', async (req, res) => {
+  
+  // Extract ItemID from request parameters
+  const { ItemID } = req.params;
+
+  try {
+    // Query using ItemID
+    const itemEntry = await ItemList.findOne({ where: { id: ItemID } }); // Assuming the column name is 'id'
+    
+    if (!itemEntry) {
+      return res.status(404).json({ error: 'Character Info not found' });
+    }
+    
+    res.json(itemEntry);
   } catch (error) {
     console.error('Error fetching character info:', error);
     res.status(500).json({ error: 'Failed to fetch Character Info' });

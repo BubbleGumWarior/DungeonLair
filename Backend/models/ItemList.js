@@ -3,11 +3,7 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
 
 const ItemList = sequelize.define('ItemList', {
-  itemID: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    unique: true,
-  },
+  itemID: DataTypes.INTEGER,
   photo: DataTypes.TEXT,
   itemName: DataTypes.STRING,
   type: DataTypes.STRING,

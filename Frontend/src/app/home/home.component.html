@@ -22,8 +22,8 @@
     <h1 class="text-3xl font-bold text-center text-purple-500" *ngIf="currentView === 'home'">Welcome to the Home Page!</h1>
     <app-board *ngIf="currentView === 'board'" [characterName]= "characterName" (resultRolled)="handleDiceResult($event)"></app-board>
     <app-family *ngIf="currentView === 'family'" [characterName]= "characterName"></app-family>
-    <app-friends *ngIf="currentView === 'friends'"></app-friends>
-    <app-inventory *ngIf="currentView === 'inventory'" (resultRolled)="handleDiceResult($event)"></app-inventory>
+    <app-friends *ngIf="currentView === 'friends'" [characterName]= "characterName"></app-friends>
+    <app-inventory *ngIf="currentView === 'inventory'" (resultRolled)="handleDiceResult($event)" [characterName]= "characterName"></app-inventory>
     <app-skills *ngIf="currentView === 'skills'" (resultRolled)="handleDiceResult($event)"></app-skills>
     <app-notes *ngIf="currentView === 'notes'"></app-notes>
   </div>

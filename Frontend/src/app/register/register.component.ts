@@ -50,7 +50,6 @@ export class RegisterComponent {
       return response.text();
     })
     .then(data => {
-      console.log(data); // Log the response from the server
       this.navigateTo('/');
     })
     .catch(error => {

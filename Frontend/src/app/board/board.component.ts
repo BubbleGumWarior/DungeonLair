@@ -77,7 +77,6 @@ export class BoardComponent implements OnInit {
       
       const statsSheet = await response.json();
       this.updateStats(statsSheet);  // Update stats with the fetched data
-      console.log(statsSheet); // Optional: to confirm data in console
     } catch (error) {
       console.error('Error fetching stats sheet:', error);
     }
@@ -90,7 +89,6 @@ export class BoardComponent implements OnInit {
       
       const characterInfo = await response.json();
       this.updateCharacterInfo(characterInfo);  // Update stats with the fetched data
-      console.log(characterInfo); // Optional: to confirm data in console
     } catch (error) {
       console.error('Error fetching stats sheet:', error);
     }

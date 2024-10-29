@@ -3,14 +3,7 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
 
 const FriendMembers = sequelize.define('FriendMembers', {
-  characterID: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'character_infos',
-      key: 'id',
-    },
-  },
+  characterID: DataTypes.INTEGER,
   characterName: DataTypes.STRING,
   age: DataTypes.INTEGER,
   race: DataTypes.STRING,

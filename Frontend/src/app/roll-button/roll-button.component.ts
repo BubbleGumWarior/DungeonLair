@@ -55,8 +55,6 @@ export class RollButtonComponent {
       
       const modifier = parseInt(modifierValueText, 10);  // Convert string to number
       const roll = Math.floor(Math.random() * diceRoll) + 1;  // Roll a dice
-      
-      console.log(diceSize)
       if (roll === diceRoll) {
         resultMessage = `Critical ${diceRoll}!!!`;  // Ignore modifier
       } else if (roll === 1) {
@@ -65,8 +63,6 @@ export class RollButtonComponent {
         const finalResult = roll + modifier;
         resultMessage = `You have rolled a ${roll} with a modifier of ${modifier >= 0 ? '+' + modifier : modifier} and got ${finalResult}`;
       }
-
-      console.log(resultMessage)
       this.toggleRoll()
       this.resultRolled.emit(resultMessage);
       }    

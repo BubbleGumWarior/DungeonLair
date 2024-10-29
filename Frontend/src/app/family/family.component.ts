@@ -2,7 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 interface Character {
-  name: string;
+  characterName: string;
   age: number;
   race: string;
   relationship: string;
@@ -64,6 +64,5 @@ export class FamilyComponent implements OnInit {
   updateCharacters(character: Character) {
     // Append the fetched character to the Characters array
     this.Characters.push(character);
-    console.log(this.Characters); // Debugging output to see the updated characters array
   }
 }
