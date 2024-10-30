@@ -11,6 +11,7 @@ const FamilyMembers = require('./models/FamilyMembers'); // Import the FamilyMem
 const FriendMembers = require('./models/FriendMembers'); // Import the FriendMembers model
 const ItemList = require('./models/ItemList'); // Import the ItemList model
 const SkillList = require('./models/SkillList'); // Import the SkillList model
+const ChatHistory = require('./models/ChatHistory'); // Import the ChatHistory model
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = 'your_jwt_secret'; // Use a secure secret key for JWT
@@ -240,6 +241,52 @@ app.get('/skill-list/:SkillID', async (req, res) => {
   } catch (error) {
     console.error('Error fetching character info:', error);
     res.status(500).json({ error: 'Failed to fetch Character Info' });
+  }
+});
+
+// Endpoint for chatHistory get
+app.get('/chat-history/', async (req, res) => {
+  try {
+    const chatHistory = await ChatHistory.findAll(); // Fetch all chat history
+
+    // Check if chatHistory is empty
+    if (chatHistory.length === 0) {
+      return res.status(404).json({ error: 'Chat History not found' });
+    }
+
+    // Respond with chat history
+    res.status(200).json(chatHistory); // Explicitly setting the status to 200
+  } catch (error) {
+    console.error('Error fetching chatHistory:', error);
+    res.status(500).json({ error: 'Failed to fetch chatHistory' });
+  }
+});
+
+// Endpoint for adding a new chat message
+// Endpoint for adding a new chat message
+app.post('/chat-history/', async (req, res) => {
+  try {
+    const { username, message } = req.body;
+
+    // Ensure all required fields are provided
+    if (!username || !message) {
+      return res.status(400).json({ error: 'Username and message are required' });
+    }
+
+    // Create a new chat history entry without specifying the ID
+    const newChatMessage = await ChatHistory.create({
+      username,
+      message,
+      timestamp: new Date(),  // Add the current timestamp
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    // Respond with the created message
+    res.status(201).json(newChatMessage); // 201 Created
+  } catch (error) {
+    console.error('Error adding chat message:', error);
+    res.status(500).json({ error: 'Failed to add chat message' });
   }
 });
 

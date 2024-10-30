@@ -31,13 +31,7 @@ export class RollButtonComponent {
 
   diceSizeText: string = '';
   modifierValueText: string = '';
-
-  onSubmit() {
-    localStorage.setItem('diceSizeText', this.diceSizeText);
-    localStorage.setItem('modifierValueText', this.modifierValueText);
-    localStorage.setItem('Username', "TestUser");
-  }
-
+  
   rollDice() {
     const diceSizeText = this.diceSizeText;
     const modifierValueText = this.modifierValueText;
