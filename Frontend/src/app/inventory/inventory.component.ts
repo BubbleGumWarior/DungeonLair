@@ -69,7 +69,7 @@ export class InventoryComponent implements OnInit {
       // Wait for all fetch requests to complete
       await Promise.all(fetchPromises);
     } catch (error) {
-      console.error('Error fetching friend member details:', error);
+      console.error('Error fetching item list details:', error);
     }
   }
 

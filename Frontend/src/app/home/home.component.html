@@ -24,7 +24,7 @@
     <app-family *ngIf="currentView === 'family'" [characterName]= "characterName"></app-family>
     <app-friends *ngIf="currentView === 'friends'" [characterName]= "characterName"></app-friends>
     <app-inventory *ngIf="currentView === 'inventory'" (resultRolled)="handleDiceResult($event)" [characterName]= "characterName"></app-inventory>
-    <app-skills *ngIf="currentView === 'skills'" (resultRolled)="handleDiceResult($event)"></app-skills>
+    <app-skills *ngIf="currentView === 'skills'" (resultRolled)="handleDiceResult($event)" [characterName]= "characterName"></app-skills>
     <app-notes *ngIf="currentView === 'notes'"></app-notes>
   </div>
 

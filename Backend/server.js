@@ -222,6 +222,27 @@ app.get('/item-list/:ItemID', async (req, res) => {
   }
 });
 
+// Endpoint for SkillList get
+app.get('/skill-list/:SkillID', async (req, res) => {
+  
+  // Extract SkillID from request parameters
+  const { SkillID } = req.params;
+
+  try {
+    // Query using SkillID
+    const skillEntry = await SkillList.findOne({ where: { id: SkillID } }); // Assuming the column name is 'id'
+    
+    if (!skillEntry) {
+      return res.status(404).json({ error: 'Character Info not found' });
+    }
+    
+    res.json(skillEntry);
+  } catch (error) {
+    console.error('Error fetching character info:', error);
+    res.status(500).json({ error: 'Failed to fetch Character Info' });
+  }
+});
+
 
 // Start the server
 app.listen(PORT, () => {

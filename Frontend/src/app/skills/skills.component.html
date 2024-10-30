@@ -1,11 +1,11 @@
 <div class="grid grid-cols-2 gap-6 p-6">
-    <div *ngFor="let skill of skills" 
+    <div *ngFor="let skill of Skill" 
         class="flex flex-col items-start p-4 text-purple-500 h-full w-full bg-purple-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-purple-500 mb-4">
         
         <!-- Top content (always at the top) -->
         <div class="w-full text-center">
-            <h2 class="text-3xl font-bold">{{ skill.name }}</h2>                         
-            <p class="text-xl">Stat Modifier: {{ skill.stat }}</p> 
+            <h2 class="text-3xl font-bold">{{ skill.skillName }}</h2>                         
+            <p class="text-xl">Stat Modifier: {{ skill.mainStat }}</p> 
             <p class="text-sm">{{ skill.description }}</p>       
         </div>
 
@@ -16,7 +16,7 @@
         <div class="w-full text-center">
             <p class="text-xl">Damage</p>    
             <div class="flex justify-around hover:text-white cursor-pointer" (click)="rollDice($event)">
-                <p class="text-3xl">{{ skill.damage }}</p>
+                <p class="text-3xl">d{{ skill.diceRoll }}</p>
                 <p class="text-3xl">{{ skill.modifier }}</p>
             </div>
         </div>            
