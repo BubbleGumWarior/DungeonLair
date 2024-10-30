@@ -1,6 +1,7 @@
 <div *ngIf="!isOpen" class="fixed bottom-4 left-4">
   <button
-    class="chat-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200"
+    [ngClass]="{'bg-red-500': isNewMessage, 'bg-purple-500': !isNewMessage}"
+    class="chat-button p-3 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200"
     (click)="toggleChat()"
   >
     <i class="fas fa-comment"></i>
@@ -15,7 +16,7 @@
         <strong>{{ chat.username }}:</strong> {{ chat.message }}
       </div>
     </div>
-    <form (ngSubmit)="sendMessage()" class="flex">  <!-- Form with submit event -->
+    <form (ngSubmit)="sendMessage()" class="flex">
       <input
         type="text"
         placeholder="Type a message..."

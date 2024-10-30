@@ -12,286 +12,188 @@ const FriendMembers = require('./models/FriendMembers'); // Import the FriendMem
 const ItemList = require('./models/ItemList'); // Import the ItemList model
 const SkillList = require('./models/SkillList'); // Import the SkillList model
 const ChatHistory = require('./models/ChatHistory'); // Import the ChatHistory model
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = 'your_jwt_secret'; // Use a secure secret key for JWT
+const http = require('http');
+const { Server } = require('socket.io');
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "http://localhost:4200", // Change to your client URL
+        methods: ["GET", "POST"]
+    }
+});
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.json());
 
 // Sync the database
-sequelize.sync({ force: false})
-  .then(() => {
-    console.log('Database synced');
-  })
-  .catch((error) => {
-    console.error('Error syncing database:', error);
-  });
+sequelize.sync({ force: false })
+    .then(() => {
+        console.log('Database synced');
+    })
+    .catch((error) => {
+        console.error('Error syncing database:', error);
+    });
 
 // Endpoint to receive registration data
 app.post('/register', async (req, res) => {
-  const { username, email, password, role, characterName } = req.body;
+    const { username, email, password, role, characterName } = req.body;
 
-  try {
-    // Check if the user already exists
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(400).send('User already exists');
+    try {
+        // Check if the user already exists
+        const existingUser = await User.findOne({ where: { email } });
+        if (existingUser) {
+            return res.status(400).send('User already exists');
+        }
+
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create the user in the database
+        const newUser = await User.create({
+            username,
+            email,
+            password: hashedPassword,
+            role,
+            characterName
+        });
+
+        // Initialize CharacterInfo with default values
+        await CharacterInfo.create({
+            characterName,
+            race: 'Unknown',
+            class: 'Unknown',
+            level: 0,
+            photo: null,
+            statsSheet: null,
+            familyMembers: [],
+            friendMembers: [],
+            itemInventory: [],
+            skillList: []
+        });
+
+        // Initialize StatsSheet with 0 values for each stat
+        await StatsSheet.create({
+            characterName,
+            strength: 0,
+            athletics: 0,
+            swordsmanship: 0,
+            dexterity: 0,
+            acrobatics: 0,
+            sleightOfHand: 0,
+            stealth: 0,
+            marksmanship: 0,
+            pilot: 0,
+            constitution: 0,
+            intelligence: 0,
+            arcana: 0,
+            history: 0,
+            investigation: 0,
+            nature: 0,
+            forceStrength: 0,
+            splicing: 0,
+            wisdom: 0,
+            animalHandling: 0,
+            insight: 0,
+            medicine: 0,
+            perception: 0,
+            survival: 0,
+            forceCapacity: 0,
+            mapping: 0,
+            charisma: 0,
+            deception: 0,
+            intimidation: 0,
+            performance: 0,
+            persuasion: 0,
+        });
+
+        res.status(201).send('User and character registered successfully with default entries');
+    } catch (error) {
+        console.error('Error in /register:', error);
+        res.status(500).send('An error occurred while registering the user');
     }
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create the user in the database
-    const newUser = await User.create({
-      username,
-      email,
-      password: hashedPassword,
-      role,
-      characterName
-    });
-
-    // Initialize CharacterInfo with default values
-    const newCharacterInfo = await CharacterInfo.create({
-      characterName,
-      race: 'Unknown',
-      class: 'Unknown',
-      level: 0,
-      photo: null,
-      statsSheet: null,
-      familyMembers: [],
-      friendMembers: [],
-      itemInventory: [],
-      skillList: []
-    });
-
-    // Initialize StatsSheet with 0 values for each stat
-    await StatsSheet.create({
-      characterName,
-      strength: 0,
-      athletics: 0,
-      swordsmanship: 0,
-      dexterity: 0,
-      acrobatics: 0,
-      sleightOfHand: 0,
-      stealth: 0,
-      marksmanship: 0,
-      pilot: 0,
-      constitution: 0,
-      intelligence: 0,
-      arcana: 0,
-      history: 0,
-      investigation: 0,
-      nature: 0,
-      forceStrength: 0,
-      splicing: 0,
-      wisdom: 0,
-      animalHandling: 0,
-      insight: 0,
-      medicine: 0,
-      perception: 0,
-      survival: 0,
-      forceCapacity: 0,
-      mapping: 0,
-      charisma: 0,
-      deception: 0,
-      intimidation: 0,
-      performance: 0,
-      persuasion: 0,
-    });
-
-    res.status(201).send('User and character registered successfully with default entries');
-  } catch (error) {
-    console.error('Error in /register:', error);
-    res.status(500).send('An error occurred while registering the user');
-  }
 });
 
 // Endpoint for login (to generate JWT)
 app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ where: { email } });
+    const { email, password } = req.body;
+    const user = await User.findOne({ where: { email } });
 
-  if (!user) {
-    return res.status(401).send('Invalid credentials');
-  }
-
-  // Compare hashed password
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    return res.status(401).send('Invalid credentials');
-  }
-
-  // Generate JWT including characterName
-  const token = jwt.sign({ email: user.email, role: user.role, characterName: user.characterName, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
-  res.json({ token });
-});
-
-// Endpoint for statsSheet get
-app.get('/stats-sheet/:characterName', async (req, res) => {
-  const { characterName } = req.params;
-
-  try {
-    const statsSheet = await StatsSheet.findOne({ where: { characterName } });
-    if (!statsSheet) {
-      return res.status(404).json({ error: 'Stats sheet not found' });
+    if (!user) {
+        return res.status(401).send('Invalid credentials');
     }
-    res.json(statsSheet);
-  } catch (error) {
-    console.error('Error fetching stats sheet:', error);
-    res.status(500).json({ error: 'Failed to fetch stats sheet' });
-  }
-});
 
-// Endpoint for characterInfo get
-app.get('/character-info/:characterName', async (req, res) => {
-  const { characterName } = req.params;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).json({ error: 'Character Info not found' });
+    // Compare hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+        return res.status(401).send('Invalid credentials');
     }
-    res.json(characterInfo);
-  } catch (error) {
-    console.error('Error fetching character info:', error);
-    res.status(500).json({ error: 'Failed to fetch Character Info' });
-  }
+
+    // Generate JWT including characterName
+    const token = jwt.sign({ email: user.email, role: user.role, characterName: user.characterName, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token });
 });
 
-// Endpoint for familyMembers get
-app.get('/family-member/:familyMemberID', async (req, res) => {
-  
-  // Extract familyMemberID from request parameters
-  const { familyMemberID } = req.params;
+// Define your other endpoints here...
 
-  try {
-    // Query using familyMemberID
-    const familyMember = await FamilyMembers.findOne({ where: { id: familyMemberID } }); // Assuming the column name is 'id'
-    
-    if (!familyMember) {
-      return res.status(404).json({ error: 'Character Info not found' });
-    }
-    
-    res.json(familyMember);
-  } catch (error) {
-    console.error('Error fetching character info:', error);
-    res.status(500).json({ error: 'Failed to fetch Character Info' });
-  }
-});
-
-// Endpoint for friendMembers get
-app.get('/friend-member/:friendMemberID', async (req, res) => {
-  
-  // Extract friendMemberID from request parameters
-  const { friendMemberID } = req.params;
-
-  try {
-    // Query using friendMemberID
-    const friendMember = await FriendMembers.findOne({ where: { id: friendMemberID } }); // Assuming the column name is 'id'
-    
-    if (!friendMember) {
-      return res.status(404).json({ error: 'Character Info not found' });
-    }
-    
-    res.json(friendMember);
-  } catch (error) {
-    console.error('Error fetching character info:', error);
-    res.status(500).json({ error: 'Failed to fetch Character Info' });
-  }
-});
-
-// Endpoint for ItemList get
-app.get('/item-list/:ItemID', async (req, res) => {
-  
-  // Extract ItemID from request parameters
-  const { ItemID } = req.params;
-
-  try {
-    // Query using ItemID
-    const itemEntry = await ItemList.findOne({ where: { id: ItemID } }); // Assuming the column name is 'id'
-    
-    if (!itemEntry) {
-      return res.status(404).json({ error: 'Character Info not found' });
-    }
-    
-    res.json(itemEntry);
-  } catch (error) {
-    console.error('Error fetching character info:', error);
-    res.status(500).json({ error: 'Failed to fetch Character Info' });
-  }
-});
-
-// Endpoint for SkillList get
-app.get('/skill-list/:SkillID', async (req, res) => {
-  
-  // Extract SkillID from request parameters
-  const { SkillID } = req.params;
-
-  try {
-    // Query using SkillID
-    const skillEntry = await SkillList.findOne({ where: { id: SkillID } }); // Assuming the column name is 'id'
-    
-    if (!skillEntry) {
-      return res.status(404).json({ error: 'Character Info not found' });
-    }
-    
-    res.json(skillEntry);
-  } catch (error) {
-    console.error('Error fetching character info:', error);
-    res.status(500).json({ error: 'Failed to fetch Character Info' });
-  }
-});
-
-// Endpoint for chatHistory get
+// Chat history endpoints
 app.get('/chat-history/', async (req, res) => {
-  try {
-    const chatHistory = await ChatHistory.findAll(); // Fetch all chat history
-
-    // Check if chatHistory is empty
-    if (chatHistory.length === 0) {
-      return res.status(404).json({ error: 'Chat History not found' });
+    try {
+        const chatHistory = await ChatHistory.findAll();
+        if (chatHistory.length === 0) {
+            return res.status(404).json({ error: 'Chat History not found' });
+        }
+        res.status(200).json(chatHistory);
+    } catch (error) {
+        console.error('Error fetching chatHistory:', error);
+        res.status(500).json({ error: 'Failed to fetch chatHistory' });
     }
-
-    // Respond with chat history
-    res.status(200).json(chatHistory); // Explicitly setting the status to 200
-  } catch (error) {
-    console.error('Error fetching chatHistory:', error);
-    res.status(500).json({ error: 'Failed to fetch chatHistory' });
-  }
 });
 
-// Endpoint for adding a new chat message
 // Endpoint for adding a new chat message
 app.post('/chat-history/', async (req, res) => {
-  try {
-    const { username, message } = req.body;
+    try {
+        const { username, message } = req.body;
 
-    // Ensure all required fields are provided
-    if (!username || !message) {
-      return res.status(400).json({ error: 'Username and message are required' });
+        if (!username || !message) {
+            return res.status(400).json({ error: 'Username and message are required' });
+        }
+
+        const newChatMessage = await ChatHistory.create({
+            username,
+            message,
+            timestamp: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        });
+
+        // Emit the new message to all connected clients
+        io.emit('newMessage', newChatMessage); // Broadcast the new message
+        console.log('New message emitted:', newChatMessage);
+
+        res.status(201).json(newChatMessage);
+    } catch (error) {
+        console.error('Error adding chat message:', error);
+        res.status(500).json({ error: 'Failed to add chat message' });
     }
-
-    // Create a new chat history entry without specifying the ID
-    const newChatMessage = await ChatHistory.create({
-      username,
-      message,
-      timestamp: new Date(),  // Add the current timestamp
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    // Respond with the created message
-    res.status(201).json(newChatMessage); // 201 Created
-  } catch (error) {
-    console.error('Error adding chat message:', error);
-    res.status(500).json({ error: 'Failed to add chat message' });
-  }
 });
 
+// Socket.IO connection
+io.on('connection', (socket) => {
+    console.log('A user connected');
+
+    // Handle disconnection
+    socket.on('disconnect', () => {
+        console.log('A user disconnected');
+    });
+});
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+server.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
