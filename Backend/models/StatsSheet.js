@@ -3,14 +3,7 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
 
 const StatsSheet = sequelize.define('StatsSheet', {
-  characterName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    references: {
-      model: 'users',
-      key: 'characterName',
-    },
-  },
+  characterName: DataTypes.STRING,
   strength: DataTypes.STRING,
   athletics: DataTypes.STRING,
   swordsmanship: DataTypes.STRING,
