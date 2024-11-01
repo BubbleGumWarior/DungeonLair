@@ -48,7 +48,7 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy {
 
   setupSocketConnection() {
     // Connect to the Socket.IO server
-    this.socket = io(`https://${localIP}:8080`, {
+    this.socket = io(`wss://${localIP}:8080`, {
       transports: ['websocket']
     });
 

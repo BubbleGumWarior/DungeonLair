@@ -13,6 +13,7 @@ import { localIP } from '../config'; // Import the IP address
 export class RegisterComponent {
   registerForm: FormGroup;
   submitted = false;
+  errorMessage: string | null = null;
 
   constructor(private fb: FormBuilder, private router: Router) {
     this.registerForm = this.fb.group({
@@ -30,11 +31,30 @@ export class RegisterComponent {
 
   onSubmit(): void {
     this.submitted = true;
+    this.errorMessage = null;
+
     if (this.registerForm.invalid) {
+      this.errorMessage = 'Please fill out the form correctly.';
       return;
     }
 
-    const formData = this.registerForm.value;
+    const formData = {
+      ...this.registerForm.value,
+      race: 'Unknown',
+      class: 'Unknown',
+      level: 0,
+      photo: null,
+      familyMembers: [],
+      friendMembers: [],
+      itemInventory: [],
+      skillList: []
+    };
+
+    // Validate data types
+    if (typeof formData.username !== 'string' || typeof formData.email !== 'string' || typeof formData.password !== 'string' || typeof formData.role !== 'string' || typeof formData.characterName !== 'string') {
+      this.errorMessage = 'Invalid data types in form fields.';
+      return;
+    }
 
     // Use fetch API to send POST request to the register endpoint
     fetch(`https://${localIP}:8080/register`, {
@@ -46,7 +66,7 @@ export class RegisterComponent {
     })
     .then(response => {
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        return response.text().then(text => { throw new Error(text) });
       }
       return response.text();
     })
@@ -54,6 +74,7 @@ export class RegisterComponent {
       this.navigateTo('/');
     })
     .catch(error => {
+      this.errorMessage = `There was a problem with the fetch operation: ${error.message}`;
       console.error('There was a problem with the fetch operation:', error);
     });
   }

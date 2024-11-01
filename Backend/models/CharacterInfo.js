@@ -3,14 +3,6 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
 
 const CharacterInfo = sequelize.define('CharacterInfo', {
-  userId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'users', // Reference to User's id
-      key: 'id',
-    },
-  },
   characterName: DataTypes.STRING,
   race: DataTypes.STRING,
   class: DataTypes.STRING,

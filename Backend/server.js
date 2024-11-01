@@ -1,5 +1,5 @@
 const express = require('express');
-const https = require('https'); // Revert back to https
+const https = require('https'); // Ensure https is used
 const fs = require('fs');
 const socketIo = require('socket.io');
 const cors = require('cors');
@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const sequelize = require('./db');
+const { Op } = require('sequelize'); // Import Op from Sequelize
 const CharacterInfo = require('./models/CharacterInfo'); // Import the CharacterInfo model
 const StatsSheet = require('./models/StatsSheet'); // Import the StatsSheet model
 const FamilyMembers = require('./models/FamilyMembers'); // Import the FamilyMembers model
@@ -24,7 +25,7 @@ const privateKey = fs.readFileSync('d:/Coding/DungeonLair/DungeonLair/key.pem', 
 const certificate = fs.readFileSync('d:/Coding/DungeonLair/DungeonLair/cert.pem', 'utf8');
 const credentials = { key: privateKey, cert: certificate };
 
-const server = https.createServer(credentials, app); // Revert back to https.createServer
+const server = https.createServer(credentials, app); // Ensure https.createServer is used
 
 const allowedOrigins = [
   `https://${localIP}:4200`,
@@ -67,81 +68,83 @@ sequelize.sync({ force: false })
 
 // Endpoint to receive registration data
 app.post('/register', async (req, res) => {
-    const { username, email, password, role, characterName } = req.body;
+  const { username, email, password, role, characterName, race, class: characterClass, level, photo, familyMembers, friendMembers, itemInventory, skillList } = req.body;
 
-    try {
-        // Check if the user already exists
-        const existingUser = await User.findOne({ where: { email } });
-        if (existingUser) {
-            return res.status(400).send('User already exists');
-        }
-
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create the user in the database
-        const newUser = await User.create({
-            username,
-            email,
-            password: hashedPassword,
-            role,
-            characterName
-        });
-
-        // Initialize CharacterInfo with default values
-        await CharacterInfo.create({
-            characterName,
-            race: 'Unknown',
-            class: 'Unknown',
-            level: 0,
-            photo: null,
-            statsSheet: null,
-            familyMembers: [],
-            friendMembers: [],
-            itemInventory: [],
-            skillList: []
-        });
-
-        // Initialize StatsSheet with 0 values for each stat
-        await StatsSheet.create({
-            characterName,
-            strength: 0,
-            athletics: 0,
-            swordsmanship: 0,
-            dexterity: 0,
-            acrobatics: 0,
-            sleightOfHand: 0,
-            stealth: 0,
-            marksmanship: 0,
-            pilot: 0,
-            constitution: 0,
-            intelligence: 0,
-            arcana: 0,
-            history: 0,
-            investigation: 0,
-            nature: 0,
-            forceStrength: 0,
-            splicing: 0,
-            wisdom: 0,
-            animalHandling: 0,
-            insight: 0,
-            medicine: 0,
-            perception: 0,
-            survival: 0,
-            forceCapacity: 0,
-            mapping: 0,
-            charisma: 0,
-            deception: 0,
-            intimidation: 0,
-            performance: 0,
-            persuasion: 0,
-        });
-
-        res.status(201).send('User and character registered successfully with default entries');
-    } catch (error) {
-        console.error('Error in /register:', error);
-        res.status(500).send('An error occurred while registering the user');
+  try {
+    // Check if the username or email already exists
+    const existingUser = await User.findOne({ where: { [Op.or]: [{ email }, { username }] } });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username or email already exists' });
     }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create the user in the database
+    const newUser = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+      role,
+      characterName
+    });
+
+    // Initialize CharacterInfo with provided values
+    await CharacterInfo.create({
+      characterName,
+      race,
+      class: characterClass,
+      level,
+      photo,
+      familyMembers,
+      friendMembers,
+      itemInventory,
+      skillList
+    });
+
+    // Initialize StatsSheet with 0 values for each stat
+    await StatsSheet.create({
+      characterName,
+      strength: 0,
+      athletics: 0,
+      swordsmanship: 0,
+      dexterity: 0,
+      acrobatics: 0,
+      sleightOfHand: 0,
+      stealth: 0,
+      marksmanship: 0,
+      pilot: 0,
+      constitution: 0,
+      intelligence: 0,
+      arcana: 0,
+      history: 0,
+      investigation: 0,
+      nature: 0,
+      forceStrength: 0,
+      splicing: 0,
+      wisdom: 0,
+      animalHandling: 0,
+      insight: 0,
+      medicine: 0,
+      perception: 0,
+      survival: 0,
+      forceCapacity: 0,
+      mapping: 0,
+      charisma: 0,
+      deception: 0,
+      intimidation: 0,
+      performance: 0,
+      persuasion: 0,
+    });
+
+    res.status(201).json({ message: 'User and character registered successfully with default entries' });
+  } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({ message: 'Username or email already exists' });
+    }
+    console.error('Error in /register:', error);
+    res.status(500).send(`An error occurred while registering the user: ${error.message}`);
+  }
 });
 
 // Endpoint for login (to generate JWT)
