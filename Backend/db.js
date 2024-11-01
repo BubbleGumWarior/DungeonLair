@@ -1,10 +1,11 @@
 // db.js
 const { Sequelize } = require('sequelize');
+const { DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD } = require('./config');
 
-const sequelize = new Sequelize('dungeonlair', 'postgres', 'admin', {
-  host: 'localhost', // Change if your database is hosted elsewhere
-  dialect: 'postgres',
-  port: 5432,
+const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
+  host: DB_HOST,
+  port: DB_PORT,
+  dialect: 'postgres'
 });
 
 module.exports = sequelize;

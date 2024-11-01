@@ -1,5 +1,7 @@
 import { Component, Input, EventEmitter, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { localIP } from '../config'; // Import the IP address
 
 @Component({
   selector: 'app-board',
@@ -63,6 +65,10 @@ export class BoardComponent implements OnInit {
   photo: string = "";
   level: number = 0;
 
+  statsSheet: any;
+
+  constructor(private http: HttpClient) {}
+
   ngOnInit() {
     if (this.characterName) {
       this.fetchStatsSheet(this.characterName);
@@ -70,21 +76,22 @@ export class BoardComponent implements OnInit {
     }
   }
 
-  async fetchStatsSheet(characterName: string) {
-    try {
-      const response = await fetch(`http://localhost:3000/stats-sheet/${characterName}`);
-      if (!response.ok) throw new Error('Failed to fetch stats');
-      
-      const statsSheet = await response.json();
-      this.updateStats(statsSheet);  // Update stats with the fetched data
-    } catch (error) {
-      console.error('Error fetching stats sheet:', error);
-    }
+  fetchStatsSheet(characterName: string) {
+    this.http.get(`https://${localIP}:8080/stats-sheet/${characterName}`)
+      .subscribe(
+        (data: any) => {
+          this.statsSheet = data;
+          this.updateStats(data);  // Update stats with the fetched data
+        },
+        (error) => {
+          console.error('Error fetching stats sheet:', error);
+        }
+      );
   }
 
   async fetchCharacterInfo(characterName: string) {
     try {
-      const response = await fetch(`http://localhost:3000/character-info/${characterName}`);
+      const response = await fetch(`https://${localIP}:8080/character-info/${characterName}`);
       if (!response.ok) throw new Error('Failed to fetch info');
       
       const characterInfo = await response.json();

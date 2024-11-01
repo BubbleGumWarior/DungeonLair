@@ -1,5 +1,6 @@
 import { Component, OnInit, EventEmitter, Output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { localIP } from '../config'; // Import the IP address
 
 interface Item {
   itemName: string;
@@ -41,7 +42,7 @@ export class InventoryComponent implements OnInit {
 
   async fetchItemList(characterName: string) {
     try {
-      const response = await fetch(`http://localhost:3000/character-info/${characterName}`);
+      const response = await fetch(`https://${localIP}:8080/character-info/${characterName}`);
       if (!response.ok) throw new Error('Failed to fetch item list');
       
       const itemListData = await response.json();
@@ -59,7 +60,7 @@ export class InventoryComponent implements OnInit {
   async fetchItemById() {
     try {
       const fetchPromises = this.itemList.map(async (itemID) => {
-        const response = await fetch(`http://localhost:3000/item-list/${itemID}`);
+        const response = await fetch(`https://${localIP}:8080/item-list/${itemID}`);
         if (!response.ok) throw new Error(`Failed to fetch item list with ID ${itemID}`);
         
         const item: Item = await response.json();
@@ -82,7 +83,7 @@ export class InventoryComponent implements OnInit {
 
   async fetchStatsSheet(characterName: string | null, mainStat: string) {
     try {
-      const response = await fetch(`http://localhost:3000/stats-sheet/${characterName}`);
+      const response = await fetch(`https://${localIP}:8080/stats-sheet/${characterName}`);
       if (!response.ok) throw new Error('Failed to fetch stats');
       
       const statsSheet = await response.json();

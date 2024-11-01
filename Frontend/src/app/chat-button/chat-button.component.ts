@@ -2,6 +2,7 @@ import { Component, HostListener, Input, AfterViewChecked, ElementRef, ViewChild
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { io } from 'socket.io-client';
+import { localIP } from '../config'; // Import the IP address
 
 interface ChatMessage {
   username: string;
@@ -47,7 +48,7 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy {
 
   setupSocketConnection() {
     // Connect to the Socket.IO server
-    this.socket = io('http://localhost:3000', {
+    this.socket = io(`https://${localIP}:8080`, {
       transports: ['websocket']
     });
 
@@ -82,7 +83,7 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy {
 
   async loadChatHistory() {
     try {
-      const response = await fetch(`http://localhost:3000/chat-history/`);
+      const response = await fetch(`https://${localIP}:8080/chat-history/`);
       if (!response.ok) throw new Error('Failed to fetch chat history');
 
       const chatHistory = await response.json();
@@ -115,7 +116,7 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy {
       };
 
       try {
-        const response = await fetch(`http://localhost:3000/chat-history/`, {
+        const response = await fetch(`https://${localIP}:8080/chat-history/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -125,8 +126,6 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy {
 
         if (!response.ok) throw new Error('Failed to send message');
 
-        // Local update on successful message sending
-        this.addMessageToChat(newMessage.username, newMessage.message);
         this.messageValue = ''; // Clear the input field
       } catch (error) {
         console.error('Error sending message:', error);

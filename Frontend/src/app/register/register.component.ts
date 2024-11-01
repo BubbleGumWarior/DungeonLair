@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { localIP } from '../config'; // Import the IP address
 
 @Component({
   selector: 'app-register',
@@ -36,7 +37,7 @@ export class RegisterComponent {
     const formData = this.registerForm.value;
 
     // Use fetch API to send POST request to the register endpoint
-    fetch('http://localhost:3000/register', {
+    fetch(`https://${localIP}:8080/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

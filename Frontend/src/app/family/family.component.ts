@@ -1,5 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { localIP } from '../config'; // Import the IP address
 
 interface Character {
   characterName: string;
@@ -29,7 +30,7 @@ export class FamilyComponent implements OnInit {
 
   async fetchFamilyMembers(characterName: string) {
     try {
-      const response = await fetch(`http://localhost:3000/character-info/${characterName}`);
+      const response = await fetch(`https://${localIP}:8080/character-info/${characterName}`);
       if (!response.ok) throw new Error('Failed to fetch family members');
       
       const familyData = await response.json();
@@ -47,7 +48,7 @@ export class FamilyComponent implements OnInit {
   async fetchFamilyById() {
     try {
       const fetchPromises = this.familyMembers.map(async (familyMemberID) => {
-        const response = await fetch(`http://localhost:3000/family-member/${familyMemberID}`);
+        const response = await fetch(`https://${localIP}:8080/family-member/${familyMemberID}`);
         if (!response.ok) throw new Error(`Failed to fetch family member with ID ${familyMemberID}`);
         
         const character: Character = await response.json();

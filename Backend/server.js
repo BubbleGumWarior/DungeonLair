@@ -1,10 +1,12 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+const https = require('https'); // Revert back to https
+const fs = require('fs');
+const socketIo = require('socket.io');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const sequelize = require('./db'); // Import your sequelize instance
-const User = require('./models/User'); // Import the User model
+const sequelize = require('./db');
 const CharacterInfo = require('./models/CharacterInfo'); // Import the CharacterInfo model
 const StatsSheet = require('./models/StatsSheet'); // Import the StatsSheet model
 const FamilyMembers = require('./models/FamilyMembers'); // Import the FamilyMembers model
@@ -12,22 +14,45 @@ const FriendMembers = require('./models/FriendMembers'); // Import the FriendMem
 const ItemList = require('./models/ItemList'); // Import the ItemList model
 const SkillList = require('./models/SkillList'); // Import the SkillList model
 const ChatHistory = require('./models/ChatHistory'); // Import the ChatHistory model
+const { localIP, JWT_SECRET } = require('./config'); // Import the IP address and JWT secret
+const User = require('./models/User'); // Import the User model
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-const JWT_SECRET = 'your_jwt_secret'; // Use a secure secret key for JWT
-const http = require('http');
-const { Server } = require('socket.io');
-const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: "http://localhost:4200", // Change to your client URL
-        methods: ["GET", "POST"]
+
+// Load SSL certificates
+const privateKey = fs.readFileSync('d:/Coding/DungeonLair/DungeonLair/key.pem', 'utf8');
+const certificate = fs.readFileSync('d:/Coding/DungeonLair/DungeonLair/cert.pem', 'utf8');
+const credentials = { key: privateKey, cert: certificate };
+
+const server = https.createServer(credentials, app); // Revert back to https.createServer
+
+const allowedOrigins = [
+  `https://${localIP}:4200`,
+  'https://102.182.41.110:4200' // Public IP address
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
     }
+  },
+  methods: ["GET", "POST"]
+}));
+
+const io = socketIo(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST"]
+  }
 });
 
-// Middleware
-app.use(cors());
+const PORT = process.env.PORT || 8080;
+
+let liveUsers = [];
+
 app.use(bodyParser.json());
 app.use(express.json());
 
@@ -183,17 +208,143 @@ app.post('/chat-history/', async (req, res) => {
     }
 });
 
+// Endpoint to fetch live users
+app.get('/api/live-users', (req, res) => {
+    res.json(liveUsers.map(user => ({ username: user.username })));
+});
+
+app.get('/stats-sheet/:characterName', async (req, res) => {
+    const { characterName } = req.params;
+    try {
+        const statsSheet = await StatsSheet.findOne({ where: { characterName } });
+        if (!statsSheet) {
+            return res.status(404).send('Stats sheet not found');
+        }
+        res.json(statsSheet);
+    } catch (error) {
+        console.error('Error fetching stats sheet:', error);
+        res.status(500).send('Failed to fetch stats sheet');
+    }
+});
+
+app.get('/character-info/:characterName', async (req, res) => {
+    const { characterName } = req.params;
+    try {
+        const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+        if (!characterInfo) {
+            return res.status(404).send('Character info not found');
+        }
+        res.json(characterInfo);
+    } catch (error) {
+        console.error('Error fetching character info:', error);
+        res.status(500).send('Failed to fetch character info');
+    }
+});
+
+app.get('/family-member/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const familyMember = await FamilyMembers.findOne({ where: { id } });
+        if (!familyMember) {
+            return res.status(404).send('Family member not found');
+        }
+        res.json(familyMember);
+    } catch (error) {
+        console.error('Error fetching family member:', error);
+        res.status(500).send('Failed to fetch family member');
+    }
+});
+
+app.get('/friend-member/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const friendMember = await FriendMembers.findOne({ where: { id } });
+        if (!friendMember) {
+            return res.status(404).send('Friend member not found');
+        }
+        res.json(friendMember);
+    } catch (error) {
+        console.error('Error fetching friend member:', error);
+        res.status(500).send('Failed to fetch friend member');
+    }
+});
+
+app.get('/item-list/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const item = await ItemList.findOne({ where: { id } });
+        if (!item) {
+            return res.status(404).send('Item not found');
+        }
+        res.json(item);
+    } catch (error) {
+        console.error('Error fetching item:', error);
+        res.status(500).send('Failed to fetch item');
+    }
+});
+
+app.get('/skill-list/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const skill = await SkillList.findOne({ where: { id } });
+        if (!skill) {
+            return res.status(404).send('Skill not found');
+        }
+        res.json(skill);
+    } catch (error) {
+        console.error('Error fetching skill:', error);
+        res.status(500).send('Failed to fetch skill');
+    }
+});
+
 // Socket.IO connection
 io.on('connection', (socket) => {
     console.log('A user connected');
 
+    // Add the new user to the liveUsers array
+    socket.on('registerUser', (username) => {
+        const newUser = { id: socket.id, username };
+        liveUsers.push(newUser);
+        broadcastUserUpdate();
+    });
+
     // Handle disconnection
     socket.on('disconnect', () => {
         console.log('A user disconnected');
+        liveUsers = liveUsers.filter(user => user.id !== socket.id);
+        broadcastUserUpdate();
+    });
+
+    // Handle incoming messages if needed
+    socket.on('message', (message) => {
+        console.log('Received:', message);
+        if (message.type === 'userUpdate') {
+            liveUsers = message.users;
+            broadcastUserUpdate();
+        }
+        // Broadcast the message to all connected clients
+        io.emit('message', message);
+    });
+
+    // Handle incoming audio data
+    socket.on('audio', (audioData) => {
+        console.log('Received audio chunk from client:', audioData.buffer);
+        console.log('Audio MIME type:', audioData.type); // Log the MIME type of the received audio data
+        socket.broadcast.emit('audio', audioData); // Broadcast audio data with MIME type to other clients
+    });
+
+    socket.on('error', (error) => {
+        console.error('Socket.IO error:', error);
     });
 });
 
+// Function to broadcast user updates
+function broadcastUserUpdate() {
+    const userUpdateMessage = { type: 'userUpdate', users: liveUsers.map(user => ({ username: user.username })) };
+    io.emit('userUpdate', userUpdateMessage);
+}
+
 // Start the server
-server.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => { // Ensure it listens on all interfaces
+    console.log(`Server is running on https://${localIP}:${PORT}`);
 });

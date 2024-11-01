@@ -2,7 +2,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
 
-const ItemList = sequelize.define('ItemList', {
+const ChatHistory = sequelize.define('ChatHistory', {
   username: DataTypes.STRING,
   message: DataTypes.TEXT,
   timestamp: {
@@ -10,7 +10,7 @@ const ItemList = sequelize.define('ItemList', {
     defaultValue: DataTypes.NOW
   }
 }, {
-    tableName: 'chat_history', // Explicitly define table name in lowercase
+  tableName: 'chat_history', // Explicitly define table name in lowercase
 });
 
-module.exports = ItemList;
+module.exports = ChatHistory;

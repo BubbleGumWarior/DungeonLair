@@ -13,7 +13,7 @@ const SkillList = sequelize.define('SkillList', {
   description: DataTypes.TEXT,
   diceRoll: DataTypes.INTEGER,
 }, {
-    tableName: 'skill_lists', // Explicitly define table name in lowercase
+  tableName: 'skill_lists', // Explicitly define table name in lowercase
 });
 
 module.exports = SkillList;

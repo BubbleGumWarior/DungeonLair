@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms'; // Import FormsModule
 import { Router } from '@angular/router';
+import { localIP } from '../config'; // Import the IP address
 
 @Component({
   selector: 'app-login',
@@ -17,7 +18,7 @@ export class LoginComponent {
 
   onSubmit() {
     // Use fetch API to send login request
-    fetch('http://102.182.41.110:3000/login', {
+    fetch(`https://${localIP}:8080/login`, { // Change http to https
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -32,7 +33,7 @@ export class LoginComponent {
     })
     .then(data => {
       // Log the response from the server
-      
+      console.log(data);
       // Store the JWT token in localStorage
       localStorage.setItem('token', data.token);
       this.navigateTo('/'); // Redirect to home or desired route

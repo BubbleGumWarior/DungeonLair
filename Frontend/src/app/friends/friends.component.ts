@@ -1,5 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { localIP } from '../config'; // Import the IP address
 
 interface Character {
   characterName: string;
@@ -28,7 +29,7 @@ export class FriendsComponent implements OnInit {
 
   async fetchFriendMembers(characterName: string) {
     try {
-      const response = await fetch(`http://localhost:3000/character-info/${characterName}`);
+      const response = await fetch(`https://${localIP}:8080/character-info/${characterName}`);
       if (!response.ok) throw new Error('Failed to fetch friend members');
       
       const friendData = await response.json();
@@ -46,7 +47,7 @@ export class FriendsComponent implements OnInit {
   async fetchFriendById() {
     try {
       const fetchPromises = this.friendMembers.map(async (friendMemberID) => {
-        const response = await fetch(`http://localhost:3000/friend-member/${friendMemberID}`);
+        const response = await fetch(`https://${localIP}:8080/friend-member/${friendMemberID}`);
         if (!response.ok) throw new Error(`Failed to fetch friend member with ID ${friendMemberID}`);
         
         const character: Character = await response.json();
