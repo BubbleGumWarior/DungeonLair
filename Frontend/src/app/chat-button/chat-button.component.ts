@@ -1,8 +1,9 @@
-import { Component, HostListener, Input, AfterViewChecked, ElementRef, ViewChild, OnDestroy } from '@angular/core';
+import { Component, HostListener, Input, AfterViewChecked, ElementRef, ViewChild, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { io } from 'socket.io-client';
 import { localIP } from '../config'; // Import the IP address
+import { jwtDecode } from 'jwt-decode';
 
 interface ChatMessage {
   username: string;
@@ -17,7 +18,7 @@ interface ChatMessage {
   styleUrls: ['./chat-button.component.css'],
   imports: [CommonModule, FormsModule]
 })
-export class ChatButtonComponent implements AfterViewChecked, OnDestroy {
+export class ChatButtonComponent implements AfterViewChecked, OnDestroy, OnInit {
   @ViewChild('scrollContainer') private scrollContainer!: ElementRef;
   isOpen = false;
   chatHistory: ChatMessage[] = [];
@@ -25,15 +26,29 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy {
   isNewMessage: boolean = false;
   socket: any; // Socket connection
   buttonColor: string = 'default-color'; // Default button color
+  isPublicRollsEnabled: boolean = false; // State for the toggle button
+  userRole: string = ''; // User role
 
   @Input() set newMessage(message: string) {
     if (message) {
-      this.addMessageToChat(this.username || 'User', message);
       this.toggleChat();
+      if (this.isPublicRollsEnabled) {
+        this.sendToChatHistory(message);
+      } else {
+        this.addMessageToChat(this.username || 'User', message);
+        this.sendToDMChatHistory(message);
+      }
     }
   }
 
   @Input() username: string = 'User';
+
+  ngOnInit() {
+    this.loadUserRole();
+    this.loadChatHistory();
+    this.setupSocketConnection();
+    this.loadPublicRollsState(); // Load the public rolls state from local storage
+  }
 
   ngAfterViewChecked() {
     if (this.scrollContainer) {
@@ -41,9 +56,18 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy {
     }
   }
 
-  constructor() {
-    this.loadChatHistory();
-    this.setupSocketConnection();
+  constructor() {}
+
+  loadUserRole() {
+    const token = localStorage.getItem('token'); // Get the JWT from localStorage
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token); // Decode the JWT
+        this.userRole = decoded.role; // Extract the user role
+      } catch (error) {
+        console.error('Failed to decode token:', error);
+      }
+    }
   }
 
   setupSocketConnection() {
@@ -51,6 +75,17 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy {
     this.socket = io(`wss://${localIP}:8080`, {
       transports: ['websocket']
     });
+
+    // Register the user with the socket connection
+    const token = localStorage.getItem('token'); // Get the JWT from localStorage
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token); // Decode the JWT
+        this.socket.emit('registerUser', { username: this.username, role: decoded.role });
+      } catch (error) {
+        console.error('Failed to decode token:', error);
+      }
+    }
 
     // Listen for new messages
     this.socket.on('newMessage', (message: ChatMessage) => {
@@ -62,6 +97,18 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy {
         this.changeButtonColor(); // Call method to change the button color
       }
     });
+
+    // Listen for new DM messages only if the user is a Dungeon Master
+    if (this.userRole === 'Dungeon Master') {
+      this.socket.on('newDMMessage', (message: ChatMessage) => {
+        // Only add the message if the sender is not the current user
+        if (message.username !== this.username) {
+          this.addMessageToChat(message.username, message.message);
+          this.isNewMessage = true; // Set new message flag
+          this.changeButtonColor(); // Call method to change the button color
+        }
+      });
+    }
 
     // Optional: Add error handling
     this.socket.on('connect', () => {
@@ -83,13 +130,27 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy {
 
   async loadChatHistory() {
     try {
-      const response = await fetch(`https://${localIP}:8080/chat-history/`);
-      if (!response.ok) throw new Error('Failed to fetch chat history');
+        const chatHistoryResponse = await fetch(`https://${localIP}:8080/chat-history/`);
+        if (!chatHistoryResponse.ok) throw new Error('Failed to fetch chat history');
+        const chatHistory = await chatHistoryResponse.json();
 
-      const chatHistory = await response.json();
-      this.updateChatHistory(chatHistory);
+        let combinedHistory = chatHistory;
+
+        if (this.userRole === 'Dungeon Master') {
+            const token = localStorage.getItem('token'); // Get the JWT from localStorage
+            const dmChatHistoryResponse = await fetch(`https://${localIP}:8080/dm-chat-history/`, {
+                headers: {
+                    'Authorization': token || ''
+                }
+            });
+            if (!dmChatHistoryResponse.ok) throw new Error('Failed to fetch DM chat history');
+            const dmChatHistory = await dmChatHistoryResponse.json();
+            combinedHistory = [...chatHistory, ...dmChatHistory];
+        }
+
+        this.updateChatHistory(combinedHistory);
     } catch (error) {
-      console.error('Error fetching chat history:', error);
+        console.error('Error fetching chat history:', error);
     }
   }
 
@@ -133,6 +194,50 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy {
     }
   }
 
+  async sendToChatHistory(message: string) {
+    const newMessage: ChatMessage = {
+      username: this.username,
+      message,
+      timestamp: new Date(),
+    };
+
+    try {
+      const response = await fetch(`https://${localIP}:8080/chat-history/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newMessage),
+      });
+
+      if (!response.ok) throw new Error('Failed to send message to chat history');
+    } catch (error) {
+      console.error('Error sending message to chat history:', error);
+    }
+  }
+
+  async sendToDMChatHistory(message: string) {
+    const newMessage: ChatMessage = {
+      username: this.username,
+      message,
+      timestamp: new Date(),
+    };
+
+    try {
+      const response = await fetch(`https://${localIP}:8080/dm-chat-history/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newMessage),
+      });
+
+      if (!response.ok) throw new Error('Failed to send message to DM chat history');
+    } catch (error) {
+      console.error('Error sending message to DM chat history:', error);
+    }
+  }
+
   addMessageToChat(username: string, message: string) {
     const newChatMessage: ChatMessage = {
       username,
@@ -170,6 +275,23 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy {
     const clickedInside = targetElement.closest('.chat-modal') || targetElement.closest('.chat-button');
     if (!clickedInside) {
       this.closeChat();
+    }
+  }
+
+  togglePublicRolls() {
+    this.isPublicRollsEnabled = !this.isPublicRollsEnabled;
+    this.savePublicRollsState(); // Save the public rolls state to local storage
+    console.log('Public Rolls toggled:', this.isPublicRollsEnabled);
+  }
+
+  savePublicRollsState() {
+    localStorage.setItem('isPublicRollsEnabled', JSON.stringify(this.isPublicRollsEnabled));
+  }
+
+  loadPublicRollsState() {
+    const savedState = localStorage.getItem('isPublicRollsEnabled');
+    if (savedState !== null) {
+      this.isPublicRollsEnabled = JSON.parse(savedState);
     }
   }
 

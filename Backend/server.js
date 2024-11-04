@@ -15,6 +15,7 @@ const FriendMembers = require('./models/FriendMembers'); // Import the FriendMem
 const ItemList = require('./models/ItemList'); // Import the ItemList model
 const SkillList = require('./models/SkillList'); // Import the SkillList model
 const ChatHistory = require('./models/ChatHistory'); // Import the ChatHistory model
+const DMChatHistory = require('./models/DMChatHistory'); // Import the DMChatHistory model
 const { localIP, JWT_SECRET } = require('./config'); // Import the IP address and JWT secret
 const User = require('./models/User'); // Import the User model
 
@@ -211,6 +212,91 @@ app.post('/chat-history/', async (req, res) => {
     }
 });
 
+// Endpoint for adding a new DM chat message
+app.post('/dm-chat-history/', async (req, res) => {
+    try {
+        const { username, message } = req.body;
+
+        if (!username || !message) {
+            return res.status(400).json({ error: 'Username and message are required' });
+        }
+
+        const newDMChatMessage = await DMChatHistory.create({
+            username,
+            message,
+            timestamp: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        });
+
+        // Emit the new DM message to all connected clients
+        io.emit('newDMMessage', newDMChatMessage); // Broadcast the new DM message
+        console.log('New DM message emitted:', newDMChatMessage);
+
+        res.status(201).json(newDMChatMessage);
+    } catch (error) {
+        console.error('Error adding DM chat message:', error);
+        res.status(500).json({ error: 'Failed to add DM chat message' });
+    }
+});
+
+// Middleware to verify JWT and extract user role
+function verifyToken(req, res, next) {
+    const token = req.headers['authorization'];
+    if (!token) {
+        console.log('Token Required')
+        console.log('Token Required')
+        console.log('Token Required')
+        console.log('Token Required')
+        console.log('Token Required')
+        console.log('Token Required')
+        console.log('Token Required')
+        console.log('Token Required')
+        console.log('Token Required')
+        return res.status(403).send('Token is required');
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        if (err) {
+            console.log('Invalid token')
+            console.log('Invalid token')
+            console.log('Invalid token')
+            console.log('Invalid token')
+            console.log('Invalid token')
+            console.log('Invalid token')
+            console.log('Invalid token')
+            console.log('Invalid token')
+            return res.status(401).send('Invalid token');
+        }
+        req.user = decoded;
+        next();
+    });
+}
+
+// Endpoint to fetch DM chat history
+app.get('/dm-chat-history/', verifyToken, async (req, res) => {
+    console.log(req.user.role)
+    console.log(req.user.role)
+    console.log(req.user.role)
+    console.log(req.user.role)
+    console.log(req.user.role)
+    console.log(req.user.role)
+    if (req.user.role !== 'Dungeon Master') {
+        return res.status(403).send('Access denied');
+    }
+
+    try {
+        const dmChatHistory = await DMChatHistory.findAll();
+        if (dmChatHistory.length === 0) {
+            return res.status(404).json({ error: 'DM Chat History not found' });
+        }
+        res.status(200).json(dmChatHistory);
+    } catch (error) {
+        console.error('Error fetching DM chat history:', error);
+        res.status(500).json({ error: 'Failed to fetch DM chat history' });
+    }
+});
+
 // Endpoint to fetch live users
 app.get('/api/live-users', (req, res) => {
     res.json(liveUsers.map(user => ({ username: user.username })));
@@ -305,9 +391,16 @@ io.on('connection', (socket) => {
     console.log('A user connected');
 
     // Add the new user to the liveUsers array
-    socket.on('registerUser', (username) => {
-        const newUser = { id: socket.id, username };
+    socket.on('registerUser', (data) => {
+        const { username, role } = data;
+        const newUser = { id: socket.id, username, role };
         liveUsers.push(newUser);
+
+        // Join the user to the 'dungeonMaster' room if they are a Dungeon Master
+        if (role === 'Dungeon Master') {
+            socket.join('dungeonMaster');
+        }
+
         broadcastUserUpdate();
     });
 
@@ -329,6 +422,14 @@ io.on('connection', (socket) => {
         io.emit('message', message);
     });
 
+    // Handle incoming DM messages
+    socket.on('newDMMessage', (message) => {
+        const user = liveUsers.find(user => user.id === socket.id);
+        if (user && user.role === 'Dungeon Master') {
+            io.to('dungeonMaster').emit('newDMMessage', message); // Broadcast the new DM message only to DMs
+        }
+    });
+
     // Handle incoming audio data
     socket.on('audio', (audioData) => {
         console.log('Received audio chunk from client:', audioData.buffer);
@@ -343,7 +444,7 @@ io.on('connection', (socket) => {
 
 // Function to broadcast user updates
 function broadcastUserUpdate() {
-    const userUpdateMessage = { type: 'userUpdate', users: liveUsers.map(user => ({ username: user.username })) };
+    const userUpdateMessage = { type: 'userUpdate', users: liveUsers.map(user => ({ username: user.username, role: user.role })) };
     io.emit('userUpdate', userUpdateMessage);
 }
 
