@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { io } from 'socket.io-client';
 import { localIP } from '../config'; // Import the IP address
 import { jwtDecode } from 'jwt-decode';
+import DOMPurify from 'dompurify'; // Import DOMPurify
 
 interface ChatMessage {
   username: string;
@@ -170,9 +171,10 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy, OnInit 
 
   async sendMessage() {
     if (this.messageValue.trim()) {
+      const sanitizedMessage = DOMPurify.sanitize(this.messageValue);
       const newMessage: ChatMessage = {
         username: this.username,
-        message: this.messageValue,
+        message: sanitizedMessage,
         timestamp: new Date(),
       };
 
@@ -195,9 +197,10 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy, OnInit 
   }
 
   async sendToChatHistory(message: string) {
+    const sanitizedMessage = DOMPurify.sanitize(message);
     const newMessage: ChatMessage = {
       username: this.username,
-      message,
+      message: sanitizedMessage,
       timestamp: new Date(),
     };
 
@@ -217,9 +220,10 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy, OnInit 
   }
 
   async sendToDMChatHistory(message: string) {
+    const sanitizedMessage = DOMPurify.sanitize(message);
     const newMessage: ChatMessage = {
       username: this.username,
-      message,
+      message: sanitizedMessage,
       timestamp: new Date(),
     };
 
@@ -239,9 +243,10 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy, OnInit 
   }
 
   addMessageToChat(username: string, message: string) {
+    const sanitizedMessage = DOMPurify.sanitize(message);
     const newChatMessage: ChatMessage = {
       username,
-      message,
+      message: sanitizedMessage,
       timestamp: new Date(),
     };
 

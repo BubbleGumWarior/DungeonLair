@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { localIP } from '../config'; // Import the IP address
+import DOMPurify from 'dompurify'; // Import DOMPurify
 
 @Component({
   selector: 'app-register',
@@ -39,7 +40,11 @@ export class RegisterComponent {
     }
 
     const formData = {
-      ...this.registerForm.value,
+      username: DOMPurify.sanitize(this.registerForm.value.username),
+      email: DOMPurify.sanitize(this.registerForm.value.email),
+      password: DOMPurify.sanitize(this.registerForm.value.password),
+      role: DOMPurify.sanitize(this.registerForm.value.role),
+      characterName: DOMPurify.sanitize(this.registerForm.value.characterName),
       race: 'Unknown',
       class: 'Unknown',
       level: 0,

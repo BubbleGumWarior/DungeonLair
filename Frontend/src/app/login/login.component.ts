@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms'; // Import FormsModule
 import { Router } from '@angular/router';
 import { localIP } from '../config'; // Import the IP address
+import DOMPurify from 'dompurify'; // Import DOMPurify
 
 @Component({
   selector: 'app-login',
@@ -17,13 +18,16 @@ export class LoginComponent {
   constructor(private router: Router) {}
 
   onSubmit() {
+    const sanitizedEmail = DOMPurify.sanitize(this.email);
+    const sanitizedPassword = DOMPurify.sanitize(this.password);
+
     // Use fetch API to send login request
     fetch(`https://${localIP}:8080/login`, { // Change http to https
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ email: this.email, password: this.password })
+      body: JSON.stringify({ email: sanitizedEmail, password: sanitizedPassword })
     })
     .then(response => {
       if (!response.ok) {

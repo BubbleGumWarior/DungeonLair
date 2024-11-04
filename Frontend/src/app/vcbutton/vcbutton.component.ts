@@ -25,8 +25,7 @@ export class vcButtonComponent implements OnInit {
   constructor(private http: HttpClient, private webSocketService: WebSocketService) {}
 
   ngOnInit() {
-    this.fetchLiveUsers();
-    this.listenForUserUpdates();
+    // Do not fetch live users or listen for updates by default
   }
 
   togglevc() {
@@ -49,6 +48,8 @@ export class vcButtonComponent implements OnInit {
         this.vcMembers.push({ username: this.username });
         await this.startRecording();
         this.webSocketService.registerUser(this.username); // Register user when they join
+        this.fetchLiveUsers(); // Fetch live users when joining
+        this.listenForUserUpdates(); // Listen for updates when joining
       }
       this.webSocketService.sendMessage({ type: 'userUpdate', users: this.vcMembers });
     } else {
