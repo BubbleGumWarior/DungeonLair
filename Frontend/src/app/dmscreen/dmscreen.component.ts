@@ -24,6 +24,7 @@ export class DMScreenComponent implements OnInit {
   inventoryItems: any[] = []; // Add this variable to store inventory items
   skillList: any[] = []; // Add this variable to store skills
   newSkill: any = null; // Initialize as null
+  hoveredItem: any = null; // Add this variable to store the hovered item
 
   constructor(private http: HttpClient) {}
 
@@ -297,5 +298,17 @@ export class DMScreenComponent implements OnInit {
       formData.append('itemName', this.newInventoryItem.itemName || ''); // Use new inventory item's name
       this.saveImage(formData);
     }
+  }
+
+  showItemModal(item: any) {
+    this.hoveredItem = item;
+  }
+
+  hideItemModal() {
+    this.hoveredItem = null;
+  }
+
+  formatDescription(description: string): string {
+    return description.replace(/\\n/g, '<br>');
   }
 }

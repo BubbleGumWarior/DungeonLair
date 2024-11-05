@@ -220,16 +220,31 @@ export class BoardComponent implements OnInit {
   }
 
   saveImage(formData: FormData) {
-    this.http.post(`https://${localIP}:8080/save-image`, formData)
+    this.http.post(`https://${localIP}:8080/save-image-board`, formData)
       .subscribe(
         (response: any) => {
-          this.photo = response.filePath; // Assuming the server returns the full URL
+          this.photo = response.filePath; // Assuming the server returns the relative path
+          this.updateCharacterPhoto(this.characterName, this.photo); // Save the image path to the database
           console.log('Image saved successfully');
         },
         (error) => {
           console.error('Error saving image:', error);
         }
       );
+  }
+
+  updateCharacterPhoto(characterName: string | null, photoPath: string) {
+    if (characterName) {
+      this.http.put(`https://${localIP}:8080/character-info-board/${characterName}/photo`, { photo: photoPath })
+        .subscribe(
+          () => {
+            console.log('Character photo updated successfully');
+          },
+          (error) => {
+            console.error('Error updating character photo:', error);
+          }
+        );
+    }
   }
 }
 

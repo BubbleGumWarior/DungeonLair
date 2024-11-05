@@ -457,6 +457,41 @@ app.post('/save-image', upload.single('image'), async (req, res) => {
   }
 });
 
+app.post('/save-image-board', upload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+  const filePath = `/assets/images/${req.file.filename}`; // Adjusted file path
+  const { characterName } = req.body;
+
+  try {
+    if (characterName) {
+      // Update the CharacterInfo table with the new image path
+      await CharacterInfo.update({ photo: filePath }, { where: { characterName } });
+    }
+    res.json({ filePath }); // Return relative path
+  } catch (error) {
+    console.error('Error saving image:', error);
+    res.status(500).send('Failed to save image');
+  }
+});
+
+app.put('/character-info-board/:characterName/photo', async (req, res) => {
+  const { characterName } = req.params;
+  const { photo } = req.body;
+
+  try {
+    const result = await CharacterInfo.update({ photo }, { where: { characterName } });
+    if (result[0] === 0) {
+      return res.status(404).json({ message: 'Character info not found' });
+    }
+    res.json({ message: 'Character photo updated successfully' });
+  } catch (error) {
+    console.error('Error updating character photo:', error);
+    res.status(500).json({ message: 'Failed to update character photo' });
+  }
+});
+
 app.use('/assets/images', express.static(path.join(__dirname, 'assets/images')));
 
 app.post('/character-info/:characterName/family-member', async (req, res) => {
