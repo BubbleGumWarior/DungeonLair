@@ -11,7 +11,7 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./battle-area.component.css']
 })
 export class BattleAreaComponent implements OnInit {
-  @Input() activeBattleUsers: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }[] = [];
+  @Input() activeBattleUsers: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number }, isEnemy?: boolean }[] = [];
   @Input() showInitiativePrompt: boolean = false;
   @Input() username: string | null = null;
   @Input() characterName: string | null = null;

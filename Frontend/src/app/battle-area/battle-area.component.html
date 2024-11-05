@@ -1,7 +1,9 @@
 <div class="flex">
-  <div class="w-1/4 bg-red-500 px-5">
+  <div class="w-1/4 bg-stone-950 px-5">
     <div *ngFor="let user of activeBattleUsers">
-      <p>{{ user.characterName }} ({{ user.initiative.random }} {{ user.initiative.modifier >= 0 ? '+' : '-' }}{{ getAbs(user.initiative.modifier) }} = {{ user.initiative.final }})</p>
+      <p [ngClass]="{'text-red-500': user.isEnemy}">
+        {{ user.characterName }} ({{ user.initiative.random }} {{ user.initiative.modifier >= 0 ? '+' : '-' }}{{ getAbs(user.initiative.modifier) }} = {{ user.initiative.final }})
+      </p>
     </div>
   </div>
   <div class="w-2/4 bg-green-500 px-5">Center Column</div>
