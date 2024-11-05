@@ -10,13 +10,68 @@
   </div>
 
   <div *ngIf="currentlySelectedCharacter" class="mt-4 p-4 bg-stone-950 rounded shadow-md">
-    <h2 class="text-2xl font-bold mb-4 text-purple-400">Edit Stats for {{ currentlySelectedCharacter }}</h2>
-    <div class="grid grid-cols-2 gap-4">
-      <div *ngFor="let key of objectKeys(statsSheet)">
-        <p class="font-semibold text-purple-400">{{ key }}</p>
-        <input [(ngModel)]="statsSheet[key]" class="p-2 border rounded w-full bg-stone-900 text-white" />
+    <h2 class="text-2xl font-bold mb-4 text-purple-400">Manage {{ currentlySelectedCharacter }}</h2>
+    <select [(ngModel)]="selectedView" class="p-2 mb-4 bg-stone-900 text-white rounded">
+      <option>Edit Stats</option>
+      <option>Manage Family Members</option>
+      <option>Manage Friend Members</option>
+      <option>Manage Inventory</option>
+      <option>Manage Skills</option>
+    </select>
+
+    <div *ngIf="selectedView === 'Edit Stats'">
+      <div class="grid grid-cols-2 gap-4">
+        <div *ngFor="let key of objectKeys(statsSheet)">
+          <p class="font-semibold text-purple-400">{{ key }}</p>
+          <input [(ngModel)]="statsSheet[key]" class="p-2 border rounded w-full bg-stone-900 text-white" />
+        </div>
+      </div>
+      <button (click)="saveStatsSheet()" class="mt-4 p-2 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-white rounded">Save</button>
+    </div>
+
+    <div *ngIf="selectedView === 'Manage Family Members'" class="text-white">
+      <div class="grid grid-cols-3 gap-4">
+        <div *ngFor="let familyMember of familyMembers; let i = index" 
+             class="p-4 rounded shadow-md text-white flex items-center cursor-pointer bg-purple-500">
+          <img *ngIf="familyMember.photo" [src]="familyMember.photo" alt="Family Member Photo" class="w-12 h-12 rounded-full mr-4" />
+          <div>
+            <span>{{ familyMember.characterName }}</span>
+            <p class="text-sm">Age: {{ familyMember.age }}</p>
+          </div>
+        </div>
+      </div>
+      <button (click)="addFamilyMember()" class="p-2 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-white rounded mt-4">+ Add Family Member</button>
+      <div *ngIf="newFamilyMember">
+        <div class="grid grid-cols-2 gap-4 mt-4">
+          <div>
+            <p class="font-semibold text-purple-400">Character Name</p>
+            <input [(ngModel)]="newFamilyMember.characterName" class="p-2 border rounded w-full bg-stone-900 text-white" />
+          </div>
+          <div>
+            <p class="font-semibold text-purple-400">Age</p>
+            <input [(ngModel)]="newFamilyMember.age" class="p-2 border rounded w-full bg-stone-900 text-white" />
+          </div>
+          <div>
+            <p class="font-semibold text-purple-400">Race</p>
+            <input [(ngModel)]="newFamilyMember.race" class="p-2 border rounded w-full bg-stone-900 text-white" />
+          </div>
+          <div>
+            <p class="font-semibold text-purple-400">Photo</p>
+            <div *ngIf="!newFamilyMember.photo" class="flex items-center justify-center h-full">
+              <label class="cursor-pointer">
+                <span class="text-purple-500">Upload Image</span>
+                <input type="file" (change)="onImageUpload($event)" class="hidden" />
+              </label>
+            </div>
+            <img *ngIf="newFamilyMember.photo" [src]="newFamilyMember.photo" alt="Family Member Photo" class="w-12 h-12 rounded-full mr-4" />
+          </div>
+        </div>
+        <button (click)="saveFamilyMember()" class="mt-4 p-2 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-white rounded">Save</button>
       </div>
     </div>
-    <button (click)="saveStatsSheet()" class="mt-4 p-2 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-white rounded">Save</button>
+
+    <div *ngIf="selectedView !== 'Edit Stats' && selectedView !== 'Manage Family Members'" class="text-white">
+      {{ selectedView }} is working.
+    </div>
   </div>
 </div>

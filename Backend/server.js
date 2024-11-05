@@ -445,7 +445,7 @@ app.post('/save-image', upload.single('image'), async (req, res) => {
   try {
     // Update the CharacterInfo table with the new image path
     await CharacterInfo.update({ photo: filePath }, { where: { characterName } });
-    res.json({ filePath: `https://${localIP}:8080${filePath}` }); // Return full URL
+    res.json({ filePath }); // Return relative path
   } catch (error) {
     console.error('Error saving image:', error);
     res.status(500).send('Failed to save image');
@@ -453,6 +453,66 @@ app.post('/save-image', upload.single('image'), async (req, res) => {
 });
 
 app.use('/assets/images', express.static(path.join(__dirname, 'assets/images')));
+
+app.post('/character-info/:characterName/family-member', async (req, res) => {
+  const { characterName } = req.params;
+  const { age, race, photo } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const newFamilyMember = await FamilyMembers.create({
+      characterID: characterInfo.id,
+      characterName,
+      age,
+      race,
+      photo
+    });
+    res.status(201).json(newFamilyMember);
+  } catch (error) {
+    console.error('Error saving family member:', error);
+    res.status(500).send('Failed to save family member');
+  }
+});
+
+app.put('/character-info/:characterName/family-members', async (req, res) => {
+  const { characterName } = req.params;
+  const { familyMemberId } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).json({ message: 'Character info not found' });
+    }
+
+    const updatedFamilyMembers = [...characterInfo.familyMembers, familyMemberId];
+    await CharacterInfo.update({ familyMembers: updatedFamilyMembers }, { where: { characterName } });
+
+    res.json({ message: 'Character family members updated successfully' }); // Return valid JSON
+  } catch (error) {
+    console.error('Error updating character family members:', error);
+    res.status(500).json({ message: 'Failed to update character family members' });
+  }
+});
+
+app.get('/character-info/:characterName/family-members', async (req, res) => {
+  const { characterName } = req.params;
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const familyMembers = await FamilyMembers.findAll({ where: { characterID: characterInfo.id } });
+    res.json(familyMembers);
+  } catch (error) {
+    console.error('Error fetching family members:', error);
+    res.status(500).send('Failed to fetch family members');
+  }
+});
 
 // Socket.IO connection
 io.on('connection', (socket) => {

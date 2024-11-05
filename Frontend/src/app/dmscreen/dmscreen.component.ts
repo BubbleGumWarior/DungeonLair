@@ -15,6 +15,9 @@ export class DMScreenComponent implements OnInit {
   characters: { name: string, photo: string }[] = [];
   currentlySelectedCharacter: string | null = null; // Add this variable
   statsSheet: any = {}; // Add this variable to store stats sheet
+  selectedView: string = 'Edit Stats'; // Add this variable to store the selected view
+  newFamilyMember: any = null; // Initialize as null
+  familyMembers: any[] = []; // Add this variable to store family members
 
   constructor(private http: HttpClient) {}
 
@@ -40,6 +43,7 @@ export class DMScreenComponent implements OnInit {
     this.currentlySelectedCharacter = name;
     console.log('Currently selected character:', this.currentlySelectedCharacter);
     this.fetchStatsSheet(name);
+    this.fetchFamilyMembers(name); // Fetch family members for the selected character
   }
 
   fetchStatsSheet(characterName: string) {
@@ -49,6 +53,21 @@ export class DMScreenComponent implements OnInit {
       },
       (error) => {
         console.error('Error fetching stats sheet:', error);
+      }
+    );
+  }
+
+  fetchFamilyMembers(characterName: string) {
+    this.http.get<any[]>(`https://${localIP}:8080/character-info/${characterName}/family-members`).subscribe(
+      (data) => {
+        this.familyMembers = data.map(member => ({
+          ...member,
+          photo: member.photo ? `https://${localIP}:8080${member.photo}` : ''
+        }));
+        console.log('Family members:', this.familyMembers); // Log the family members array
+      },
+      (error) => {
+        console.error('Error fetching family members:', error);
       }
     );
   }
@@ -66,5 +85,60 @@ export class DMScreenComponent implements OnInit {
 
   objectKeys(obj: any): string[] {
     return Object.keys(obj);
+  }
+
+  changeView(view: string) {
+    this.selectedView = view;
+  }
+
+  addFamilyMember() {
+    this.newFamilyMember = { characterName: '', age: '', race: '', photo: '' };
+  }
+
+  saveFamilyMember() {
+    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/family-member`, this.newFamilyMember).subscribe(
+      (data: any) => {
+        console.log('Family member saved successfully');
+        this.updateCharacterFamilyMembers(data.id);
+      },
+      (error) => {
+        console.error('Error saving family member:', error);
+      }
+    );
+  }
+
+  updateCharacterFamilyMembers(familyMemberId: number) {
+    this.http.put(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/family-members`, { familyMemberId }).subscribe(
+      () => {
+        console.log('Character family members updated successfully');
+      },
+      (error) => {
+        console.error('Error updating character family members:', error);
+      }
+    );
+  }
+
+  saveImage(formData: FormData) {
+    this.http.post(`https://${localIP}:8080/save-image`, formData).subscribe(
+      (response: any) => {
+        if (this.newFamilyMember) {
+          this.newFamilyMember.photo = response.filePath; // Save as relative URL
+        }
+        console.log('Image saved successfully');
+      },
+      (error) => {
+        console.error('Error saving image:', error);
+      }
+    );
+  }
+
+  onImageUpload(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('characterName', this.newFamilyMember.characterName || ''); // Use new family member's character name
+      this.saveImage(formData);
+    }
   }
 }
