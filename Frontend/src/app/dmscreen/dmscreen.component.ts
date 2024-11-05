@@ -18,6 +18,8 @@ export class DMScreenComponent implements OnInit {
   selectedView: string = 'Edit Stats'; // Add this variable to store the selected view
   newFamilyMember: any = null; // Initialize as null
   familyMembers: any[] = []; // Add this variable to store family members
+  newFriendMember: any = null; // Initialize as null
+  friendMembers: any[] = []; // Add this variable to store friend members
 
   constructor(private http: HttpClient) {}
 
@@ -44,6 +46,7 @@ export class DMScreenComponent implements OnInit {
     console.log('Currently selected character:', this.currentlySelectedCharacter);
     this.fetchStatsSheet(name);
     this.fetchFamilyMembers(name); // Fetch family members for the selected character
+    this.fetchFriendMembers(name); // Fetch family members for the selected character
   }
 
   fetchStatsSheet(characterName: string) {
@@ -72,6 +75,21 @@ export class DMScreenComponent implements OnInit {
     );
   }
 
+  fetchFriendMembers(characterName: string) {
+    this.http.get<any[]>(`https://${localIP}:8080/character-info/${characterName}/friend-members`).subscribe(
+      (data) => {
+        this.friendMembers = data.map(member => ({
+          ...member,
+          photo: member.photo ? `https://${localIP}:8080${member.photo}` : ''
+        }));
+        console.log('Friend members:', this.friendMembers); // Log the friend members array
+      },
+      (error) => {
+        console.error('Error fetching friend members:', error);
+      }
+    );
+  }
+
   saveStatsSheet() {
     this.http.put(`https://${localIP}:8080/stats-sheet/${this.currentlySelectedCharacter}`, this.statsSheet).subscribe(
       () => {
@@ -95,14 +113,32 @@ export class DMScreenComponent implements OnInit {
     this.newFamilyMember = { characterName: '', age: '', race: '', photo: '' };
   }
 
+  addFriendMember() {
+    this.newFriendMember = { characterName: '', age: '', race: '', photo: '' };
+  }
+
   saveFamilyMember() {
-    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/family-member`, this.newFamilyMember).subscribe(
+    const familyMemberData = { ...this.newFamilyMember, characterName: this.newFamilyMember.characterName };
+    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/family-member`, familyMemberData).subscribe(
       (data: any) => {
         console.log('Family member saved successfully');
         this.updateCharacterFamilyMembers(data.id);
       },
       (error) => {
         console.error('Error saving family member:', error);
+      }
+    );
+  }
+
+  saveFriendMember() {
+    const friendMemberData = { ...this.newFriendMember, characterName: this.newFriendMember.characterName };
+    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/friend-member`, friendMemberData).subscribe(
+      (data: any) => {
+        console.log('Friend member saved successfully');
+        this.updateCharacterFriendMembers(data.id);
+      },
+      (error) => {
+        console.error('Error saving friend member:', error);
       }
     );
   }
@@ -118,11 +154,24 @@ export class DMScreenComponent implements OnInit {
     );
   }
 
+  updateCharacterFriendMembers(friendMemberId: number) {
+    this.http.put(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/friend-members`, { friendMemberId }).subscribe(
+      () => {
+        console.log('Character friend members updated successfully');
+      },
+      (error) => {
+        console.error('Error updating character friend members:', error);
+      }
+    );
+  }
+
   saveImage(formData: FormData) {
     this.http.post(`https://${localIP}:8080/save-image`, formData).subscribe(
       (response: any) => {
         if (this.newFamilyMember) {
           this.newFamilyMember.photo = response.filePath; // Save as relative URL
+        } else if (this.newFriendMember) {
+          this.newFriendMember.photo = response.filePath; // Save as relative URL
         }
         console.log('Image saved successfully');
       },
@@ -132,12 +181,22 @@ export class DMScreenComponent implements OnInit {
     );
   }
 
-  onImageUpload(event: any) {
+  onImageUploadFamily(event: any) {
     const file = event.target.files[0];
     if (file) {
       const formData = new FormData();
       formData.append('image', file);
       formData.append('characterName', this.newFamilyMember.characterName || ''); // Use new family member's character name
+      this.saveImage(formData);
+    }
+  }
+
+  onImageUploadFriend(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('characterName', this.newFriendMember.characterName || ''); // Use new friend member's character name
       this.saveImage(formData);
     }
   }

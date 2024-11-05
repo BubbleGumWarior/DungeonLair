@@ -60,7 +60,7 @@
             <div *ngIf="!newFamilyMember.photo" class="flex items-center justify-center h-full">
               <label class="cursor-pointer">
                 <span class="text-purple-500">Upload Image</span>
-                <input type="file" (change)="onImageUpload($event)" class="hidden" />
+                <input type="file" (change)="onImageUploadFamily($event)" class="hidden" />
               </label>
             </div>
             <img *ngIf="newFamilyMember.photo" [src]="newFamilyMember.photo" alt="Family Member Photo" class="w-12 h-12 rounded-full mr-4" />
@@ -70,7 +70,48 @@
       </div>
     </div>
 
-    <div *ngIf="selectedView !== 'Edit Stats' && selectedView !== 'Manage Family Members'" class="text-white">
+    <div *ngIf="selectedView === 'Manage Friend Members'" class="text-white">
+      <div class="grid grid-cols-3 gap-4">
+        <div *ngFor="let friendMember of friendMembers; let i = index" 
+             class="p-4 rounded shadow-md text-white flex items-center cursor-pointer bg-purple-500">
+          <img *ngIf="friendMember.photo" [src]="friendMember.photo" alt="Friend Member Photo" class="w-12 h-12 rounded-full mr-4" />
+          <div>
+            <span>{{ friendMember.characterName }}</span>
+            <p class="text-sm">Age: {{ friendMember.age }}</p>
+          </div>
+        </div>
+      </div>
+      <button (click)="addFriendMember()" class="p-2 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-white rounded mt-4">+ Add Friend Member</button>
+      <div *ngIf="newFriendMember">
+        <div class="grid grid-cols-2 gap-4 mt-4">
+          <div>
+            <p class="font-semibold text-purple-400">Character Name</p>
+            <input [(ngModel)]="newFriendMember.characterName" class="p-2 border rounded w-full bg-stone-900 text-white" />
+          </div>
+          <div>
+            <p class="font-semibold text-purple-400">Age</p>
+            <input [(ngModel)]="newFriendMember.age" class="p-2 border rounded w-full bg-stone-900 text-white" />
+          </div>
+          <div>
+            <p class="font-semibold text-purple-400">Race</p>
+            <input [(ngModel)]="newFriendMember.race" class="p-2 border rounded w-full bg-stone-900 text-white" />
+          </div>
+          <div>
+            <p class="font-semibold text-purple-400">Photo</p>
+            <div *ngIf="!newFriendMember.photo" class="flex items-center justify-center h-full">
+              <label class="cursor-pointer">
+                <span class="text-purple-500">Upload Image</span>
+                <input type="file" (change)="onImageUploadFriend($event)" class="hidden" />
+              </label>
+            </div>
+            <img *ngIf="newFriendMember.photo" [src]="newFriendMember.photo" alt="Friend Member Photo" class="w-12 h-12 rounded-full mr-4" />
+          </div>
+        </div>
+        <button (click)="saveFriendMember()" class="mt-4 p-2 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-white rounded">Save</button>
+      </div>
+    </div>
+
+    <div *ngIf="selectedView !== 'Edit Stats' && selectedView !== 'Manage Family Members' && selectedView !== 'Manage Friend Members'" class="text-white">
       {{ selectedView }} is working.
     </div>
   </div>

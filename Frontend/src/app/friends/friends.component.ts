@@ -62,6 +62,8 @@ export class FriendsComponent implements OnInit {
   }
 
   updateCharacters(character: Character) {
+    // Adjust the photo URL to be relative
+    character.photo = character.photo ? `https://${localIP}:8080${character.photo}` : '';
     // Append the fetched character to the Characters array
     this.Characters.push(character);
   }

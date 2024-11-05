@@ -6,7 +6,6 @@ interface Character {
   characterName: string;
   age: number;
   race: string;
-  relationship: string;
   photo: string; // This will now hold file paths
 }
 

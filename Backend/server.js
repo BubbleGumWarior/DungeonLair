@@ -456,7 +456,7 @@ app.use('/assets/images', express.static(path.join(__dirname, 'assets/images')))
 
 app.post('/character-info/:characterName/family-member', async (req, res) => {
   const { characterName } = req.params;
-  const { age, race, photo } = req.body;
+  const { characterName: newFamilyMemberName, age, race, photo } = req.body;
 
   try {
     const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
@@ -466,7 +466,7 @@ app.post('/character-info/:characterName/family-member', async (req, res) => {
 
     const newFamilyMember = await FamilyMembers.create({
       characterID: characterInfo.id,
-      characterName,
+      characterName: newFamilyMemberName, // Use the provided character name for the new family member
       age,
       race,
       photo
@@ -511,6 +511,66 @@ app.get('/character-info/:characterName/family-members', async (req, res) => {
   } catch (error) {
     console.error('Error fetching family members:', error);
     res.status(500).send('Failed to fetch family members');
+  }
+});
+
+app.post('/character-info/:characterName/friend-member', async (req, res) => {
+  const { characterName } = req.params;
+  const { characterName: newFriendMemberName, age, race, photo } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const newFriendMember = await FriendMembers.create({
+      characterID: characterInfo.id,
+      characterName: newFriendMemberName, // Use the provided character name for the new friend member
+      age,
+      race,
+      photo // Ensure the photo path is saved
+    });
+    res.status(201).json(newFriendMember);
+  } catch (error) {
+    console.error('Error saving friend member:', error);
+    res.status(500).send('Failed to save friend member');
+  }
+});
+
+app.put('/character-info/:characterName/friend-members', async (req, res) => {
+  const { characterName } = req.params;
+  const { friendMemberId } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).json({ message: 'Character info not found' });
+    }
+
+    const updatedFriendMembers = [...characterInfo.friendMembers, friendMemberId];
+    await CharacterInfo.update({ friendMembers: updatedFriendMembers }, { where: { characterName } });
+
+    res.json({ message: 'Character friend members updated successfully' }); // Return valid JSON
+  } catch (error) {
+    console.error('Error updating character friend members:', error);
+    res.status(500).json({ message: 'Failed to update character friend members' });
+  }
+});
+
+app.get('/character-info/:characterName/friend-members', async (req, res) => {
+  const { characterName } = req.params;
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const friendMembers = await FriendMembers.findAll({ where: { characterID: characterInfo.id } });
+    res.json(friendMembers);
+  } catch (error) {
+    console.error('Error fetching friend members:', error);
+    res.status(500).send('Failed to fetch friend members');
   }
 });
 

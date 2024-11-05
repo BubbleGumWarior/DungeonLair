@@ -3,7 +3,7 @@
         <div class="flex flex-col w-full">
             <div class="text-center">
                 <div class="h-full mb-4 flex items-center justify-center"> <!-- Added flex classes -->
-                    <img [src]="'data:image/jpeg;base64,' + character.photo" alt="{{ character.characterName }}" class="h-1/4 w-1/4 object-cover rounded-md">
+                    <img [src]="character.photo" alt="{{ character.characterName }}" class="h-1/4 w-1/4 object-cover rounded-md">
                 </div>
                 <h2 class="text-3xl font-bold">{{ character.characterName }}</h2>
                 <p class="text-sm">Age: {{ character.age }}</p>
