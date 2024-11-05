@@ -149,6 +149,7 @@ export class HomeComponent implements OnInit {
     this.battleActive = true;
     this.showBattlePrompt = false;
     this.showInitiativePrompt = true;
+    this.currentView = 'home'; // Navigate to home view
   }
 
   declineBattle() {
