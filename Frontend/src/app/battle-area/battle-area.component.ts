@@ -1,8 +1,7 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WebSocketService } from '../services/websocket.service';
 import { FormsModule } from '@angular/forms';
-
 
 @Component({
   selector: 'app-battle-area',
@@ -11,7 +10,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './battle-area.component.html',
   styleUrls: ['./battle-area.component.css']
 })
-export class BattleAreaComponent {
+export class BattleAreaComponent implements OnInit {
   @Input() activeBattleUsers: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }[] = [];
   @Input() showInitiativePrompt: boolean = false;
   @Input() username: string | null = null;
@@ -27,6 +26,7 @@ export class BattleAreaComponent {
     const modifier = this.modifierSign === '+' ? this.modifierValue : -this.modifierValue;
     const final = random + modifier;
     if (this.username && this.characterName) {
+      console.log('Rolling for initiative:', { username: this.username, characterName: this.characterName, initiative: { random, modifier, final } });
       this.webSocketService.joinBattle({ username: this.username, characterName: this.characterName, initiative: { random, modifier, final } });
     }
     this.showInitiativePrompt = false;
@@ -41,5 +41,23 @@ export class BattleAreaComponent {
 
   getAbs(value: number): number {
     return Math.abs(value);
+  }
+
+  ngOnInit() {
+    console.log('Setting up initiative prompt listener');
+    this.webSocketService.onInitiativePrompt(() => {
+      console.log('Received initiative prompt');
+      if (!this.isUserInBattle()) {
+        this.showInitiativePrompt = true;
+      }
+    });
+    this.webSocketService.getActiveBattleUsers().subscribe(users => {
+      this.activeBattleUsers = users;
+    });
+    console.log('Initiative prompt listener set up');
+  }
+
+  private isUserInBattle(): boolean {
+    return this.activeBattleUsers.some(user => user.username === this.username);
   }
 }

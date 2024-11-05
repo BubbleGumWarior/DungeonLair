@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { localIP } from '../config'; // Import the IP address
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,17 @@ export class WebSocketService {
 
   constructor() {
     this.socket = io(`https://${localIP}:8080`);
-    this.socket.on('connect', () => console.log('Socket.IO connection established'));
+    this.socket.on('connect', () => {
+      console.log('Socket.IO connection established');
+      console.log('Socket ID:', this.socket.id);
+      // Log in the user upon connection
+      const username = localStorage.getItem('username'); // Assuming username is stored in localStorage
+      const role = localStorage.getItem('role'); // Assuming role is stored in localStorage
+      if (username && role) {
+        console.log('Logging in user:', username, 'with role:', role);
+        this.loginUser({ username, role });
+      }
+    });
     this.socket.on('disconnect', () => console.log('Socket.IO connection closed'));
     this.socket.on('connect_error', (error) => console.error('Socket.IO error:', error));
   }
@@ -35,8 +46,12 @@ export class WebSocketService {
     this.socket.on('newMessage', callback);
   }
 
-  registerUser(username: string) {
-    this.socket.emit('registerUser', username);
+  loginUser(user: { username: string, role: string }) {
+    this.socket.emit('loginUser', user);
+  }
+
+  registerUser(user: { username: string, role: string }) {
+    this.socket.emit('registerUser', user);
   }
 
   sendAudio(audioChunk: Blob) {
@@ -84,7 +99,47 @@ export class WebSocketService {
     this.socket.emit('leaveBattle', user);
   }
 
+
+  getActiveBattleUsers() {
+    return new Observable<{ username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }[]>(observer => {
+      this.socket.emit('getActiveBattleUsers');
+      this.socket.on('activeBattleUsers', (users: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }[]) => {
+        observer.next(users);
+      });
+    });
+  }
+
   onActiveBattleUsers(callback: (users: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }[]) => void) {
     this.socket.on('activeBattleUsers', callback);
+  }
+
+  getLiveUsers() {
+    return new Observable<{ username: string }[]>(observer => {
+      this.socket.emit('getLiveUsers');
+      this.socket.on('liveUsers', (users: { username: string }[]) => {
+        observer.next(users);
+      });
+    });
+  }
+
+  sendInitiativePrompt(username: string) {
+    console.log('Emitting initiative prompt for:', username);
+    this.socket.emit('sendInitiativePrompt', username);
+  }
+
+  getAllCharacterNames() {
+    return new Observable<{ characterName: string }[]>(observer => {
+      this.socket.emit('getAllCharacterNames');
+      this.socket.on('allCharacterNames', (characterNames: { characterName: string }[]) => {
+        observer.next(characterNames);
+      });
+    });
+  }
+
+  onInitiativePrompt(callback: () => void) {
+    this.socket.on('initiativePrompt', () => {
+      console.log('Initiative prompt received');
+      callback();
+    });
   }
 }

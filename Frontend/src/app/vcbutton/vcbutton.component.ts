@@ -19,6 +19,7 @@ export class vcButtonComponent implements OnInit {
   isOpen = false;
   vcMembers: VcMember[] = [];
   @Input() username: string = 'User';
+  @Input() role: string = 'defaultRole'; // Add this line
   private mediaRecorder!: MediaRecorder;
   private audioChunks: Blob[] = [];
 
@@ -47,7 +48,7 @@ export class vcButtonComponent implements OnInit {
         // Username does not exist, add it
         this.vcMembers.push({ username: this.username });
         await this.startRecording();
-        this.webSocketService.registerUser(this.username); // Register user when they join
+        this.webSocketService.registerUser({ username: this.username, role: this.role }); // Register user when they join
         this.fetchLiveUsers(); // Fetch live users when joining
         this.listenForUserUpdates(); // Listen for updates when joining
       }

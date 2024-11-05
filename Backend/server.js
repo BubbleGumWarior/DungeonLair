@@ -758,13 +758,24 @@ app.put('/character-info/:characterName/skills', async (req, res) => {
 let activeBattleUsers = [];
 
 io.on('connection', (socket) => {
-    console.log('A user connected');
+    console.log('A user connected with socket ID:', socket.id);
 
-    // Add the new user to the liveUsers array
-    socket.on('registerUser', (data) => {
+    // Handle user login
+    socket.on('loginUser', (data) => {
         const { username, role } = data;
-        const newUser = { id: socket.id, username, role };
-        liveUsers.push(newUser);
+        console.log('Logging in user:', username, 'with role:', role);
+        const existingUser = liveUsers.find(user => user.username === username);
+        if (existingUser) {
+            console.log('Updating socket ID for user:', username);
+            existingUser.id = socket.id;
+        } else {
+            const newUser = { id: socket.id, username, role };
+            liveUsers.push(newUser);
+        }
+
+        // Log the username and socket ID after login
+        console.log('User logged in:', username, 'with socket ID:', socket.id);
+        console.log('Current live users:', liveUsers);
 
         // Join the user to the 'dungeonMaster' room if they are a Dungeon Master
         if (role === 'Dungeon Master') {
@@ -776,9 +787,12 @@ io.on('connection', (socket) => {
 
     // Handle disconnection
     socket.on('disconnect', () => {
-        console.log('A user disconnected');
+        console.log('A user disconnected with socket ID:', socket.id);
         liveUsers = liveUsers.filter(user => user.id !== socket.id);
+        activeBattleUsers = activeBattleUsers.filter(user => user.id !== socket.id);
+        console.log('Current live users after disconnection:', liveUsers);
         broadcastUserUpdate();
+        broadcastActiveBattleUsers();
     });
 
     // Handle battle start
@@ -790,7 +804,7 @@ io.on('connection', (socket) => {
     socket.on('endBattle', () => {
         io.emit('battleEnded');
         activeBattleUsers = []; // Clear the array
-        io.emit('activeBattleUsers', activeBattleUsers); // Emit the updated empty array
+        broadcastActiveBattleUsers(); // Emit the updated empty array
     });
 
     socket.on('joinBattle', (user) => {
@@ -798,14 +812,40 @@ io.on('connection', (socket) => {
             activeBattleUsers.push(user);
             activeBattleUsers.sort((a, b) => b.initiative.final - a.initiative.final); // Sort by final initiative value
             console.log('User joined battle:', user.characterName, 'with initiative', user.initiative);
-            io.emit('activeBattleUsers', activeBattleUsers);
+            broadcastActiveBattleUsers();
         }
     });
 
     socket.on('leaveBattle', (user) => {
         activeBattleUsers = activeBattleUsers.filter(u => u.username !== user.username);
         console.log('User left battle:', user.characterName);
-        io.emit('activeBattleUsers', activeBattleUsers);
+        broadcastActiveBattleUsers();
+    });
+
+    socket.on('getActiveBattleUsers', () => {
+        socket.emit('activeBattleUsers', activeBattleUsers);
+    });
+
+    socket.on('sendInitiativePrompt', (username) => {
+        console.log('Received request to send initiative prompt to:', username);
+        console.log('Current live users:', liveUsers);
+        const userSocket = liveUsers.find(user => user.username === username);
+        if (userSocket) {
+            console.log('Sending initiative prompt to socket ID:', userSocket.id);
+            io.to(userSocket.id).emit('initiativePrompt');
+        } else {
+            console.log('User not found:', username);
+        }
+    });
+
+    socket.on('getAllCharacterNames', async () => {
+        try {
+            const characterInfos = await CharacterInfo.findAll({ attributes: ['characterName'] });
+            const characterNames = characterInfos.map(info => ({ characterName: info.characterName }));
+            socket.emit('allCharacterNames', characterNames);
+        } catch (error) {
+            console.error('Error fetching character names:', error);
+        }
     });
 
     // Handle incoming messages if needed
@@ -843,6 +883,11 @@ io.on('connection', (socket) => {
 function broadcastUserUpdate() {
     const userUpdateMessage = { type: 'userUpdate', users: liveUsers.map(user => ({ username: user.username, role: user.role })) };
     io.emit('userUpdate', userUpdateMessage);
+}
+
+// Function to broadcast active battle users
+function broadcastActiveBattleUsers() {
+    io.emit('activeBattleUsers', activeBattleUsers);
 }
 
 // Start the server

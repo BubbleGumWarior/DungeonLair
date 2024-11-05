@@ -50,3 +50,40 @@
     <i class="fa fa-lg" [ngClass]="{'fa-regular fa-flag': battleActive, 'fa-solid fa-fist-raised': !battleActive}" aria-hidden="true"></i>
   </button>
 </div>
+<div *ngIf="role === 'Dungeon Master' && battleActive" class="fixed top-4 left-4 mt-16">
+  <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="showAddUserModal = true">
+    <i class="fa fa-lg fa-user-plus" aria-hidden="true"></i>
+  </button>
+</div>
+
+<!-- Add User Modal -->
+<div *ngIf="showAddUserModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+  <div class="modal-content bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4 rounded-lg shadow-lg text-center">
+    <p class="text-lg font-bold mb-4">Add User to Battle</p>
+    <div class="mb-4">
+      <label class="block text-white font-bold mb-2">Type</label>
+      <select [(ngModel)]="addUserType" class="bg-white text-black px-2 py-1 rounded">
+        <option value="Player">Player</option>
+        <option value="NPC">NPC</option>
+      </select>
+    </div>
+    <div *ngIf="addUserType === 'Player'" class="mb-4">
+      <label class="block text-white font-bold mb-2">Player Name</label>
+      <select [(ngModel)]="selectedPlayer" class="bg-white text-black px-2 py-1 rounded">
+        <option *ngFor="let user of availableUsers" [value]="user.username">{{ user.username }}</option>
+      </select>
+    </div>
+    <div *ngIf="addUserType === 'NPC'" class="mb-4">
+      <label class="block text-white font-bold mb-2">Name</label>
+      <input type="text" [(ngModel)]="npcName" class="bg-white text-black px-2 py-1 rounded" />
+      <div class="mt-2">
+        <label class="text-white font-bold">
+          <input type="checkbox" [(ngModel)]="isEnemy" class="mr-2" />
+          Enemy
+        </label>
+      </div>
+    </div>
+    <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="submitAddUser()">Submit</button>
+    <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="showAddUserModal = false">Cancel</button>
+  </div>
+</div>

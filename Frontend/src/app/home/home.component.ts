@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms'; // Import FormsModule
 import { BoardComponent } from '../board/board.component';
 import { FamilyComponent } from '../family/family.component';
 import { FriendsComponent } from '../friends/friends.component';
@@ -21,6 +22,7 @@ import { WebSocketService } from '../services/websocket.service';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule, // Add FormsModule to imports
     BoardComponent,
     FamilyComponent,
     FriendsComponent,
@@ -45,8 +47,14 @@ export class HomeComponent implements OnInit {
   battleActive: boolean = false;
   showBattlePrompt: boolean = false;
   battleInitiatedByMe: boolean = false; // Flag to indicate if the battle was initiated by the current user
-  activeBattleUsers: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }[] = [];
+  activeBattleUsers: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number }, isEnemy?: boolean }[] = [];
   showInitiativePrompt: boolean = false;
+  showAddUserModal: boolean = false;
+  addUserType: string = 'Player';
+  selectedPlayer: string | null = null;
+  npcName: string = '';
+  isEnemy: boolean = false;
+  availableUsers: { username: string }[] = [];
 
   constructor(private router: Router, private webSocketService: WebSocketService) {}
 
@@ -59,7 +67,16 @@ export class HomeComponent implements OnInit {
     this.webSocketService.onActiveBattleUsers((users: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }[]) => {
       this.activeBattleUsers = users;
       console.log('Active battle users:', this.activeBattleUsers);
+      if (this.isUserInBattle()) {
+        this.showInitiativePrompt = false;
+      }
     });
+    this.loadAvailableUsers();
+    // Log in the user upon initialization
+    if (this.username && this.role) {
+      console.log('Logging in user:', this.username, 'with role:', this.role);
+      this.webSocketService.loginUser({ username: this.username, role: this.role });
+    }
   }
 
   loadDataFromToken() {
@@ -136,5 +153,42 @@ export class HomeComponent implements OnInit {
 
   declineBattle() {
     this.showBattlePrompt = false;
+  }
+
+  loadAvailableUsers() {
+    this.webSocketService.getAllCharacterNames().subscribe(characterNames => {
+      this.availableUsers = characterNames
+        .filter(character => !this.activeBattleUsers.some(battleUser => battleUser.characterName === character.characterName))
+        .map(character => ({ username: character.characterName }));
+    });
+  }
+
+  submitAddUser() {
+    if (this.addUserType === 'Player' && this.selectedPlayer) {
+      console.log('Sending initiative prompt to:', this.selectedPlayer);
+      this.webSocketService.sendInitiativePrompt(this.selectedPlayer);
+    } else if (this.addUserType === 'NPC' && this.npcName) {
+      const random = Math.floor(Math.random() * 20) + 1;
+      const initiative = {
+        random,
+        modifier: 0,
+        final: random
+      };
+      const user: { username: string; characterName: string; initiative: { random: number; modifier: number; final: number }; isEnemy?: boolean } = {
+        username: this.npcName,
+        characterName: this.npcName,
+        initiative
+      };
+      if (this.isEnemy) {
+        user['isEnemy'] = true;
+      }
+      console.log('Adding NPC to battle:', user);
+      this.webSocketService.joinBattle(user);
+    }
+    this.showAddUserModal = false;
+  }
+
+  private isUserInBattle(): boolean {
+    return this.activeBattleUsers.some(user => user.username === this.username);
   }
 }
