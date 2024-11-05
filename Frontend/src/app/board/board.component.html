@@ -72,7 +72,13 @@
     <!-- Column 2: Character Bio and Image -->
     <div class="flex flex-col items-center p-4 text-purple-500 h-full w-full bg-purple-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-purple-500">
         <div class="bg-white w-full h-full mb-4">
-            <img *ngIf="photo" [src]="'data:image/jpeg;base64,' + photo" alt="Character Photo" class="w-full h-full" />
+            <img *ngIf="photo" [src]="photo" alt="Character Photo" class="w-full h-full" />
+            <div *ngIf="!photo" class="flex items-center justify-center h-full">
+                <label class="cursor-pointer">
+                    <span class="text-purple-500">Upload Image</span>
+                    <input type="file" (change)="onImageUpload($event)" class="hidden" />
+                </label>
+            </div>
         </div>
         <div class="text-center">
             <h2 class="text-3xl font-bold">{{ characterName }}</h2>

@@ -18,6 +18,8 @@ const ChatHistory = require('./models/ChatHistory'); // Import the ChatHistory m
 const DMChatHistory = require('./models/DMChatHistory'); // Import the DMChatHistory model
 const { localIP, JWT_SECRET } = require('./config'); // Import the IP address and JWT secret
 const User = require('./models/User'); // Import the User model
+const multer = require('multer');
+const path = require('path');
 
 const app = express();
 
@@ -385,6 +387,42 @@ app.get('/skill-list/:id', async (req, res) => {
         res.status(500).send('Failed to fetch skill');
     }
 });
+
+// Set up storage for uploaded images
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, 'assets/images');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
+
+// Endpoint to handle image upload
+app.post('/save-image', upload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+  const filePath = `/assets/images/${req.file.filename}`; // Adjusted file path
+  const { characterName } = req.body;
+
+  try {
+    // Update the CharacterInfo table with the new image path
+    await CharacterInfo.update({ photo: filePath }, { where: { characterName } });
+    res.json({ filePath: `https://${localIP}:8080${filePath}` }); // Return full URL
+  } catch (error) {
+    console.error('Error saving image:', error);
+    res.status(500).send('Failed to save image');
+  }
+});
+
+app.use('/assets/images', express.static(path.join(__dirname, 'assets/images')));
 
 // Socket.IO connection
 io.on('connection', (socket) => {

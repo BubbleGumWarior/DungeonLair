@@ -2,6 +2,7 @@ import { Component, Input, EventEmitter, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { localIP } from '../config'; // Import the IP address
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-board',
@@ -67,7 +68,7 @@ export class BoardComponent implements OnInit {
 
   statsSheet: any;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
 
   ngOnInit() {
     if (this.characterName) {
@@ -97,7 +98,7 @@ export class BoardComponent implements OnInit {
       const characterInfo = await response.json();
       this.updateCharacterInfo(characterInfo);  // Update stats with the fetched data
     } catch (error) {
-      console.error('Error fetching stats sheet:', error);
+      console.error('Error fetching character info:', error);
     }
   }
 
@@ -177,7 +178,8 @@ export class BoardComponent implements OnInit {
   updateCharacterInfo(stats: any) {
     this.class = stats.class;
     this.race = stats.race;
-    this.photo = stats.photo;
+    this.photo = stats.photo ? `https://${localIP}:8080${stats.photo}` : ''; // Adjusted photo URL
+    console.log(this.photo);
     this.level = stats.level;
   }
   
@@ -205,6 +207,29 @@ export class BoardComponent implements OnInit {
 
 
     this.resultRolled.emit(resultMessage);
+  }
+
+  onImageUpload(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('characterName', this.characterName || '');
+      this.saveImage(formData);
+    }
+  }
+
+  saveImage(formData: FormData) {
+    this.http.post(`https://${localIP}:8080/save-image`, formData)
+      .subscribe(
+        (response: any) => {
+          this.photo = response.filePath; // Assuming the server returns the full URL
+          console.log('Image saved successfully');
+        },
+        (error) => {
+          console.error('Error saving image:', error);
+        }
+      );
   }
 }
 
