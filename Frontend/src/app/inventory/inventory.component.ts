@@ -75,6 +75,9 @@ export class InventoryComponent implements OnInit {
   }
 
   async updateItem(item: Item) {  
+
+    // Adjust the photo URL to be relative
+    item.photo = item.photo ? `https://${localIP}:8080${item.photo}` : '';
     item.modifier = await this.fetchStatsSheet(this.characterName, item.mainStat);
 
     this.Item.push(item);

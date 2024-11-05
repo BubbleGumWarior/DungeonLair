@@ -111,7 +111,86 @@
       </div>
     </div>
 
-    <div *ngIf="selectedView !== 'Edit Stats' && selectedView !== 'Manage Family Members' && selectedView !== 'Manage Friend Members'" class="text-white">
+    <div *ngIf="selectedView === 'Manage Inventory'" class="text-white">
+      <div class="grid grid-cols-3 gap-4">
+        <div *ngFor="let inventoryItem of inventoryItems; let i = index" 
+             class="p-4 rounded shadow-md text-white flex items-center cursor-pointer bg-purple-500">
+          <img *ngIf="inventoryItem.photo" [src]="inventoryItem.photo" alt="Inventory Item Photo" class="w-12 h-12 rounded-full mr-4" />
+          <div>
+            <span>{{ inventoryItem.itemName }}</span>
+            <p class="text-sm">Type: {{ inventoryItem.type }}</p>
+          </div>
+        </div>
+      </div>
+      <button (click)="addInventoryItem()" class="p-2 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-white rounded mt-4">+ Add Inventory Item</button>
+      <div *ngIf="newInventoryItem">
+        <div class="grid grid-cols-2 gap-4 mt-4">
+          <div class="col-span-1">
+            <p class="font-semibold text-purple-400">Item Name</p>
+            <input [(ngModel)]="newInventoryItem.itemName" class="p-2 border rounded w-full bg-stone-900 text-white" />
+          </div>
+          <div class="col-span-1">
+            <p class="font-semibold text-purple-400">Type</p>
+            <input [(ngModel)]="newInventoryItem.type" class="p-2 border rounded w-full bg-stone-900 text-white" />
+          </div>
+          <div class="col-span-1">
+            <p class="font-semibold text-purple-400">Main Stat</p>
+            <select [(ngModel)]="newInventoryItem.mainStat" class="p-2 border rounded w-full bg-stone-900 text-white">
+              <option>Strength</option>
+              <option>Athletics</option>
+              <option>Swordsmanship</option>
+              <option>Dexterity</option>
+              <option>Acrobatics</option>
+              <option>Sleight Of Hand</option>
+              <option>Stealth</option>
+              <option>Marksmanship</option>
+              <option>Pilot</option>
+              <option>Constitution</option>
+              <option>Intelligence</option>
+              <option>History</option>
+              <option>Investigation</option>
+              <option>Nature</option>
+              <option>Force Strength</option>
+              <option>Splicing</option>
+              <option>Wisdom</option>
+              <option>Animal Handling</option>
+              <option>Insight</option>
+              <option>Medicine</option>
+              <option>Perception</option>
+              <option>Survival</option>
+              <option>Force Capacity</option>
+              <option>Mapping</option>
+              <option>Charisma</option>
+              <option>Deception</option>
+              <option>Intimidation</option>
+              <option>Performance</option>
+              <option>Persuasion</option>
+            </select>
+          </div>
+          <div class="col-span-1 row-span-3">
+            <p class="font-semibold text-purple-400">Description</p>
+            <textarea [(ngModel)]="newInventoryItem.description" class="p-2 border rounded w-full bg-stone-900 text-white h-full"></textarea>
+          </div>
+          <div class="col-span-1">
+            <p class="font-semibold text-purple-400">Damage</p>
+            <input [(ngModel)]="newInventoryItem.damage" class="p-2 border rounded w-full bg-stone-900 text-white" />
+          </div>
+          <div class="col-span-1">
+            <p class="font-semibold text-purple-400">Photo</p>
+            <div *ngIf="!newInventoryItem.photo" class="flex items-center justify-center h-full">
+              <label class="cursor-pointer">
+                <span class="text-purple-500">Upload Image</span>
+                <input type="file" (change)="onImageUploadInventory($event)" class="hidden" />
+              </label>
+            </div>
+            <img *ngIf="newInventoryItem.photo" [src]="newInventoryItem.photo" alt="Inventory Item Photo" class="w-12 h-12 rounded-full mr-4" />
+          </div>
+        </div>
+        <button (click)="saveInventoryItem()" class="mt-4 p-2 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-white rounded">Save</button>
+      </div>
+    </div>
+
+    <div *ngIf="selectedView !== 'Edit Stats' && selectedView !== 'Manage Family Members' && selectedView !== 'Manage Friend Members' && selectedView !== 'Manage Inventory'" class="text-white">
       {{ selectedView }} is working.
     </div>
   </div>

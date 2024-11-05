@@ -376,10 +376,10 @@ app.get('/friend-member/:id', async (req, res) => {
     }
 });
 
-app.get('/item-list/:id', async (req, res) => {
-    const { id } = req.params;
+app.get('/item-list/:itemID', async (req, res) => {
+    const { itemID } = req.params;
     try {
-        const item = await ItemList.findOne({ where: { id } });
+        const item = await ItemList.findOne({ where: { itemID } });
         if (!item) {
             return res.status(404).send('Item not found');
         }
@@ -440,11 +440,16 @@ app.post('/save-image', upload.single('image'), async (req, res) => {
     return res.status(400).send('No file uploaded.');
   }
   const filePath = `/assets/images/${req.file.filename}`; // Adjusted file path
-  const { characterName } = req.body;
+  const { characterName, itemName } = req.body;
 
   try {
-    // Update the CharacterInfo table with the new image path
-    await CharacterInfo.update({ photo: filePath }, { where: { characterName } });
+    if (characterName) {
+      // Update the CharacterInfo table with the new image path
+      await CharacterInfo.update({ photo: filePath }, { where: { characterName } });
+    } else if (itemName) {
+      // Update the ItemList table with the new image path
+      await ItemList.update({ photo: filePath }, { where: { itemName } });
+    }
     res.json({ filePath }); // Return relative path
   } catch (error) {
     console.error('Error saving image:', error);
@@ -571,6 +576,77 @@ app.get('/character-info/:characterName/friend-members', async (req, res) => {
   } catch (error) {
     console.error('Error fetching friend members:', error);
     res.status(500).send('Failed to fetch friend members');
+  }
+});
+
+app.get('/character-info/:characterName/inventory-items', async (req, res) => {
+  const { characterName } = req.params;
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const inventoryItems = await ItemList.findAll({
+      where: {
+        itemID: {
+          [Op.in]: characterInfo.itemInventory
+        }
+      }
+    });
+    res.json(inventoryItems);
+  } catch (error) {
+    console.error('Error fetching inventory items:', error);
+    res.status(500).send('Failed to fetch inventory items');
+  }
+});
+
+app.post('/character-info/:characterName/inventory-item', async (req, res) => {
+  const { characterName } = req.params;
+  const { itemName, type, mainStat, description, damage, photo } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const newItem = await ItemList.create({
+      itemName,
+      type,
+      mainStat,
+      description,
+      damage,
+      photo
+    });
+
+    const updatedInventoryItems = [...characterInfo.itemInventory, newItem.itemID];
+    await CharacterInfo.update({ itemInventory: updatedInventoryItems }, { where: { characterName } });
+
+    res.status(201).json(newItem);
+  } catch (error) {
+    console.error('Error saving inventory item:', error);
+    res.status(500).send('Failed to save inventory item');
+  }
+});
+
+app.put('/character-info/:characterName/inventory-items', async (req, res) => {
+  const { characterName } = req.params;
+  const { itemId } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).json({ message: 'Character info not found' });
+    }
+
+    const updatedInventoryItems = [...characterInfo.itemInventory, itemId];
+    await CharacterInfo.update({ itemInventory: updatedInventoryItems }, { where: { characterName } });
+
+    res.json({ message: 'Character inventory items updated successfully' }); // Return valid JSON
+  } catch (error) {
+    console.error('Error updating character inventory items:', error);
+    res.status(500).json({ message: 'Failed to update character inventory items' });
   }
 });
 

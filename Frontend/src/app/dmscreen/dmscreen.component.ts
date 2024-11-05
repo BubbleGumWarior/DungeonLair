@@ -20,6 +20,8 @@ export class DMScreenComponent implements OnInit {
   familyMembers: any[] = []; // Add this variable to store family members
   newFriendMember: any = null; // Initialize as null
   friendMembers: any[] = []; // Add this variable to store friend members
+  newInventoryItem: any = null; // Initialize as null
+  inventoryItems: any[] = []; // Add this variable to store inventory items
 
   constructor(private http: HttpClient) {}
 
@@ -30,10 +32,12 @@ export class DMScreenComponent implements OnInit {
   fetchCharacterNames() {
     this.http.get<{ characterName: string, photo: string }[]>(`https://${localIP}:8080/character-names`).subscribe(
       (data) => {
-        this.characters = data.map(character => ({
-          name: character.characterName,
-          photo: character.photo ? `https://${localIP}:8080${character.photo}` : ''
-        }));
+        this.characters = data
+          .map(character => ({
+            name: character.characterName,
+            photo: character.photo ? `https://${localIP}:8080${character.photo}` : ''
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name)); // Sort characters alphabetically by name
       },
       (error) => {
         console.error('Error fetching character names:', error);
@@ -47,6 +51,7 @@ export class DMScreenComponent implements OnInit {
     this.fetchStatsSheet(name);
     this.fetchFamilyMembers(name); // Fetch family members for the selected character
     this.fetchFriendMembers(name); // Fetch family members for the selected character
+    this.fetchInventoryItems(name); // Fetch inventory items for the selected character
   }
 
   fetchStatsSheet(characterName: string) {
@@ -90,6 +95,21 @@ export class DMScreenComponent implements OnInit {
     );
   }
 
+  fetchInventoryItems(characterName: string) {
+    this.http.get<any[]>(`https://${localIP}:8080/character-info/${characterName}/inventory-items`).subscribe(
+      (data) => {
+        this.inventoryItems = data.map(item => ({
+          ...item,
+          photo: item.photo ? `https://${localIP}:8080${item.photo}` : ''
+        }));
+        console.log('Inventory items:', this.inventoryItems); // Log the inventory items array
+      },
+      (error) => {
+        console.error('Error fetching inventory items:', error);
+      }
+    );
+  }
+
   saveStatsSheet() {
     this.http.put(`https://${localIP}:8080/stats-sheet/${this.currentlySelectedCharacter}`, this.statsSheet).subscribe(
       () => {
@@ -115,6 +135,10 @@ export class DMScreenComponent implements OnInit {
 
   addFriendMember() {
     this.newFriendMember = { characterName: '', age: '', race: '', photo: '' };
+  }
+
+  addInventoryItem() {
+    this.newInventoryItem = { itemName: '', type: '', mainStat: '', description: '', damage: '', photo: '' };
   }
 
   saveFamilyMember() {
@@ -143,6 +167,24 @@ export class DMScreenComponent implements OnInit {
     );
   }
 
+  saveInventoryItem() {
+    const inventoryItemData = { 
+      ...this.newInventoryItem, 
+      itemName: this.newInventoryItem.itemName,
+      description: this.newInventoryItem.description.replace(/\n/g, '\\n') // Replace new lines with \n
+    };
+    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/inventory-item`, inventoryItemData).subscribe(
+      (data: any) => {
+        console.log('Inventory item saved successfully');
+        this.inventoryItems.push(data); // Add the new item to the inventoryItems array
+        this.newInventoryItem = null; // Reset the newInventoryItem
+      },
+      (error) => {
+        console.error('Error saving inventory item:', error);
+      }
+    );
+  }
+
   updateCharacterFamilyMembers(familyMemberId: number) {
     this.http.put(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/family-members`, { familyMemberId }).subscribe(
       () => {
@@ -165,6 +207,17 @@ export class DMScreenComponent implements OnInit {
     );
   }
 
+  updateCharacterInventoryItems(itemId: number) {
+    this.http.put(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/inventory-items`, { itemId }).subscribe(
+      () => {
+        console.log('Character inventory items updated successfully');
+      },
+      (error) => {
+        console.error('Error updating character inventory items:', error);
+      }
+    );
+  }
+
   saveImage(formData: FormData) {
     this.http.post(`https://${localIP}:8080/save-image`, formData).subscribe(
       (response: any) => {
@@ -172,6 +225,8 @@ export class DMScreenComponent implements OnInit {
           this.newFamilyMember.photo = response.filePath; // Save as relative URL
         } else if (this.newFriendMember) {
           this.newFriendMember.photo = response.filePath; // Save as relative URL
+        } else if (this.newInventoryItem) {
+          this.newInventoryItem.photo = response.filePath; // Save as relative URL
         }
         console.log('Image saved successfully');
       },
@@ -197,6 +252,16 @@ export class DMScreenComponent implements OnInit {
       const formData = new FormData();
       formData.append('image', file);
       formData.append('characterName', this.newFriendMember.characterName || ''); // Use new friend member's character name
+      this.saveImage(formData);
+    }
+  }
+
+  onImageUploadInventory(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('itemName', this.newInventoryItem.itemName || ''); // Use new inventory item's name
       this.saveImage(formData);
     }
   }
