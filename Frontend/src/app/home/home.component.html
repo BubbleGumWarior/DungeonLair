@@ -11,6 +11,7 @@
         <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('inventory')"[ngClass]="{'underline font-bold': currentView === 'inventory'}">Inventory</a></li>
         <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('skills')"[ngClass]="{'underline font-bold': currentView === 'skills'}">Skills</a></li>
         <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('notes')"[ngClass]="{'underline font-bold': currentView === 'notes'}">Notes</a></li>
+        <li *ngIf="role === 'Dungeon Master'"><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('dm-screen')"[ngClass]="{'underline font-bold': currentView === 'dm-screen'}">Dm Screen</a></li>
       </ul>
       <ul class="flex space-x-4">
         <li><a class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer" (click)="navigateTo('login')">Log Out</a></li>
@@ -26,6 +27,7 @@
     <app-inventory *ngIf="currentView === 'inventory'" (resultRolled)="handleDiceResult($event)" [characterName]= "characterName"></app-inventory>
     <app-skills *ngIf="currentView === 'skills'" (resultRolled)="handleDiceResult($event)" [characterName]= "characterName"></app-skills>
     <app-notes *ngIf="currentView === 'notes'"></app-notes>
+    <app-dmscreen *ngIf="currentView === 'dm-screen'"></app-dmscreen>
   </div>
 
   <app-chat-button [newMessage]="diceResult" [username]="username || 'DefaultUser'"></app-chat-button>

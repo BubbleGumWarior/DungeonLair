@@ -43,7 +43,7 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ["GET", "POST"]
+  methods: ["GET", "POST", "PUT"] // Add PUT method to allowed methods
 }));
 
 const io = socketIo(server, {
@@ -318,6 +318,22 @@ app.get('/stats-sheet/:characterName', async (req, res) => {
     }
 });
 
+app.put('/stats-sheet/:characterName', async (req, res) => {
+  const { characterName } = req.params;
+  const updatedStats = req.body;
+
+  try {
+    const result = await StatsSheet.update(updatedStats, { where: { characterName } });
+    if (result[0] === 0) {
+      return res.status(404).json({ message: 'Stats sheet not found' });
+    }
+    res.json({ message: 'Stats sheet updated successfully' }); // Return valid JSON
+  } catch (error) {
+    console.error('Error updating stats sheet:', error);
+    res.status(500).json({ message: 'Failed to update stats sheet' });
+  }
+});
+
 app.get('/character-info/:characterName', async (req, res) => {
     const { characterName } = req.params;
     try {
@@ -386,6 +402,20 @@ app.get('/skill-list/:id', async (req, res) => {
         console.error('Error fetching skill:', error);
         res.status(500).send('Failed to fetch skill');
     }
+});
+
+app.get('/character-names', async (req, res) => {
+  try {
+    const characterInfos = await CharacterInfo.findAll({ attributes: ['characterName', 'photo'] });
+    const characterNames = characterInfos.map(info => ({
+      characterName: info.characterName,
+      photo: info.photo
+    }));
+    res.json(characterNames);
+  } catch (error) {
+    console.error('Error fetching character names:', error);
+    res.status(500).send('Failed to fetch character names');
+  }
 });
 
 // Set up storage for uploaded images

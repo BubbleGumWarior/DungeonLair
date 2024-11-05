@@ -1,0 +1,22 @@
+<div class="dm-screen pb-40">
+  <div class="grid grid-cols-3 gap-4">
+    <div *ngFor="let character of characters" 
+         class="p-4 rounded shadow-md text-white flex items-center cursor-pointer"
+         [ngClass]="{'bg-purple-700': currentlySelectedCharacter === character.name, 'bg-purple-500': currentlySelectedCharacter !== character.name}"
+         (click)="selectCharacter(character.name)">
+      <img *ngIf="character.photo" [src]="character.photo" alt="Character Photo" class="w-12 h-12 rounded-full mr-4" />
+      <span>{{ character.name }}</span>
+    </div>
+  </div>
+
+  <div *ngIf="currentlySelectedCharacter" class="mt-4 p-4 bg-stone-950 rounded shadow-md">
+    <h2 class="text-2xl font-bold mb-4 text-purple-400">Edit Stats for {{ currentlySelectedCharacter }}</h2>
+    <div class="grid grid-cols-2 gap-4">
+      <div *ngFor="let key of objectKeys(statsSheet)">
+        <p class="font-semibold text-purple-400">{{ key }}</p>
+        <input [(ngModel)]="statsSheet[key]" class="p-2 border rounded w-full bg-stone-900 text-white" />
+      </div>
+    </div>
+    <button (click)="saveStatsSheet()" class="mt-4 p-2 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-white rounded">Save</button>
+  </div>
+</div>
