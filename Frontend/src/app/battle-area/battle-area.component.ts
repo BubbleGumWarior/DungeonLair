@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WebSocketService } from '../services/websocket.service';
 import { FormsModule } from '@angular/forms';
+import { localIP } from '../config'; // Import the IP address
 
 @Component({
   selector: 'app-battle-area',
@@ -18,6 +19,8 @@ export class BattleAreaComponent implements OnInit {
 
   modifierSign: string = '+';
   modifierValue: number = 0;
+
+  mapImageUrl: string = `https://${localIP}:8080/assets/images/Map.jpg`;
 
   constructor(private webSocketService: WebSocketService) {}
 
@@ -55,6 +58,7 @@ export class BattleAreaComponent implements OnInit {
       this.activeBattleUsers = users;
     });
     console.log('Initiative prompt listener set up');
+    console.log(this.mapImageUrl)
   }
 
   private isUserInBattle(): boolean {
