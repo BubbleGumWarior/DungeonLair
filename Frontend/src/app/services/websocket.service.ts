@@ -59,4 +59,20 @@ export class WebSocketService {
       callback(audioBlob);
     });
   }
+
+  onBattleStarted(callback: () => void) {
+    this.socket.on('battleStarted', callback);
+  }
+
+  onBattleEnded(callback: () => void) {
+    this.socket.on('battleEnded', callback);
+  }
+
+  startBattle() {
+    this.socket.emit('startBattle');
+  }
+
+  endBattle() {
+    this.socket.emit('endBattle');
+  }
 }

@@ -12,6 +12,11 @@
         <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('skills')"[ngClass]="{'underline font-bold': currentView === 'skills'}">Skills</a></li>
         <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('notes')"[ngClass]="{'underline font-bold': currentView === 'notes'}">Notes</a></li>
         <li *ngIf="role === 'Dungeon Master'"><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('dm-screen')"[ngClass]="{'underline font-bold': currentView === 'dm-screen'}">Dm Screen</a></li>
+        <li *ngIf="role === 'Dungeon Master'">
+          <button class="text-black hover:text-gray-300 cursor-pointer" (click)="toggleBattle()">
+            {{ battleActive ? 'End Battle' : 'Begin Battle' }}
+          </button>
+        </li>
       </ul>
       <ul class="flex space-x-4">
         <li><a class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer" (click)="navigateTo('login')">Log Out</a></li>
@@ -20,7 +25,8 @@
   </nav>
 
   <div class="container mx-auto mt-10">
-    <h1 class="text-3xl font-bold text-center text-purple-500" *ngIf="currentView === 'home'">Welcome to the Home Page!</h1>
+    <h1 class="text-3xl font-bold text-center text-purple-500" *ngIf="currentView === 'home' && !battleActive">Welcome to the Home Page!</h1>
+    <app-battle-area *ngIf="currentView === 'home' && battleActive"></app-battle-area>
     <app-board *ngIf="currentView === 'board'" [characterName]= "characterName" (resultRolled)="handleDiceResult($event)"></app-board>
     <app-family *ngIf="currentView === 'family'" [characterName]= "characterName"></app-family>
     <app-friends *ngIf="currentView === 'friends'" [characterName]= "characterName"></app-friends>
@@ -34,4 +40,13 @@
   <app-roll-button (resultRolled)="handleDiceResult($event)"></app-roll-button>
   <app-vc-button [username]="username || 'DefaultUser'"></app-vc-button>
   <app-soundbar></app-soundbar>
+
+  <!-- Battle prompt modal -->
+  <div *ngIf="showBattlePrompt" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="modal-content bg-white p-6 rounded-lg shadow-lg text-center">
+      <p class="text-lg font-bold mb-4">A battle has started. Would you like to join?</p>
+      <button class="bg-purple-500 text-white px-4 py-2 rounded mr-2" (click)="joinBattle()">Yes</button>
+      <button class="bg-gray-500 text-white px-4 py-2 rounded" (click)="declineBattle()">No</button>
+    </div>
+  </div>
 </div>

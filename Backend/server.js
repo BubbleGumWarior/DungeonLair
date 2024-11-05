@@ -779,6 +779,16 @@ io.on('connection', (socket) => {
         broadcastUserUpdate();
     });
 
+    // Handle battle start
+    socket.on('startBattle', () => {
+        io.emit('battleStarted');
+    });
+
+    // Handle battle end
+    socket.on('endBattle', () => {
+        io.emit('battleEnded');
+    });
+
     // Handle incoming messages if needed
     socket.on('message', (message) => {
         console.log('Received:', message);
