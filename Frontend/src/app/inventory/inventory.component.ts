@@ -30,6 +30,8 @@ export class InventoryComponent implements OnInit {
   charisma: number = 0;
   marksmanship: string = "";
   swordsmanship: string = "";
+  perception: string = "";
+  splicing: string = "";
 
   @Input() characterName: string | null = '';
   @Output() resultRolled = new EventEmitter<string>();
@@ -110,6 +112,8 @@ export class InventoryComponent implements OnInit {
     this.charisma = stats.charisma;
     this.marksmanship = stats.marksmanship;
     this.swordsmanship = stats.swordsmanship;
+    this.perception = stats.perception;
+    this.splicing = stats.splicing;
 
     let calc = 0;
 
@@ -138,6 +142,10 @@ export class InventoryComponent implements OnInit {
       modifier = this.marksmanship; // Convert string to number
     } else if (mainStat === "Swordsmanship") {
       modifier = this.swordsmanship; // Convert string to number
+    } else if (mainStat === "Perception") {
+      modifier = this.perception; // Convert string to number
+    } else if (mainStat === "Splicing") {
+      modifier = this.splicing; // Convert string to number
     }
     return modifier
   }

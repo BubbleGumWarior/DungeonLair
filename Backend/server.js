@@ -755,6 +755,8 @@ app.put('/character-info/:characterName/skills', async (req, res) => {
 });
 
 // Socket.IO connection
+let activeBattleUsers = [];
+
 io.on('connection', (socket) => {
     console.log('A user connected');
 
@@ -787,6 +789,23 @@ io.on('connection', (socket) => {
     // Handle battle end
     socket.on('endBattle', () => {
         io.emit('battleEnded');
+        activeBattleUsers = []; // Clear the array
+        io.emit('activeBattleUsers', activeBattleUsers); // Emit the updated empty array
+    });
+
+    socket.on('joinBattle', (user) => {
+        if (!activeBattleUsers.some(u => u.username === user.username)) {
+            activeBattleUsers.push(user);
+            activeBattleUsers.sort((a, b) => b.initiative.final - a.initiative.final); // Sort by final initiative value
+            console.log('User joined battle:', user.characterName, 'with initiative', user.initiative);
+            io.emit('activeBattleUsers', activeBattleUsers);
+        }
+    });
+
+    socket.on('leaveBattle', (user) => {
+        activeBattleUsers = activeBattleUsers.filter(u => u.username !== user.username);
+        console.log('User left battle:', user.characterName);
+        io.emit('activeBattleUsers', activeBattleUsers);
     });
 
     // Handle incoming messages if needed

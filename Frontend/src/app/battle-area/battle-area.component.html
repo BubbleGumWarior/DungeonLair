@@ -1,1 +1,28 @@
-<p>battle-area works!</p>
+<div class="flex">
+  <div class="w-1/4 bg-red-500 px-5">
+    <div *ngFor="let user of activeBattleUsers">
+      <p>{{ user.characterName }} ({{ user.initiative.random }} {{ user.initiative.modifier >= 0 ? '+' : '-' }}{{ getAbs(user.initiative.modifier) }} = {{ user.initiative.final }})</p>
+    </div>
+  </div>
+  <div class="w-2/4 bg-green-500 px-5">Center Column</div>
+  <div class="w-1/4 bg-blue-500 px-5">Right Column</div>
+</div>
+
+<!-- Initiative roll modal -->
+<div *ngIf="showInitiativePrompt" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+  <div class="modal-content bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4 rounded-lg shadow-lg text-center">
+    <p class="text-lg font-bold mb-4">Roll for initiative</p>
+    <div class="mb-4">
+      <label class="block text-white font-bold mb-2">Initiative Modifier</label>
+      <div class="flex items-center justify-center">
+        <select [(ngModel)]="modifierSign" class="bg-white text-black px-2 py-1 rounded mr-2">
+          <option value="+">+</option>
+          <option value="-">-</option>
+        </select>
+        <input type="number" [(ngModel)]="modifierValue" class="bg-white text-black px-2 py-1 rounded" />
+      </div>
+    </div>
+    <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="rollForInitiative()">Roll</button>
+    <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="spectate()">Spectate</button>
+  </div>
+</div>

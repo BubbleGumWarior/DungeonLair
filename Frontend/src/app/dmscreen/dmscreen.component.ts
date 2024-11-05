@@ -183,6 +183,9 @@ export class DMScreenComponent implements OnInit {
       },
       (error) => {
         console.error('Error saving friend member:', error);
+        if (error.status === 500) {
+          console.error('Internal Server Error: Failed to save friend member');
+        }
       }
     );
   }

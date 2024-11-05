@@ -32,6 +32,10 @@ export class SkillsComponent implements OnInit {
   stealth: string = "";
   pilot: string = "";
   perception: string = "";
+  splicing: string = "";
+  athletics: string = "";
+  mapping: string = "";
+  persuasion: string = "";
 
   @Input() characterName: string | null = '';
   @Output() resultRolled = new EventEmitter<string>();
@@ -112,6 +116,10 @@ export class SkillsComponent implements OnInit {
     this.stealth = stats.stealth;
     this.pilot = stats.pilot;
     this.perception = stats.perception;
+    this.splicing = stats.splicing;
+    this.athletics = stats.athletics;
+    this.mapping = stats.mapping;
+    this.persuasion = stats.persuasion;
 
     let calc = 0;
 
@@ -148,6 +156,15 @@ export class SkillsComponent implements OnInit {
       modifier = this.pilot; // Convert string to number
     } else if (mainStat === "Perception") {
       modifier = this.perception; // Convert string to number
+    } else if (mainStat === "Splicing") {
+      modifier = this.splicing; // Convert string to number
+    } else if (mainStat === "Athletics") {
+      modifier = this.athletics; // Convert string to number
+    } else if (mainStat === "Mapping") {
+      modifier = this.mapping; // Convert string to number
+    }
+    else if (mainStat === "Persuasion") {
+      modifier = this.persuasion; // Convert string to number
     }
     return modifier
   }

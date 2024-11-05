@@ -45,6 +45,8 @@ export class HomeComponent implements OnInit {
   battleActive: boolean = false;
   showBattlePrompt: boolean = false;
   battleInitiatedByMe: boolean = false; // Flag to indicate if the battle was initiated by the current user
+  activeBattleUsers: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }[] = [];
+  showInitiativePrompt: boolean = false;
 
   constructor(private router: Router, private webSocketService: WebSocketService) {}
 
@@ -54,6 +56,10 @@ export class HomeComponent implements OnInit {
       this.router.navigate(['/login']);
     }
     this.setupSocketListeners();
+    this.webSocketService.onActiveBattleUsers((users: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }[]) => {
+      this.activeBattleUsers = users;
+      console.log('Active battle users:', this.activeBattleUsers);
+    });
   }
 
   loadDataFromToken() {
@@ -116,12 +122,16 @@ export class HomeComponent implements OnInit {
 
   endBattle() {
     this.battleActive = false;
+    if (this.username && this.characterName) {
+      this.webSocketService.leaveBattle({ username: this.username, characterName: this.characterName });
+    }
     this.webSocketService.endBattle();
   }
 
   joinBattle() {
     this.battleActive = true;
     this.showBattlePrompt = false;
+    this.showInitiativePrompt = true;
   }
 
   declineBattle() {

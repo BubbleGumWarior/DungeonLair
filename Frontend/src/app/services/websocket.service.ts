@@ -75,4 +75,16 @@ export class WebSocketService {
   endBattle() {
     this.socket.emit('endBattle');
   }
+
+  joinBattle(user: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }) {
+    this.socket.emit('joinBattle', user);
+  }
+
+  leaveBattle(user: { username: string, characterName: string }) {
+    this.socket.emit('leaveBattle', user);
+  }
+
+  onActiveBattleUsers(callback: (users: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }[]) => void) {
+    this.socket.on('activeBattleUsers', callback);
+  }
 }

@@ -12,11 +12,6 @@
         <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('skills')"[ngClass]="{'underline font-bold': currentView === 'skills'}">Skills</a></li>
         <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('notes')"[ngClass]="{'underline font-bold': currentView === 'notes'}">Notes</a></li>
         <li *ngIf="role === 'Dungeon Master'"><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('dm-screen')"[ngClass]="{'underline font-bold': currentView === 'dm-screen'}">Dm Screen</a></li>
-        <li *ngIf="role === 'Dungeon Master'">
-          <button class="text-black hover:text-gray-300 cursor-pointer" (click)="toggleBattle()">
-            {{ battleActive ? 'End Battle' : 'Begin Battle' }}
-          </button>
-        </li>
       </ul>
       <ul class="flex space-x-4">
         <li><a class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer" (click)="navigateTo('login')">Log Out</a></li>
@@ -26,7 +21,7 @@
 
   <div class="container mx-auto mt-10">
     <h1 class="text-3xl font-bold text-center text-purple-500" *ngIf="currentView === 'home' && !battleActive">Welcome to the Home Page!</h1>
-    <app-battle-area *ngIf="currentView === 'home' && battleActive"></app-battle-area>
+    <app-battle-area *ngIf="currentView === 'home' && battleActive" [activeBattleUsers]="activeBattleUsers" [showInitiativePrompt]="showInitiativePrompt" [username]="username" [characterName]="characterName"></app-battle-area>
     <app-board *ngIf="currentView === 'board'" [characterName]= "characterName" (resultRolled)="handleDiceResult($event)"></app-board>
     <app-family *ngIf="currentView === 'family'" [characterName]= "characterName"></app-family>
     <app-friends *ngIf="currentView === 'friends'" [characterName]= "characterName"></app-friends>
@@ -43,10 +38,15 @@
 
   <!-- Battle prompt modal -->
   <div *ngIf="showBattlePrompt" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-    <div class="modal-content bg-white p-6 rounded-lg shadow-lg text-center">
+    <div class="modal-content bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4 rounded-lg shadow-lg text-center">
       <p class="text-lg font-bold mb-4">A battle has started. Would you like to join?</p>
-      <button class="bg-purple-500 text-white px-4 py-2 rounded mr-2" (click)="joinBattle()">Yes</button>
-      <button class="bg-gray-500 text-white px-4 py-2 rounded" (click)="declineBattle()">No</button>
+      <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="joinBattle()">Yes</button>
+      <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="declineBattle()">No</button>
     </div>
   </div>
+</div>
+<div *ngIf="role === 'Dungeon Master'" class="fixed bottom-44 left-4 mb-2">
+  <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="toggleBattle()">
+    <i class="fa fa-lg" [ngClass]="{'fa-regular fa-flag': battleActive, 'fa-solid fa-fist-raised': !battleActive}" aria-hidden="true"></i>
+  </button>
 </div>
