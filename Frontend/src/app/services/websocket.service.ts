@@ -99,6 +99,14 @@ export class WebSocketService {
     this.socket.emit('leaveBattle', user);
   }
 
+  updateHealth(user: { username: string, characterName: string, currentHealth: number }) {
+    user.currentHealth = Math.max(0, user.currentHealth); // Ensure health is not less than 0
+    this.socket.emit('updateHealth', user);
+  }
+
+  onHealthUpdate(callback: (user: { username: string, characterName: string, currentHealth: number }) => void) {
+    this.socket.on('healthUpdate', callback);
+  }
 
   getActiveBattleUsers() {
     return new Observable<{ username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }[]>(observer => {

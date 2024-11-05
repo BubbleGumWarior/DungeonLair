@@ -874,6 +874,12 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('audio', audioData); // Broadcast audio data with MIME type to other clients
     });
 
+    socket.on('updateHealth', (user) => {
+        user.currentHealth = Math.max(0, user.currentHealth); // Ensure health is not less than 0
+        console.log('Health update received for:', user.characterName, 'new health:', user.currentHealth);
+        io.emit('healthUpdate', user);
+    });
+
     socket.on('error', (error) => {
         console.error('Socket.IO error:', error);
     });

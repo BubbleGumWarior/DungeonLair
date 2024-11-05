@@ -12,10 +12,11 @@ import { localIP } from '../config'; // Import the IP address
   styleUrls: ['./battle-area.component.css']
 })
 export class BattleAreaComponent implements OnInit {
-  @Input() activeBattleUsers: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number }, isEnemy?: boolean }[] = [];
+  @Input() activeBattleUsers: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number }, isEnemy?: boolean, maxHealth?: number, currentHealth?: number }[] = [];
   @Input() showInitiativePrompt: boolean = false;
   @Input() username: string | null = null;
   @Input() characterName: string | null = null;
+  @Input() npcMaxHealth: number | null = null;
 
   modifierSign: string = '+';
   modifierValue: number = 0;
@@ -29,8 +30,9 @@ export class BattleAreaComponent implements OnInit {
     const modifier = this.modifierSign === '+' ? this.modifierValue : -this.modifierValue;
     const final = random + modifier;
     if (this.username && this.characterName) {
-      console.log('Rolling for initiative:', { username: this.username, characterName: this.characterName, initiative: { random, modifier, final } });
-      this.webSocketService.joinBattle({ username: this.username, characterName: this.characterName, initiative: { random, modifier, final } });
+      const initiativeData: any = { username: this.username, characterName: this.characterName, initiative: { random, modifier, final } };
+      console.log('Rolling for initiative:', initiativeData);
+      this.webSocketService.joinBattle(initiativeData);
     }
     this.showInitiativePrompt = false;
   }
@@ -56,6 +58,12 @@ export class BattleAreaComponent implements OnInit {
     });
     this.webSocketService.getActiveBattleUsers().subscribe(users => {
       this.activeBattleUsers = users;
+    });
+    this.webSocketService.onHealthUpdate((user) => {
+      const battleUser = this.activeBattleUsers.find(u => u.username === user.username);
+      if (battleUser) {
+        battleUser.currentHealth = user.currentHealth;
+      }
     });
     console.log('Initiative prompt listener set up');
     console.log(this.mapImageUrl)

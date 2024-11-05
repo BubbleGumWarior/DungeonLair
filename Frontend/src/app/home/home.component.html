@@ -55,6 +55,18 @@
     <i class="fa fa-lg fa-user-plus" aria-hidden="true"></i>
   </button>
 </div>
+<div *ngIf="role === 'Dungeon Master' && battleActive" class="fixed top-20 left-4 mt-16">
+  <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="showAddUserModal = true">
+    <i class="fa-solid fa-user"></i>
+    <i class="fa-solid fa-arrow-right"></i>
+  </button>
+</div>
+<div *ngIf="role === 'Dungeon Master' && battleActive" class="fixed top-20 left-4 mt-16">
+  <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="showDealDamageModal = true">
+    <i class="fa-solid fa-user"></i>
+    <i class="fa-solid fa-arrow-right"></i>
+  </button>
+</div>
 
 <!-- Add User Modal -->
 <div *ngIf="showAddUserModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
@@ -82,8 +94,39 @@
           Enemy
         </label>
       </div>
+      <div class="mt-2">
+        <label class="block text-white font-bold mb-2">Max Health</label>
+        <input type="number" [(ngModel)]="npcMaxHealth" class="bg-white text-black px-2 py-1 rounded" />
+      </div>
     </div>
     <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="submitAddUser()">Submit</button>
     <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="showAddUserModal = false">Cancel</button>
+  </div>
+</div>
+
+<!-- Deal Damage Modal -->
+<div *ngIf="showDealDamageModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+  <div class="modal-content bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4 rounded-lg shadow-lg text-center">
+    <p class="text-lg font-bold mb-4">Deal Damage</p>
+    <div class="mb-4">
+      <label class="block text-white font-bold mb-2">Attacker</label>
+      <select [(ngModel)]="selectedAttacker" class="bg-white text-black px-2 py-1 rounded">
+        <option *ngFor="let user of activeBattleUsers" [ngValue]="user">{{ user.characterName }}</option>
+      </select>
+    </div>
+    <div class="mb-4">
+      <label class="block text-white font-bold mb-2">Damage</label>
+      <input type="number" [(ngModel)]="damageAmount" class="bg-white text-black px-2 py-1 rounded" />
+    </div>
+    <div class="mb-4">
+      <label class="block text-white font-bold mb-2">Defender</label>
+      <select [(ngModel)]="selectedDefender" class="bg-white text-black px-2 py-1 rounded">
+        <option *ngFor="let user of activeBattleUsers" [ngValue]="user">
+          <ng-container *ngIf="user.maxHealth !== undefined">{{ user.characterName }}</ng-container>
+        </option>
+      </select>
+    </div>
+    <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="dealDamage()">Submit</button>
+    <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="showDealDamageModal = false">Cancel</button>
   </div>
 </div>

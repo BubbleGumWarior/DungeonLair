@@ -5,7 +5,7 @@
       <p class="text-2xl text-purple-500">Initiative</p>
     </div>
     <div *ngFor="let user of activeBattleUsers" class="flex justify-between">
-      <p [ngClass]="{'text-red-500': user.isEnemy, 'text-purple-500': !user.isEnemy}">
+      <p [ngClass]="{'text-red-500': user.isEnemy, 'text-purple-500': !user.isEnemy, 'line-through': user.currentHealth !== undefined && user.currentHealth <= 0}">
         {{ user.characterName }}
       </p>
       <p [ngClass]="{'text-red-500': user.isEnemy, 'text-purple-500': !user.isEnemy}">
@@ -16,7 +16,16 @@
   <div class="w-2/4 bg-stone-950 px-5 border border-purple-500 rounded-lg mx-5 text-purple-500">
     <img [src]="mapImageUrl" alt="Map Image" class="w-full h-full object-cover">
   </div>
-  <div class="w-1/4 bg-stone-950 px-5 border border-purple-500 rounded-lg ml-5 text-purple-500">Right Column</div>
+  <div class="w-1/4 bg-stone-950 px-5 border border-purple-500 rounded-lg ml-5 text-purple-500">
+    <div *ngFor="let user of activeBattleUsers" class="mb-2" [ngClass]="{'opacity-50': user.currentHealth !== undefined && user.currentHealth <= 0}">
+      <ng-container *ngIf="user.maxHealth && user.currentHealth !== undefined">
+        <p class="text-xl">{{ user.characterName }}</p>
+        <div class="w-full bg-gray-200 rounded-full h-4">
+          <div class="bg-green-500 h-4 rounded-full" [style.width.%]="(user.currentHealth / user.maxHealth) * 100"></div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
 </div>
 
 <!-- Initiative roll modal -->

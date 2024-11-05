@@ -47,7 +47,7 @@ export class HomeComponent implements OnInit {
   battleActive: boolean = false;
   showBattlePrompt: boolean = false;
   battleInitiatedByMe: boolean = false; // Flag to indicate if the battle was initiated by the current user
-  activeBattleUsers: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number }, isEnemy?: boolean }[] = [];
+  activeBattleUsers: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number }, isEnemy?: boolean, maxHealth?: number, currentHealth?: number }[] = [];
   showInitiativePrompt: boolean = false;
   showAddUserModal: boolean = false;
   addUserType: string = 'Player';
@@ -55,6 +55,11 @@ export class HomeComponent implements OnInit {
   npcName: string = '';
   isEnemy: boolean = false;
   availableUsers: { username: string }[] = [];
+  npcMaxHealth: number | null = null;
+  showDealDamageModal: boolean = false;
+  selectedAttacker: any = null;
+  selectedDefender: any = null;
+  damageAmount: number = 0;
 
   constructor(private router: Router, private webSocketService: WebSocketService) {}
 
@@ -121,6 +126,12 @@ export class HomeComponent implements OnInit {
       this.battleActive = false;
       this.showBattlePrompt = false;
     });
+    this.webSocketService.onHealthUpdate((user) => {
+      const battleUser = this.activeBattleUsers.find(u => u.username === user.username);
+      if (battleUser) {
+        battleUser.currentHealth = user.currentHealth;
+      }
+    });
   }
 
   toggleBattle() {
@@ -175,7 +186,7 @@ export class HomeComponent implements OnInit {
         modifier: 0,
         final: random
       };
-      const user: { username: string; characterName: string; initiative: { random: number; modifier: number; final: number }; isEnemy?: boolean } = {
+      const user: { username: string; characterName: string; initiative: { random: number; modifier: number; final: number }; isEnemy?: boolean, maxHealth?: number, currentHealth?: number } = {
         username: this.npcName,
         characterName: this.npcName,
         initiative
@@ -183,10 +194,28 @@ export class HomeComponent implements OnInit {
       if (this.isEnemy) {
         user['isEnemy'] = true;
       }
+      if (this.npcMaxHealth !== null) {
+        user['maxHealth'] = this.npcMaxHealth;
+        user['currentHealth'] = this.npcMaxHealth;
+      }
       console.log('Adding NPC to battle:', user);
       this.webSocketService.joinBattle(user);
     }
     this.showAddUserModal = false;
+  }
+
+  dealDamage() {
+    if (this.selectedDefender && this.damageAmount > 0) {
+      this.selectedDefender.currentHealth -= this.damageAmount;
+      this.selectedDefender.currentHealth = Math.max(0, this.selectedDefender.currentHealth); // Ensure health is not less than 0
+      console.log(`${this.selectedAttacker.characterName} dealt ${this.damageAmount} damage to ${this.selectedDefender.characterName}`);
+      this.webSocketService.updateHealth({
+        username: this.selectedDefender.username,
+        characterName: this.selectedDefender.characterName,
+        currentHealth: this.selectedDefender.currentHealth
+      });
+    }
+    this.showDealDamageModal = false;
   }
 
   private isUserInBattle(): boolean {
