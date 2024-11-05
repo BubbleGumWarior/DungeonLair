@@ -390,10 +390,10 @@ app.get('/item-list/:itemID', async (req, res) => {
     }
 });
 
-app.get('/skill-list/:id', async (req, res) => {
-    const { id } = req.params;
+app.get('/skill-list/:skillID', async (req, res) => {
+    const { skillID } = req.params;
     try {
-        const skill = await SkillList.findOne({ where: { id } });
+        const skill = await SkillList.findOne({ where: { skillID } });
         if (!skill) {
             return res.status(404).send('Skill not found');
         }
@@ -647,6 +647,75 @@ app.put('/character-info/:characterName/inventory-items', async (req, res) => {
   } catch (error) {
     console.error('Error updating character inventory items:', error);
     res.status(500).json({ message: 'Failed to update character inventory items' });
+  }
+});
+
+app.get('/character-info/:characterName/skills', async (req, res) => {
+  const { characterName } = req.params;
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const skills = await SkillList.findAll({
+      where: {
+        skillID: {
+          [Op.in]: characterInfo.skillList
+        }
+      }
+    });
+    res.json(skills);
+  } catch (error) {
+    console.error('Error fetching skills:', error);
+    res.status(500).send('Failed to fetch skills');
+  }
+});
+
+app.post('/character-info/:characterName/skill', async (req, res) => {
+  const { characterName } = req.params;
+  const { skillName, mainStat, description, diceRoll } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const newSkill = await SkillList.create({
+      skillName,
+      mainStat,
+      description,
+      diceRoll
+    });
+
+    const updatedSkillList = [...characterInfo.skillList, newSkill.skillID];
+    await CharacterInfo.update({ skillList: updatedSkillList }, { where: { characterName } });
+
+    res.status(201).json(newSkill);
+  } catch (error) {
+    console.error('Error saving skill:', error);
+    res.status(500).send('Failed to save skill');
+  }
+});
+
+app.put('/character-info/:characterName/skills', async (req, res) => {
+  const { characterName } = req.params;
+  const { skillId } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).json({ message: 'Character info not found' });
+    }
+
+    const updatedSkillList = [...characterInfo.skillList, skillId];
+    await CharacterInfo.update({ skillList: updatedSkillList }, { where: { characterName } });
+
+    res.json({ message: 'Character skills updated successfully' }); // Return valid JSON
+  } catch (error) {
+    console.error('Error updating character skills:', error);
+    res.status(500).json({ message: 'Failed to update character skills' });
   }
 });
 

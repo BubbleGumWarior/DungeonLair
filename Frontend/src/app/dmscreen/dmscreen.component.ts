@@ -22,6 +22,8 @@ export class DMScreenComponent implements OnInit {
   friendMembers: any[] = []; // Add this variable to store friend members
   newInventoryItem: any = null; // Initialize as null
   inventoryItems: any[] = []; // Add this variable to store inventory items
+  skillList: any[] = []; // Add this variable to store skills
+  newSkill: any = null; // Initialize as null
 
   constructor(private http: HttpClient) {}
 
@@ -52,6 +54,7 @@ export class DMScreenComponent implements OnInit {
     this.fetchFamilyMembers(name); // Fetch family members for the selected character
     this.fetchFriendMembers(name); // Fetch family members for the selected character
     this.fetchInventoryItems(name); // Fetch inventory items for the selected character
+    this.fetchSkills(name); // Fetch skills for the selected character
   }
 
   fetchStatsSheet(characterName: string) {
@@ -110,6 +113,18 @@ export class DMScreenComponent implements OnInit {
     );
   }
 
+  fetchSkills(characterName: string) {
+    this.http.get<any[]>(`https://${localIP}:8080/character-info/${characterName}/skills`).subscribe(
+      (data) => {
+        this.skillList = data;
+        console.log('Skills:', this.skillList); // Log the skills array
+      },
+      (error) => {
+        console.error('Error fetching skills:', error);
+      }
+    );
+  }
+
   saveStatsSheet() {
     this.http.put(`https://${localIP}:8080/stats-sheet/${this.currentlySelectedCharacter}`, this.statsSheet).subscribe(
       () => {
@@ -139,6 +154,10 @@ export class DMScreenComponent implements OnInit {
 
   addInventoryItem() {
     this.newInventoryItem = { itemName: '', type: '', mainStat: '', description: '', damage: '', photo: '' };
+  }
+
+  addSkill() {
+    this.newSkill = { skillName: '', mainStat: '', description: '', diceRoll: '' };
   }
 
   saveFamilyMember() {
@@ -181,6 +200,20 @@ export class DMScreenComponent implements OnInit {
       },
       (error) => {
         console.error('Error saving inventory item:', error);
+      }
+    );
+  }
+
+  saveSkill() {
+    const skillData = { ...this.newSkill, skillName: this.newSkill.skillName };
+    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/skill`, skillData).subscribe(
+      (data: any) => {
+        console.log('Skill saved successfully');
+        this.skillList.push(data); // Add the new skill to the skillList array
+        this.newSkill = null; // Reset the newSkill
+      },
+      (error) => {
+        console.error('Error saving skill:', error);
       }
     );
   }
