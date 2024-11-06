@@ -234,7 +234,9 @@ export class HomeComponent implements OnInit {
         this.activeBattleUsers.sort((a, b) => b.initiative.final - a.initiative.final);
         this.currentTurnIndex = 0;
       } else {
-        this.currentTurnIndex = (this.currentTurnIndex + 1) % this.activeBattleUsers.length;
+        do {
+          this.currentTurnIndex = (this.currentTurnIndex + 1) % this.activeBattleUsers.length;
+        } while (this.activeBattleUsers[this.currentTurnIndex].currentHealth === 0);
       }
       this.webSocketService.updateTurnIndex(this.currentTurnIndex); // Emit the updated turn index
     }
