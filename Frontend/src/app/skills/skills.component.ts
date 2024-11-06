@@ -1,5 +1,6 @@
 import { Component, OnInit, EventEmitter, Output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms'; // Import FormsModule
 import { localIP } from '../config'; // Import the IP address
 
 interface Skill {
@@ -13,7 +14,7 @@ interface Skill {
 @Component({
   selector: 'app-skills',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule], // Add FormsModule to imports
   templateUrl: './skills.component.html',
   styleUrls: ['./skills.component.css'] // Fixed typo: should be styleUrls instead of styleUrl
 })
@@ -36,6 +37,7 @@ export class SkillsComponent implements OnInit {
   athletics: string = "";
   mapping: string = "";
   persuasion: string = "";
+  searchQuery: string = ''; // Add searchQuery property
 
   @Input() characterName: string | null = '';
   @Output() resultRolled = new EventEmitter<string>();
@@ -167,6 +169,13 @@ export class SkillsComponent implements OnInit {
       modifier = this.persuasion; // Convert string to number
     }
     return modifier
+  }
+
+  get filteredSkills() {
+    return this.Skill.filter(skill => 
+      skill.skillName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+      skill.description.toLowerCase().includes(this.searchQuery.toLowerCase())
+    );
   }
 
   rollDice(event: Event) {

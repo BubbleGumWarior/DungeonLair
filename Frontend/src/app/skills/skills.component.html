@@ -1,5 +1,8 @@
+<div class="p-6">
+  <input type="text" [(ngModel)]="searchQuery" placeholder="Search skills..." class="w-full p-2 mb-4 border border-purple-500 rounded-md bg-stone-950 text-purple-500">
+</div>
 <div class="grid grid-cols-2 gap-6 p-6">
-    <div *ngFor="let skill of Skill" 
+    <div *ngFor="let skill of filteredSkills" 
         class="flex flex-col items-start p-4 text-purple-500 h-full w-full bg-purple-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-purple-500 mb-4">
         
         <!-- Top content (always at the top) -->
