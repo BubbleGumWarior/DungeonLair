@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, AfterViewChecked, ElementRef, ViewChild, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, Input, ElementRef, ViewChild, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { io } from 'socket.io-client';
@@ -19,7 +19,7 @@ interface ChatMessage {
   styleUrls: ['./chat-button.component.css'],
   imports: [CommonModule, FormsModule]
 })
-export class ChatButtonComponent implements AfterViewChecked, OnDestroy, OnInit {
+export class ChatButtonComponent implements OnDestroy, OnInit {
   @ViewChild('scrollContainer') private scrollContainer!: ElementRef;
   isOpen = false;
   chatHistory: ChatMessage[] = [];
@@ -49,12 +49,6 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy, OnInit 
     this.loadChatHistory();
     this.setupSocketConnection();
     this.loadPublicRollsState(); // Load the public rolls state from local storage
-  }
-
-  ngAfterViewChecked() {
-    if (this.scrollContainer) {
-      this.scrollToBottom();
-    }
   }
 
   constructor() {}
@@ -96,6 +90,9 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy, OnInit 
       if (message.username !== this.username) {
         this.isNewMessage = true; // Set new message flag
         this.changeButtonColor(); // Call method to change the button color
+        if (this.isOpen) {
+          setTimeout(() => this.scrollToBottom(), 100); // Delay to ensure DOM update
+        }
       }
     });
 
@@ -107,6 +104,9 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy, OnInit 
           this.addMessageToChat(message.username, message.message);
           this.isNewMessage = true; // Set new message flag
           this.changeButtonColor(); // Call method to change the button color
+          if (this.isOpen) {
+            setTimeout(() => this.scrollToBottom(), 100); // Delay to ensure DOM update
+          }
         }
       });
     }
@@ -122,6 +122,7 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy, OnInit 
     if (this.isOpen) {
       this.isNewMessage = false; // Reset the new message flag when chat is opened
       this.resetButtonColor(); // Reset button color when chat is opened
+      setTimeout(() => this.scrollToBottom(), 100); // Scroll to bottom when chat is opened
     }
   }
 
@@ -190,6 +191,7 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy, OnInit 
         if (!response.ok) throw new Error('Failed to send message');
 
         this.messageValue = ''; // Clear the input field
+        setTimeout(() => this.scrollToBottom(), 100); // Scroll to bottom after sending a message
       } catch (error) {
         console.error('Error sending message:', error);
       }
@@ -214,6 +216,7 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy, OnInit 
       });
 
       if (!response.ok) throw new Error('Failed to send message to chat history');
+      setTimeout(() => this.scrollToBottom(), 100); // Scroll to bottom after sending a message
     } catch (error) {
       console.error('Error sending message to chat history:', error);
     }
@@ -237,6 +240,7 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy, OnInit 
       });
 
       if (!response.ok) throw new Error('Failed to send message to DM chat history');
+      setTimeout(() => this.scrollToBottom(), 100); // Scroll to bottom after sending a message
     } catch (error) {
       console.error('Error sending message to DM chat history:', error);
     }
@@ -259,6 +263,9 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy, OnInit 
     if (this.chatHistory.length > 1 && this.chatHistory[0].username !== username) {
       this.isNewMessage = true; // Flag for new messages from other users
       this.changeButtonColor(); // Change button color if the new message is from another user
+      if (this.isOpen) {
+        setTimeout(() => this.scrollToBottom(), 100); // Delay to ensure DOM update
+      }
     }
   }
 
@@ -270,9 +277,17 @@ export class ChatButtonComponent implements AfterViewChecked, OnDestroy, OnInit 
     this.buttonColor = 'default-color'; // Reset to default button color
   }
 
-  private scrollToBottom(): void {
-    const container = this.scrollContainer.nativeElement;
-    container.scrollTop = container.scrollHeight;
+  public scrollToBottom(): void {
+    try {
+      const container = this.scrollContainer.nativeElement;
+      console.log('Container:', container);
+      console.log('Container scrollHeight:', container.scrollHeight);
+      console.log('Container clientHeight:', container.clientHeight);
+      container.scrollTop = container.scrollHeight;
+      console.log('Scrolled to bottom');
+    } catch (err) {
+      console.error('Scroll to bottom failed:', err);
+    }
   }
 
   @HostListener('document:click', ['$event.target'])

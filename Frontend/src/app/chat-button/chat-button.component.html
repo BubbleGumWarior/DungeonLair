@@ -20,8 +20,8 @@
         </label>        
       </div>
     </div>
-    <div class="chat-history h-5/6 overflow-y-auto border-b border-black mb-2">
-      <div #scrollContainer *ngFor="let chat of chatHistory" class="message p-2 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 mr-4">
+    <div #scrollContainer class="chat-history h-5/6 overflow-y-auto border-b border-black mb-2">
+      <div *ngFor="let chat of chatHistory" class="message p-2 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 mr-4">
         <strong>{{ chat.username }}:</strong> {{ chat.message }}
       </div>
     </div>
