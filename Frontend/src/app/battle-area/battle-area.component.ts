@@ -48,6 +48,16 @@ export class BattleAreaComponent implements OnInit {
     return Math.abs(value);
   }
 
+  getHealthBarColor(healthPercentage: number): string {
+    if (healthPercentage > 0.5) {
+      const yellowToGreen = (healthPercentage - 0.5) * 2;
+      return `rgb(${Math.floor(255 * (1 - yellowToGreen))}, 255, 0)`;
+    } else {
+      const redToYellow = healthPercentage * 2;
+      return `rgb(255, ${Math.floor(255 * redToYellow)}, 0)`;
+    }
+  }
+
   ngOnInit() {
     console.log('Setting up initiative prompt listener');
     this.webSocketService.onInitiativePrompt(() => {

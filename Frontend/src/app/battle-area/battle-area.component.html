@@ -21,7 +21,11 @@
       <ng-container *ngIf="user.maxHealth && user.currentHealth !== undefined">
         <p class="text-xl">{{ user.characterName }}</p>
         <div class="w-full bg-gray-200 rounded-full h-4">
-          <div class="bg-green-500 h-4 rounded-full" [style.width.%]="(user.currentHealth / user.maxHealth) * 100"></div>
+          <div 
+            class="h-4 rounded-full transition-all duration-500" 
+            [style.width.%]="(user.currentHealth / user.maxHealth) * 100"
+            [style.background]="getHealthBarColor(user.currentHealth / user.maxHealth)">
+          </div>
         </div>
       </ng-container>
     </div>
