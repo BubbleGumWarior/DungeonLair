@@ -36,7 +36,6 @@ const server = https.createServer(credentials, app); // Ensure https.createServe
 
 const allowedOrigins = [
   `https://${localIP}`, // No-IP hostname without port
-  'https://102.182.41.110:4200' // Public IP address (if still needed)
 ];
 
 app.use(cors({
