@@ -1,9 +1,9 @@
 module.exports = {
-  localIP: 'ip', // No-IP hostname
-  JWT_SECRET: 'HWT token that you make yourself',
+  localIP: 'dungeonlair.ddns.net', // No-IP hostname
+  JWT_SECRET: 'DungeonLairIsAwesome',
   DB_HOST: 'localhost', // Ensure this is correct
-  DB_PORT: port,
-  DB_NAME: 'dbname',
-  DB_USER: 'db admin user',
-  DB_PASSWORD: 'db admin user password'
+  DB_PORT: 5432,
+  DB_NAME: 'dungeonlair',
+  DB_USER: 'postgres',
+  DB_PASSWORD: 'admin'
 };

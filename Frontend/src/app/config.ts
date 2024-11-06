@@ -1,2 +1,2 @@
 // export const localIP = 'localhost';
-export const localIP = 'ip'; // No-IP hostname
+export const localIP = 'dungeonlair.ddns.net'; // No-IP hostname
