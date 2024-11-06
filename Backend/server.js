@@ -966,6 +966,8 @@ io.on('connection', (socket) => {
         }
 
         broadcastUserUpdate();
+        // Send active battle users to the newly connected user
+        socket.emit('activeBattleUsers', activeBattleUsers);
     });
 
     // Handle disconnection
@@ -1062,6 +1064,11 @@ io.on('connection', (socket) => {
         console.log('Health update received for:', user.characterName);
         console.log('New health:', user.currentHealth);
         console.log('New shield:', user.shield); // Log the shield value
+        const battleUser = activeBattleUsers.find(u => u.username === user.username);
+        if (battleUser) {
+            battleUser.currentHealth = user.currentHealth;
+            battleUser.shield = user.shield;
+        }
         io.emit('healthUpdate', user);
     });
 

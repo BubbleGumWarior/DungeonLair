@@ -14,25 +14,28 @@
             <div class="mb-4 text-center">
               <label for="diceSizeText" class="block mb-2 text-purple-500">Enter the size of the dice you want to roll</label>
               <input 
-                type="diceSizeText" 
+                type="number" 
                 id="diceSizeText" 
                 [(ngModel)]="diceSizeText" 
                 name="diceSizeText" 
-                requipurple 
+                required 
                 class="rounded w-full py-2 px-3 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-2 mr-2 text-black placeholder-black text-center"
-                autocomplete="off"          
+                autocomplete="off"
+                min="1"
+                value="20"
               />
             </div>
             <div class="mb-4 text-center">
               <label for="modifierValueText" class="block mb-2 text-purple-500">Enter the size of the modifier for the dice</label>
               <input 
-                type="modifierValueText" 
+                type="number" 
                 id="modifierValueText" 
                 [(ngModel)]="modifierValueText" 
                 name="modifierValueText" 
-                requipurple 
+                required 
                 class="rounded w-full py-2 px-3 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-2 mr-2 text-black placeholder-black text-center"
                 autocomplete="off"
+                value="0"
               />
             </div>
             <br>
@@ -42,4 +45,3 @@
         <h2 class="text-center text-lg mb-4 text-purple-500">You can also click on the stat in your board to roll a D20 with that modifier!</h2>
     </div>
   </div>
-  

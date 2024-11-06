@@ -29,38 +29,42 @@ export class RollButtonComponent {
     this.isOpen = false;
   }
 
-  diceSizeText: string = '';
-  modifierValueText: string = '';
+  diceSizeText: string = '20';
+  modifierValueText: string = '0';
   
   rollDice() {
     const diceSizeText = this.diceSizeText;
     const modifierValueText = this.modifierValueText;
 
-    let diceSize = diceSizeText;
-
-    if (diceSizeText[0] === 'd') {
-      diceSize = diceSizeText.slice(1, diceSizeText.length);
+    // Ensure diceSizeText contains only numbers
+    if (!/^\d+$/.test(diceSizeText)) {
+      alert('Dice size must be a number');
+      return;
     }
-    if (modifierValueText[0] === '+' || modifierValueText[0] === '-') {
 
-      let resultMessage = '';
+    // Convert diceSizeText and modifierValueText to numbers
+    const diceSize = parseInt(diceSizeText, 10);
+    const modifier = parseInt(modifierValueText, 10);
 
-      const diceRoll = parseInt(diceSize, 10); 
-      
-      const modifier = parseInt(modifierValueText, 10);  // Convert string to number
-      const roll = Math.floor(Math.random() * diceRoll) + 1;  // Roll a dice
-      if (roll === diceRoll) {
-        resultMessage = `Critical ${diceRoll}!!!`;  // Ignore modifier
-      } else if (roll === 1) {
-        resultMessage = 'Natural 1...';  // Ignore modifier
-      } else {
-        const finalResult = roll + modifier;
-        resultMessage = `You have rolled a ${roll} with a modifier of ${modifier >= 0 ? '+' + modifier : modifier} and got ${finalResult}`;
-      }
-      this.toggleRoll()
-      this.resultRolled.emit(resultMessage);
-      }    
+    if (isNaN(diceSize) || isNaN(modifier)) {
+      alert('Invalid input');
+      return;
     }
+
+    let resultMessage = '';
+
+    const roll = Math.floor(Math.random() * diceSize) + 1;  // Roll a dice
+    if (roll === diceSize) {
+      resultMessage = `Critical ${diceSize}!!!`;  // Ignore modifier
+    } else if (roll === 1) {
+      resultMessage = 'Natural 1...';  // Ignore modifier
+    } else {
+      const finalResult = roll + modifier;
+      resultMessage = `You have rolled a ${roll} with a modifier of ${modifier >= 0 ? '+' + modifier : modifier} and got ${finalResult}`;
+    }
+    this.toggleRoll();
+    this.resultRolled.emit(resultMessage);
+  }
 
   @HostListener('document:click', ['$event.target'])
   onClickOutside(targetElement: HTMLElement) {

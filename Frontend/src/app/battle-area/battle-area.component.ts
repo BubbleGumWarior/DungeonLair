@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WebSocketService } from '../services/websocket.service';
 import { FormsModule } from '@angular/forms';
-import { localIP } from '../config'; // Import the IP address
+import { localIP } from '../config'; // Import localIP from config
 import { trigger, state, style, transition, animate, query, stagger } from '@angular/animations'; // Import Angular animations
 
 @Component({

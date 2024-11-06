@@ -16,6 +16,7 @@ import { DMScreenComponent } from '../dmscreen/dmscreen.component';
 import { BattleAreaComponent } from '../battle-area/battle-area.component';
 import { jwtDecode } from 'jwt-decode';
 import { WebSocketService } from '../services/websocket.service';
+import { localIP } from '../config'; // Import localIP from config
 
 @Component({
   selector: 'app-home',
@@ -63,6 +64,7 @@ export class HomeComponent implements OnInit {
   currentTurnIndex: number | null = null; // Add property to track current turn index
   actionType: string = 'damage'; // Add property to track action type
   actionAmount: number = 0; // Add property to track action amount
+  localIP: string = localIP; // Initialize localIP with the value from config
 
   constructor(private router: Router, private webSocketService: WebSocketService) {}
 
@@ -87,6 +89,10 @@ export class HomeComponent implements OnInit {
     }
     this.webSocketService.onTurnIndexUpdate((index: number) => {
       this.currentTurnIndex = index;
+    });
+    // Fetch active battle users when navigating back to the battle area
+    this.webSocketService.getActiveBattleUsers().subscribe(users => {
+      this.activeBattleUsers = users;
     });
   }
 
