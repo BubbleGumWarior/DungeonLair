@@ -16,12 +16,14 @@ const ItemList = require('./models/ItemList'); // Import the ItemList model
 const SkillList = require('./models/SkillList'); // Import the SkillList model
 const ChatHistory = require('./models/ChatHistory'); // Import the ChatHistory model
 const DMChatHistory = require('./models/DMChatHistory'); // Import the DMChatHistory model
+const Note = require('./models/Note'); // Ensure the file name and path are correct
 const { localIP, JWT_SECRET } = require('./config'); // Import the IP address and JWT secret
 const User = require('./models/User'); // Import the User model
 const multer = require('multer');
 const path = require('path');
 const http = require('http'); // Import http module
-const Note = require('./models/Note'); // Import the Note model
+const cron = require('node-cron');
+const { exec } = require('child_process');
 
 const app = express();
 
@@ -70,6 +72,48 @@ sequelize.sync({ force: false })
     .catch((error) => {
         console.error('Error syncing database:', error);
     });
+
+// Schedule database backup
+cron.schedule('0 0 * * *', () => { // This will run every day at midnight
+  const backupFile = `d:/Coding/DungeonLair/DungeonLair/backup-${new Date().toISOString().slice(0, 10)}.sql`;
+  const command = `mysqldump -u your_db_user -p'your_db_password' your_db_name > ${backupFile}`;
+
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error creating backup: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.error(`Backup stderr: ${stderr}`);
+      return;
+    }
+    console.log(`Database backup created successfully: ${backupFile}`);
+  });
+});
+
+// Endpoint to restore database from a backup file
+app.post('/restore-backup', async (req, res) => {
+  const { backupFile } = req.body; // Expecting the backup file path in the request body
+
+  if (!backupFile) {
+    return res.status(400).json({ message: 'Backup file path is required' });
+  }
+
+  const command = `mysql -u your_db_user -p'your_db_password' your_db_name < ${backupFile}`;
+
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error restoring backup: ${error.message}`);
+      return res.status(500).json({ message: `Error restoring backup: ${error.message}` });
+    }
+    if (stderr) {
+      console.error(`Restore stderr: ${stderr}`);
+      return res.status(500).json({ message: `Restore stderr: ${stderr}` });
+    }
+    console.log(`Database restored successfully from: ${backupFile}`);
+    res.status(200).json({ message: `Database restored successfully from: ${backupFile}` });
+  });
+});
 
 // Endpoint to receive registration data
 app.post('/register', async (req, res) => {
