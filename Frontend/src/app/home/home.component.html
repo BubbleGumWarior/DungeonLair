@@ -21,7 +21,13 @@
 
   <div class="container mx-auto mt-10">
     <h1 class="text-3xl font-bold text-center text-purple-500" *ngIf="currentView === 'home' && !battleActive">Welcome to the Home Page!</h1>
-    <app-battle-area *ngIf="currentView === 'home' && battleActive" [activeBattleUsers]="activeBattleUsers" [showInitiativePrompt]="showInitiativePrompt" [username]="username" [characterName]="characterName"></app-battle-area>
+    <app-battle-area *ngIf="currentView === 'home' && battleActive" 
+      [activeBattleUsers]="activeBattleUsers" 
+      [showInitiativePrompt]="showInitiativePrompt" 
+      [username]="username" 
+      [characterName]="characterName"
+      [currentTurnIndex]="currentTurnIndex"> <!-- Pass currentTurnIndex -->
+    </app-battle-area>
     <app-board *ngIf="currentView === 'board'" [characterName]= "characterName" (resultRolled)="handleDiceResult($event)"></app-board>
     <app-family *ngIf="currentView === 'family'" [characterName]= "characterName"></app-family>
     <app-friends *ngIf="currentView === 'friends'" [characterName]= "characterName"></app-friends>
@@ -128,5 +134,6 @@
     </div>
     <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="dealDamage()">Submit</button>
     <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="showDealDamageModal = false">Cancel</button>
+    <button class="bg-white text-black px-4 py-2 rounded ml-2" (click)="nextTurn()">Next Turn</button> <!-- Add Next Turn button -->
   </div>
 </div>

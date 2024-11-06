@@ -4,7 +4,7 @@
       <p class="text-2xl text-purple-500">Character Name</p>
       <p class="text-2xl text-purple-500">Initiative</p>
     </div>
-    <div *ngFor="let user of activeBattleUsers" class="flex justify-between">
+    <div *ngFor="let user of activeBattleUsers; let i = index" class="flex justify-between" [ngClass]="{'bg-purple-700': i === currentTurnIndex}">
       <p [ngClass]="{'text-red-500': user.isEnemy, 'text-purple-500': !user.isEnemy, 'line-through': user.currentHealth !== undefined && user.currentHealth <= 0}">
         {{ user.characterName }}
       </p>

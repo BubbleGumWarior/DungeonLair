@@ -60,6 +60,7 @@ export class HomeComponent implements OnInit {
   selectedAttacker: any = null;
   selectedDefender: any = null;
   damageAmount: number = 0;
+  currentTurnIndex: number | null = null; // Add property to track current turn index
 
   constructor(private router: Router, private webSocketService: WebSocketService) {}
 
@@ -82,6 +83,9 @@ export class HomeComponent implements OnInit {
       console.log('Logging in user:', this.username, 'with role:', this.role);
       this.webSocketService.loginUser({ username: this.username, role: this.role });
     }
+    this.webSocketService.onTurnIndexUpdate((index: number) => {
+      this.currentTurnIndex = index;
+    });
   }
 
   loadDataFromToken() {
@@ -220,5 +224,19 @@ export class HomeComponent implements OnInit {
 
   private isUserInBattle(): boolean {
     return this.activeBattleUsers.some(user => user.username === this.username);
+  }
+
+  // Add method to handle next turn logic
+  nextTurn() {
+    if (this.activeBattleUsers.length > 0) {
+      if (this.currentTurnIndex === null) {
+        // Sort users by initiative for the first turn
+        this.activeBattleUsers.sort((a, b) => b.initiative.final - a.initiative.final);
+        this.currentTurnIndex = 0;
+      } else {
+        this.currentTurnIndex = (this.currentTurnIndex + 1) % this.activeBattleUsers.length;
+      }
+      this.webSocketService.updateTurnIndex(this.currentTurnIndex); // Emit the updated turn index
+    }
   }
 }

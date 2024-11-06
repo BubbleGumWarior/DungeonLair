@@ -150,4 +150,12 @@ export class WebSocketService {
       callback();
     });
   }
+
+  updateTurnIndex(index: number) {
+    this.socket.emit('updateTurnIndex', index);
+  }
+
+  onTurnIndexUpdate(callback: (index: number) => void) {
+    this.socket.on('turnIndexUpdate', callback);
+  }
 }

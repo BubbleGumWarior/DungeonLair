@@ -881,6 +881,11 @@ io.on('connection', (socket) => {
         io.emit('healthUpdate', user);
     });
 
+    socket.on('updateTurnIndex', (index) => {
+        console.log('Turn index update received:', index);
+        io.emit('turnIndexUpdate', index);
+    });
+
     socket.on('error', (error) => {
         console.error('Socket.IO error:', error);
     });

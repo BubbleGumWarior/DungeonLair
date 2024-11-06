@@ -17,6 +17,7 @@ export class BattleAreaComponent implements OnInit {
   @Input() username: string | null = null;
   @Input() characterName: string | null = null;
   @Input() npcMaxHealth: number | null = null;
+  @Input() currentTurnIndex: number | null = null; // Add Input property to receive current turn index
 
   modifierSign: string = '+';
   modifierValue: number = 0;
