@@ -1,5 +1,6 @@
 import { Component, OnInit, EventEmitter, Output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms'; // Import FormsModule
 import { localIP } from '../config'; // Import the IP address
 
 interface Item {
@@ -15,7 +16,7 @@ interface Item {
 @Component({
   selector: 'app-inventory',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule], // Add FormsModule to imports
   templateUrl: './inventory.component.html',
   styleUrls: ['./inventory.component.css'] // Fixed typo: should be styleUrls instead of styleUrl
 })
@@ -32,6 +33,7 @@ export class InventoryComponent implements OnInit {
   swordsmanship: string = "";
   perception: string = "";
   splicing: string = "";
+  searchQuery: string = ''; // Add searchQuery property
 
   @Input() characterName: string | null = '';
   @Output() resultRolled = new EventEmitter<string>();
@@ -148,6 +150,15 @@ export class InventoryComponent implements OnInit {
       modifier = this.splicing; // Convert string to number
     }
     return modifier
+  }
+
+  get filteredItems() {
+    return this.Item.filter(item => 
+      item.itemName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+      item.type.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+      item.mainStat.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(this.searchQuery.toLowerCase())
+    );
   }
 
   rollDice(event: Event) {
