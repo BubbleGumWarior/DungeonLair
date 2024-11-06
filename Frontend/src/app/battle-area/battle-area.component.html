@@ -16,17 +16,27 @@
   <div class="w-2/4 bg-stone-950 px-5 border border-purple-500 rounded-lg mx-5 text-purple-500">
     <img [src]="mapImageUrl" alt="Map Image" class="w-full h-full object-cover">
   </div>
-  <div class="w-1/4 bg-stone-950 px-5 border border-purple-500 rounded-lg ml-5 text-purple-500">
-    <div *ngFor="let user of activeBattleUsers" class="mb-2" [ngClass]="{'opacity-50': user.currentHealth !== undefined && user.currentHealth <= 0}">
+  <div class="w-1/4 bg-stone-950 px-5 border border-purple-500 rounded-lg ml-5 text-purple-500" [@listAnimation]>
+    <div *ngFor="let user of activeBattleUsers; let i = index" class="mb-2" [ngClass]="{'opacity-50': user.currentHealth !== undefined && user.currentHealth <= 0}">
       <ng-container *ngIf="user.maxHealth && user.currentHealth !== undefined">
         <p class="text-xl">{{ user.characterName }}</p>
-        <div class="w-full bg-gray-200 rounded-full h-4">
+        <div class="w-full bg-gray-200 rounded-full h-4 mb-1">
           <div 
             class="h-4 rounded-full transition-all duration-500" 
             [style.width.%]="(user.currentHealth / user.maxHealth) * 100"
             [style.background]="getHealthBarColor(user.currentHealth / user.maxHealth)">
           </div>
         </div>
+        <ng-container *ngIf="user.shield && user.shield > 0">
+          <div *ngFor="let shieldBar of getShieldBars(user.shield, user.maxHealth); trackBy: trackByIndex" class="w-full bg-stone-950 rounded-full h-4 mb-1">
+            <div 
+              class="h-4 rounded-full transition-all duration-500 ease-in-out"
+              [@growWidth]
+              [style.width.%]="shieldBar.width"
+              [style.background]="getShieldBarColor()">
+            </div>
+          </div>
+        </ng-container>
       </ng-container>
     </div>
   </div>

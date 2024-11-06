@@ -113,26 +113,28 @@
 <!-- Deal Damage Modal -->
 <div *ngIf="showDealDamageModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
   <div class="modal-content bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4 rounded-lg shadow-lg text-center">
-    <p class="text-lg font-bold mb-4">Deal Damage</p>
+    <p class="text-lg font-bold mb-4">Action</p>
     <div class="mb-4">
-      <label class="block text-white font-bold mb-2">Attacker</label>
-      <select [(ngModel)]="selectedAttacker" class="bg-white text-black px-2 py-1 rounded">
-        <option *ngFor="let user of activeBattleUsers" [ngValue]="user">{{ user.characterName }}</option>
+      <label class="block text-white font-bold mb-2">Action Type</label>
+      <select [(ngModel)]="actionType" class="bg-white text-black px-2 py-1 rounded">
+        <option value="damage">Damage</option>
+        <option value="heal">Heal</option>
+        <option value="shield">Shield</option>
       </select>
     </div>
     <div class="mb-4">
-      <label class="block text-white font-bold mb-2">Damage</label>
-      <input type="number" [(ngModel)]="damageAmount" class="bg-white text-black px-2 py-1 rounded" />
+      <label class="block text-white font-bold mb-2">Amount</label>
+      <input type="number" [(ngModel)]="actionAmount" class="bg-white text-black px-2 py-1 rounded" />
     </div>
     <div class="mb-4">
-      <label class="block text-white font-bold mb-2">Defender</label>
+      <label class="block text-white font-bold mb-2">Target</label>
       <select [(ngModel)]="selectedDefender" class="bg-white text-black px-2 py-1 rounded">
         <option *ngFor="let user of activeBattleUsers" [ngValue]="user">
           <ng-container *ngIf="user.maxHealth !== undefined">{{ user.characterName }}</ng-container>
         </option>
       </select>
     </div>
-    <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="dealDamage()">Submit</button>
+    <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="performAction()" [disabled]="currentTurnIndex === null">Submit</button>
     <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="showDealDamageModal = false">Cancel</button>
     <button class="bg-white text-black px-4 py-2 rounded ml-2" (click)="nextTurn()">Next Turn</button> <!-- Add Next Turn button -->
   </div>

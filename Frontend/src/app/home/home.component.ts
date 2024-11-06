@@ -61,6 +61,8 @@ export class HomeComponent implements OnInit {
   selectedDefender: any = null;
   damageAmount: number = 0;
   currentTurnIndex: number | null = null; // Add property to track current turn index
+  actionType: string = 'damage'; // Add property to track action type
+  actionAmount: number = 0; // Add property to track action amount
 
   constructor(private router: Router, private webSocketService: WebSocketService) {}
 
@@ -190,7 +192,15 @@ export class HomeComponent implements OnInit {
         modifier: 0,
         final: random
       };
-      const user: { username: string; characterName: string; initiative: { random: number; modifier: number; final: number }; isEnemy?: boolean, maxHealth?: number, currentHealth?: number } = {
+      const user: { 
+        username: string; 
+        characterName: string; 
+        initiative: { random: number; modifier: number; final: number }; 
+        isEnemy?: boolean, 
+        maxHealth?: number, 
+        currentHealth?: number,
+        shield?: number // Add shield property
+      } = {
         username: this.npcName,
         characterName: this.npcName,
         initiative
@@ -208,16 +218,35 @@ export class HomeComponent implements OnInit {
     this.showAddUserModal = false;
   }
 
-  dealDamage() {
-    if (this.selectedDefender && this.damageAmount > 0) {
-      this.selectedDefender.currentHealth -= this.damageAmount;
-      this.selectedDefender.currentHealth = Math.max(0, this.selectedDefender.currentHealth); // Ensure health is not less than 0
-      console.log(`${this.selectedAttacker.characterName} dealt ${this.damageAmount} damage to ${this.selectedDefender.characterName}`);
+  performAction() {
+    if (this.selectedDefender && this.actionAmount > 0 && this.currentTurnIndex !== null) {
+      const attacker = this.activeBattleUsers[this.currentTurnIndex];
+      if (this.actionType === 'damage') {
+        if (this.selectedDefender.shield && this.selectedDefender.shield > 0) {
+          const remainingDamage = this.actionAmount - this.selectedDefender.shield;
+          this.selectedDefender.shield = Math.max(0, this.selectedDefender.shield - this.actionAmount);
+          if (remainingDamage > 0) {
+            this.selectedDefender.currentHealth -= remainingDamage;
+          }
+        } else {
+          this.selectedDefender.currentHealth -= this.actionAmount;
+        }
+        this.selectedDefender.currentHealth = Math.max(0, this.selectedDefender.currentHealth); // Ensure health is not less than 0
+        console.log(`${attacker.characterName} dealt ${this.actionAmount} damage to ${this.selectedDefender.characterName}`);
+      } else if (this.actionType === 'heal') {
+        this.selectedDefender.currentHealth += this.actionAmount;
+        this.selectedDefender.currentHealth = Math.min(this.selectedDefender.maxHealth, this.selectedDefender.currentHealth); // Ensure health does not exceed max health
+        console.log(`${attacker.characterName} healed ${this.actionAmount} health to ${this.selectedDefender.characterName}`);
+      } else if (this.actionType === 'shield') {
+        this.selectedDefender.shield = (this.selectedDefender.shield || 0) + this.actionAmount;
+        console.log(`${attacker.characterName} added ${this.actionAmount} shield to ${this.selectedDefender.characterName}`);
+      }
       this.webSocketService.updateHealth({
         username: this.selectedDefender.username,
         characterName: this.selectedDefender.characterName,
-        currentHealth: this.selectedDefender.currentHealth
-      });
+        currentHealth: this.selectedDefender.currentHealth,
+        shield: this.selectedDefender.shield // Include shield property
+      } as any); // Cast to any to bypass type checking
     }
     this.showDealDamageModal = false;
   }

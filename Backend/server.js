@@ -877,7 +877,9 @@ io.on('connection', (socket) => {
 
     socket.on('updateHealth', (user) => {
         user.currentHealth = Math.max(0, user.currentHealth); // Ensure health is not less than 0
-        console.log('Health update received for:', user.characterName, 'new health:', user.currentHealth);
+        console.log('Health update received for:', user.characterName);
+        console.log('New health:', user.currentHealth);
+        console.log('New shield:', user.shield); // Log the shield value
         io.emit('healthUpdate', user);
     });
 
