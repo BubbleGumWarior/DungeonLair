@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Import CommonModule
 import { FormsModule } from '@angular/forms'; // Import FormsModule
 import { localIP } from '../config'; // Import the IP address
+import DOMPurify from 'dompurify'; // Import DOMPurify
 
 interface Note {
   id: number;
@@ -39,8 +40,8 @@ export class NotesComponent implements OnInit {
       const notes = await response.json();
       this.items = notes.map((note: { id: number; title: string; description: string }) => ({
         id: note.id,
-        name: note.title,
-        description: note.description
+        name: DOMPurify.sanitize(note.title),
+        description: DOMPurify.sanitize(note.description)
       }));
       this.nextId = this.items.length > 0 ? Math.max(...this.items.map(item => item.id)) + 1 : 1;
     } catch (error) {
@@ -50,7 +51,7 @@ export class NotesComponent implements OnInit {
 
   async addItem() {
     if (this.characterName) {
-      const newNote = { title: this.newNoteName, description: '' };
+      const newNote = { title: DOMPurify.sanitize(this.newNoteName), description: '' };
       try {
         const response = await fetch(`https://${localIP}:8080/character-info/${this.characterName}/note`, {
           method: 'POST',
@@ -64,7 +65,7 @@ export class NotesComponent implements OnInit {
           throw new Error(errorText);
         }
         const note = await response.json();
-        this.items.push({ id: note.id, name: note.title, description: note.description });
+        this.items.push({ id: note.id, name: DOMPurify.sanitize(note.title), description: DOMPurify.sanitize(note.description) });
         this.newNoteName = '';
         this.showAddNoteModal = false;
       } catch (error) {
@@ -80,7 +81,7 @@ export class NotesComponent implements OnInit {
 
   async closeNoteModal() {
     if (this.selectedNote && this.characterName) {
-      const updatedNote = { title: this.selectedNote.name, description: this.selectedNote.description };
+      const updatedNote = { title: DOMPurify.sanitize(this.selectedNote.name), description: DOMPurify.sanitize(this.selectedNote.description) };
       try {
         const response = await fetch(`https://${localIP}:8080/character-info/${this.characterName}/note/${this.selectedNote.id}`, {
           method: 'PUT',
