@@ -33,7 +33,7 @@
     <app-friends *ngIf="currentView === 'friends'" [characterName]= "characterName"></app-friends>
     <app-inventory *ngIf="currentView === 'inventory'" (resultRolled)="handleDiceResult($event)" [characterName]= "characterName"></app-inventory>
     <app-skills *ngIf="currentView === 'skills'" (resultRolled)="handleDiceResult($event)" [characterName]= "characterName"></app-skills>
-    <app-notes *ngIf="currentView === 'notes'"></app-notes>
+    <app-notes *ngIf="currentView === 'notes'" [characterName]="characterName"></app-notes> <!-- Pass characterName as username -->
     <app-dmscreen *ngIf="currentView === 'dm-screen'"></app-dmscreen>
   </div>
 

@@ -20,6 +20,9 @@ const CharacterInfo = sequelize.define('CharacterInfo', {
   skillList: {
     type: DataTypes.ARRAY(DataTypes.INTEGER),
   },
+  noteList: {
+    type: DataTypes.ARRAY(DataTypes.INTEGER), // Add array field for note IDs
+  },
 }, {
   tableName: 'character_infos', // Explicitly define table name in lowercase
 });

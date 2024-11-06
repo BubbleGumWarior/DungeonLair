@@ -21,6 +21,7 @@ const User = require('./models/User'); // Import the User model
 const multer = require('multer');
 const path = require('path');
 const http = require('http'); // Import http module
+const Note = require('./models/Note'); // Import the Note model
 
 const app = express();
 
@@ -44,7 +45,7 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ["GET", "POST", "PUT"] // Add PUT method to allowed methods
+  methods: ["GET", "POST", "PUT", "DELETE"] // Add PUT method to allowed methods
 }));
 
 const io = socketIo(server, {
@@ -752,6 +753,144 @@ app.put('/character-info/:characterName/skills', async (req, res) => {
   } catch (error) {
     console.error('Error updating character skills:', error);
     res.status(500).json({ message: 'Failed to update character skills' });
+  }
+});
+
+// Endpoint to add a new note
+app.post('/character-info/:characterName/note', async (req, res) => {
+  const { characterName } = req.params;
+  const { title, description } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const newNote = await Note.create({
+      title,
+      description,
+    });
+
+    const updatedNoteList = [...characterInfo.noteList, newNote.id];
+    await CharacterInfo.update({ noteList: updatedNoteList }, { where: { characterName } });
+
+    res.status(201).json(newNote);
+  } catch (error) {
+    console.error('Error saving note:', error);
+    res.status(500).send(`Failed to save note: ${error.message}`);
+  }
+});
+
+// Endpoint to delete a note
+app.delete('/character-info/:characterName/note/:noteId', async (req, res) => {
+  const { characterName, noteId } = req.params;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    // Remove the note ID from the noteList array
+    const updatedNoteList = characterInfo.noteList.filter(id => id !== parseInt(noteId));
+    await CharacterInfo.update({ noteList: updatedNoteList }, { where: { characterName } });
+
+    // Delete the note from the Note table
+    await Note.destroy({ where: { id: noteId } });
+
+    res.status(200).json({ message: 'Note deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    res.status(500).send('Failed to delete note');
+  }
+});
+
+// Endpoint to fetch notes for a user
+app.get('/character-info/:username/notes', async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName: username } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const notes = await Note.findAll({ where: { id: characterInfo.noteList } });
+    res.json(notes);
+  } catch (error) {
+    console.error('Error fetching notes:', error);
+    res.status(500).send('Failed to fetch notes');
+  }
+});
+
+// Endpoint to add a new note
+app.post('/character-info/:username/note', async (req, res) => {
+  const { username } = req.params;
+  const { title, description } = req.body;
+
+  try {
+    console.log(`Adding note for username: ${username}`); // Log the username
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName: username } });
+    if (!characterInfo) {
+      console.log(`Character info not found for username: ${username}`); // Log if character info is not found
+      return res.status(404).send('Character info not found');
+    }
+
+    const newNote = await Note.create({
+      title,
+      description,
+    });
+
+    const updatedNoteList = [...characterInfo.noteList, newNote.id];
+    await CharacterInfo.update({ noteList: updatedNoteList }, { where: { characterName: username } });
+
+    res.status(201).json(newNote);
+  } catch (error) {
+    console.error('Error saving note:', error);
+    res.status(500).send(`Failed to save note: ${error.message}`);
+  }
+});
+
+// Endpoint to delete a note
+app.delete('/character-info/:username/note/:noteId', async (req, res) => {
+  const { username, noteId } = req.params;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName: username } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    await Note.destroy({ where: { id: noteId } });
+
+    const updatedNoteList = characterInfo.noteList.filter(id => id !== parseInt(noteId));
+    await CharacterInfo.update({ noteList: updatedNoteList }, { where: { characterName: username } });
+
+    res.status(200).json({ message: 'Note deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    res.status(500).send('Failed to delete note');
+  }
+});
+
+// Endpoint to update a note
+app.put('/character-info/:username/note/:noteId', async (req, res) => {
+  const { username, noteId } = req.params;
+  const { title, description } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName: username } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    await Note.update({ title, description }, { where: { id: noteId } });
+
+    res.status(200).json({ message: 'Note updated successfully' });
+  } catch (error) {
+    console.error('Error updating note:', error);
+    res.status(500).send('Failed to update note');
   }
 });
 
