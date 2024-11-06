@@ -20,6 +20,7 @@ const { localIP, JWT_SECRET } = require('./config'); // Import the IP address an
 const User = require('./models/User'); // Import the User model
 const multer = require('multer');
 const path = require('path');
+const http = require('http'); // Import http module
 
 const app = express();
 
@@ -31,8 +32,8 @@ const credentials = { key: privateKey, cert: certificate };
 const server = https.createServer(credentials, app); // Ensure https.createServer is used
 
 const allowedOrigins = [
-  `https://${localIP}:4200`,
-  'https://102.182.41.110:4200' // Public IP address
+  `https://${localIP}`, // No-IP hostname without port
+  'https://102.182.41.110:4200' // Public IP address (if still needed)
 ];
 
 app.use(cors({
@@ -895,6 +896,16 @@ function broadcastUserUpdate() {
 function broadcastActiveBattleUsers() {
     io.emit('activeBattleUsers', activeBattleUsers);
 }
+
+// Redirect HTTP to HTTPS
+const httpApp = express();
+httpApp.use((req, res) => {
+  res.redirect(`https://${req.headers.host}${req.url}`);
+});
+const httpServer = http.createServer(httpApp);
+httpServer.listen(80, '0.0.0.0', () => {
+  console.log('HTTP server is running on port 80 and redirecting to HTTPS');
+});
 
 // Start the server
 server.listen(PORT, '0.0.0.0', () => { // Ensure it listens on all interfaces

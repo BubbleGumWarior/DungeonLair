@@ -66,8 +66,10 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
+            "host": "0.0.0.0",
+            "disableHostCheck": true,
             "host": "192.168.50.214",
-            "port": 4200,
+            "port": 443,
             "ssl": true,
             "sslKey": "d:/Coding/DungeonLair/DungeonLair/key.pem",
             "sslCert": "d:/Coding/DungeonLair/DungeonLair/cert.pem"
