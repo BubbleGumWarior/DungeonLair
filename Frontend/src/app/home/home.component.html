@@ -158,15 +158,15 @@
 </div>
 
 <!-- Gallery Image Display Modal -->
-<div *ngIf="showGalleryImageModal && galleryImageData" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-  <div class="modal-content bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4 rounded-lg shadow-lg text-center">
+<div *ngIf="showGalleryImageModal && galleryImageData" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" (click)="closeGalleryImageModal()">
+  <div class="modal-content bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4 rounded-lg shadow-lg text-center" (click)="$event.stopPropagation()">
     <p class="text-lg font-bold mb-4">{{ galleryImageData.name }}</p>
-    <img *ngIf="galleryImageData.filePath" [src]="galleryImageData.filePath" alt="Gallery Image" class="mb-4 max-w-full h-auto rounded-lg" />
+    <img *ngIf="galleryImageData.filePath" [src]="galleryImageData.filePath" alt="Gallery Image" class="mb-4 max-w-lg h-auto rounded-lg" />
     <button class="bg-white text-black px-4 py-2 rounded" (click)="closeGalleryImageModal()">Close</button>
   </div>
 </div>
 
-<div *ngIf="role === 'Dungeon Master'" class="fixed top-4 left-4 mt-16">
+<div *ngIf="role === 'Dungeon Master'" class="fixed bottom-48 left-4 mb-12">
   <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="openGalleryModal()">
     <i class="fa fa-lg fa-image" aria-hidden="true"></i>
   </button>
