@@ -33,6 +33,7 @@ export class InventoryComponent implements OnInit {
   swordsmanship: string = "";
   perception: string = "";
   splicing: string = "";
+  forceStrength: string = "";
   searchQuery: string = ''; // Add searchQuery property
 
   @Input() characterName: string | null = '';
@@ -116,6 +117,7 @@ export class InventoryComponent implements OnInit {
     this.swordsmanship = stats.swordsmanship;
     this.perception = stats.perception;
     this.splicing = stats.splicing;
+    this.forceStrength = stats.forceStrength;
 
     let calc = 0;
 
@@ -148,8 +150,11 @@ export class InventoryComponent implements OnInit {
       modifier = this.perception; // Convert string to number
     } else if (mainStat === "Splicing") {
       modifier = this.splicing; // Convert string to number
+    } else if (mainStat === "Force Strength") {
+      modifier = this.forceStrength; // Convert string to number
     }
     return modifier
+    
   }
 
   get filteredItems() {
