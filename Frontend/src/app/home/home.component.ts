@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // Import FormsModule
+// Remove HttpClientModule import
 import { BoardComponent } from '../board/board.component';
 import { FamilyComponent } from '../family/family.component';
 import { FriendsComponent } from '../friends/friends.component';
@@ -24,6 +25,7 @@ import { localIP } from '../config'; // Import localIP from config
   imports: [
     CommonModule,
     FormsModule, // Add FormsModule to imports
+    // Remove HttpClientModule from imports
     BoardComponent,
     FamilyComponent,
     FriendsComponent,
@@ -65,6 +67,12 @@ export class HomeComponent implements OnInit {
   actionType: string = 'damage'; // Add property to track action type
   actionAmount: number = 0; // Add property to track action amount
   localIP: string = localIP; // Initialize localIP with the value from config
+  showGalleryModal: boolean = false; // Add property to control gallery modal visibility
+  galleryImageName: string = ''; // Add property to store the image name
+  galleryImageFile: File | null = null; // Add property to store the selected image file
+  showGalleryImageModal: boolean = false; // Add property to control gallery image display modal visibility
+  galleryImageData: { filePath: string, name: string } | null = null; // Add property to store the received gallery image data
+  photo: string = "";
 
   constructor(private router: Router, private webSocketService: WebSocketService) {}
 
@@ -93,6 +101,16 @@ export class HomeComponent implements OnInit {
     // Fetch active battle users when navigating back to the battle area
     this.webSocketService.getActiveBattleUsers().subscribe(users => {
       this.activeBattleUsers = users;
+    });
+    this.webSocketService.onGalleryImage((data: { filePath: string, name: string }) => {
+      console.log('Gallery image received:', data);
+      if (data.name !== this.username) { // Show the image to all users except the one who uploaded it
+        this.galleryImageData = {
+          ...data,
+          filePath: `https://${localIP}:8080${data.filePath}`
+        };
+        this.showGalleryImageModal = true;
+      }
     });
   }
 
@@ -275,5 +293,43 @@ export class HomeComponent implements OnInit {
       }
       this.webSocketService.updateTurnIndex(this.currentTurnIndex); // Emit the updated turn index
     }
+  }
+
+  openGalleryModal() {
+    this.showGalleryModal = true;
+  }
+
+  closeGalleryModal() {
+    this.showGalleryModal = false;
+    this.galleryImageName = '';
+    this.galleryImageFile = null;
+  }
+
+  handleImageUpload(event: any) {
+    this.galleryImageFile = event.target.files[0];
+    console.log('Selected image file:', this.galleryImageFile);
+  }
+
+  submitGalleryImage() {
+    if (this.galleryImageName && this.galleryImageFile) {
+      const formData = new FormData();
+      formData.append('image', this.galleryImageFile);
+      formData.append('name', this.galleryImageName);
+
+      // Send the image to the server
+      this.webSocketService.uploadGalleryImage(formData).then(response => {
+        console.log('Image uploaded successfully:', response);
+        this.webSocketService.broadcastGalleryImage(response.filePath, this.galleryImageName);
+        this.closeGalleryModal();
+      }).catch(error => {
+        console.error('Error uploading image:', error);
+      });
+    }
+  }
+
+  closeGalleryImageModal() {
+    console.log('Closing gallery image modal');
+    this.showGalleryImageModal = false;
+    this.galleryImageData = null;
   }
 }

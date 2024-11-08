@@ -539,6 +539,17 @@ app.put('/character-info-board/:characterName/photo', async (req, res) => {
 
 app.use('/assets/images', express.static(path.join(__dirname, 'assets/images')));
 
+// Endpoint to handle gallery image upload
+app.post('/upload-gallery-image', upload.single('image'), (req, res) => {
+  if (!req.file) {
+    console.error('No file uploaded.');
+    return res.status(400).send('No file uploaded.');
+  }
+  const filePath = `/assets/images/${req.file.filename}`;
+  console.log('Gallery image uploaded:', filePath);
+  res.json({ filePath });
+});
+
 app.post('/character-info/:characterName/family-member', async (req, res) => {
   const { characterName } = req.params;
   const { characterName: newFamilyMemberName, age, race, photo } = req.body;
@@ -937,6 +948,17 @@ app.put('/character-info/:username/note/:noteId', async (req, res) => {
   }
 });
 
+// Endpoint to handle gallery image upload
+app.post('/upload-gallery-image', upload.single('image'), (req, res) => {
+  if (!req.file) {
+    console.error('No file uploaded.');
+    return res.status(400).send('No file uploaded.');
+  }
+  const filePath = `/assets/images/${req.file.filename}`;
+  console.log('Gallery image uploaded:', filePath);
+  res.json({ filePath });
+});
+
 // Socket.IO connection
 let activeBattleUsers = [];
 
@@ -1075,6 +1097,11 @@ io.on('connection', (socket) => {
     socket.on('updateTurnIndex', (index) => {
         console.log('Turn index update received:', index);
         io.emit('turnIndexUpdate', index);
+    });
+
+    socket.on('broadcastGalleryImage', (data) => {
+        console.log('Broadcasting gallery image:', data);
+        socket.broadcast.emit('galleryImage', data);
     });
 
     socket.on('error', (error) => {

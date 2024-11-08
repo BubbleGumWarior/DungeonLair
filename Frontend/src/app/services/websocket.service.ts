@@ -161,4 +161,27 @@ export class WebSocketService {
   onTurnIndexUpdate(callback: (index: number) => void) {
     this.socket.on('turnIndexUpdate', callback);
   }
+
+  async uploadGalleryImage(formData: FormData) {
+    console.log('Uploading gallery image with formData:', formData);
+    const response = await fetch(`https://${localIP}:8080/upload-gallery-image`, {
+      method: 'POST',
+      body: formData
+    });
+    const result = await response.json();
+    console.log('Gallery image upload response:', result);
+    return result;
+  }
+
+  broadcastGalleryImage(filePath: string, name: string) {
+    console.log('Broadcasting gallery image with filePath:', filePath, 'and name:', name);
+    this.socket.emit('broadcastGalleryImage', { filePath, name });
+  }
+
+  onGalleryImage(callback: (data: { filePath: string, name: string }) => void) {
+    this.socket.on('galleryImage', (data) => {
+      console.log('Received gallery image broadcast:', data);
+      callback(data);
+    });
+  }
 }
