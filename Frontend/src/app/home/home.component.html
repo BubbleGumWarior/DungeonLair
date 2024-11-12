@@ -2,7 +2,11 @@
   <nav class="bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4">
     <div class="container mx-auto flex justify-between items-center">
       <ul class="flex space-x-4">
-        <li><a class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer" (click)="navigateView('home')">Home</a></li>
+        <li>
+          <a class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer flex items-center" (click)="navigateView('home')">
+            <i class="fa fa-home mr-2"></i>
+          </a>
+        </li>
       </ul>
       <ul class="flex space-x-4">
         <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('board')" [ngClass]="{'underline font-bold': currentView === 'board'}">Board</a></li>
@@ -14,7 +18,11 @@
         <li *ngIf="role === 'Dungeon Master'"><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('dm-screen')"[ngClass]="{'underline font-bold': currentView === 'dm-screen'}">Dm Screen</a></li>
       </ul>
       <ul class="flex space-x-4">
-        <li><a class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer" (click)="navigateTo('login')">Log Out</a></li>
+        <li>
+          <a class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer flex items-center" (click)="navigateTo('login')">
+            <i class="fa fa-sign-out-alt mr-2"></i>
+          </a>
+        </li>
       </ul>
     </div>
   </nav>
