@@ -91,7 +91,7 @@ export class WebSocketService {
     this.socket.emit('endBattle');
   }
 
-  joinBattle(user: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }) {
+  joinBattle(user: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number }, isNPC?: boolean, isEnemy?: boolean, maxHealth?: number, currentHealth?: number, shield?: number, photo?: string }) {
     this.socket.emit('joinBattle', user);
   }
 

@@ -34,7 +34,8 @@ export class BattleAreaComponent implements OnInit {
     isEnemy?: boolean, 
     maxHealth?: number, 
     currentHealth?: number,
-    shield?: number // Add shield property
+    shield?: number,
+    photo?: string // Add photo property
   }[] = [];
   @Input() showInitiativePrompt: boolean = false;
   @Input() username: string | null = null;
@@ -46,6 +47,7 @@ export class BattleAreaComponent implements OnInit {
   modifierValue: number = 0;
 
   mapImageUrl: string = `https://${localIP}:8080/assets/images/Map.jpg`;
+  defaultIcon: string = `https://${localIP}:8080/assets/images/Default.png`;
 
   constructor(private webSocketService: WebSocketService) {}
 
@@ -116,6 +118,7 @@ export class BattleAreaComponent implements OnInit {
       if (battleUser) {
         battleUser.currentHealth = user.currentHealth;
         battleUser.shield = user.shield; // Update shield value
+        battleUser.photo = battleUser.photo || this.defaultIcon; // Use default icon if photo is empty
         console.log('Received health update for:', user.characterName);
         console.log('Current health:', user.currentHealth);
         console.log('Shield:', user.shield); // Log the shield value

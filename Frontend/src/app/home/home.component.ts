@@ -24,8 +24,7 @@ import { localIP } from '../config'; // Import localIP from config
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule, // Add FormsModule to imports
-    // Remove HttpClientModule from imports
+    FormsModule,
     BoardComponent,
     FamilyComponent,
     FriendsComponent,
@@ -50,7 +49,15 @@ export class HomeComponent implements OnInit {
   battleActive: boolean = false;
   showBattlePrompt: boolean = false;
   battleInitiatedByMe: boolean = false; // Flag to indicate if the battle was initiated by the current user
-  activeBattleUsers: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number }, isEnemy?: boolean, maxHealth?: number, currentHealth?: number }[] = [];
+  activeBattleUsers: { 
+    username: string, 
+    characterName: string, 
+    initiative: { random: number, modifier: number, final: number }, 
+    isEnemy?: boolean, 
+    maxHealth?: number, 
+    currentHealth?: number, 
+    photo?: string // Add photo property
+  }[] = [];
   showInitiativePrompt: boolean = false;
   showAddUserModal: boolean = false;
   addUserType: string = 'Player';
@@ -82,8 +89,16 @@ export class HomeComponent implements OnInit {
       this.router.navigate(['/login']);
     }
     this.setupSocketListeners();
-    this.webSocketService.onActiveBattleUsers((users: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }[]) => {
-      this.activeBattleUsers = users;
+    this.webSocketService.onActiveBattleUsers((users: { 
+      username: string, 
+      characterName: string, 
+      initiative: { random: number, modifier: number, final: number }, 
+      photo?: string // Add photo property
+    }[]) => {
+      this.activeBattleUsers = users.map(user => ({
+        ...user,
+        photo: user.photo ? `https://${localIP}:8080${user.photo}` : '' // Assign photo path
+      }));
       console.log('Active battle users:', this.activeBattleUsers);
       if (this.isUserInBattle()) {
         this.showInitiativePrompt = false;
@@ -223,11 +238,15 @@ export class HomeComponent implements OnInit {
         isEnemy?: boolean, 
         maxHealth?: number, 
         currentHealth?: number,
-        shield?: number // Add shield property
+        shield?: number,
+        photo?: string,
+        isNPC: boolean // Add isNPC property
       } = {
         username: this.npcName,
         characterName: this.npcName,
-        initiative
+        initiative,
+        photo: '', // Initialize photo as empty string
+        isNPC: true // Mark as NPC
       };
       if (this.isEnemy) {
         user['isEnemy'] = true;

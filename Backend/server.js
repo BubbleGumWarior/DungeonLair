@@ -1056,13 +1056,37 @@ io.on('connection', (socket) => {
         broadcastActiveBattleUsers(); // Emit the updated empty array
     });
 
-    socket.on('joinBattle', (user) => {
-        if (!activeBattleUsers.some(u => u.username === user.username)) {
-            activeBattleUsers.push(user);
+    socket.on('joinBattle', async (user) => {
+      try {
+        if (user.isNPC) { // Check if the user is an NPC
+          const userWithPhoto = {
+            ...user,
+            photo: user.photo || '' // Use provided photo or empty string
+          };
+          if (!activeBattleUsers.some(u => u.username === user.username)) {
+            activeBattleUsers.push(userWithPhoto);
             activeBattleUsers.sort((a, b) => b.initiative.final - a.initiative.final); // Sort by final initiative value
-            console.log('User joined battle:', user.characterName, 'with initiative', user.initiative);
+            console.log('NPC joined battle:', user.characterName, 'with initiative', user.initiative);
             broadcastActiveBattleUsers();
+          }
+        } else {
+          const characterInfo = await CharacterInfo.findOne({ where: { characterName: user.characterName } });
+          if (characterInfo) {
+            const userWithPhoto = {
+              ...user,
+              photo: characterInfo.photo ? `https://${localIP}:8080${characterInfo.photo}` : ''
+            };
+            if (!activeBattleUsers.some(u => u.username === user.username)) {
+              activeBattleUsers.push(userWithPhoto);
+              activeBattleUsers.sort((a, b) => b.initiative.final - a.initiative.final); // Sort by final initiative value
+              console.log('User joined battle:', user.characterName, 'with initiative', user.initiative);
+              broadcastActiveBattleUsers();
+            }
+          }
         }
+      } catch (error) {
+        console.error('Error fetching character info:', error);
+      }
     });
 
     socket.on('leaveBattle', (user) => {
