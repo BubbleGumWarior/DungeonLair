@@ -25,6 +25,8 @@ export class DMScreenComponent implements OnInit {
   skillList: any[] = []; // Add this variable to store skills
   newSkill: any = null; // Initialize as null
   hoveredItem: any = null; // Add this variable to store the hovered item
+  selectedSkill: any = null; // Add this variable to store the selected skill
+  selectedInventoryItem: any = null; // Add this variable to store the selected inventory item
 
   constructor(private http: HttpClient) {}
 
@@ -105,7 +107,7 @@ export class DMScreenComponent implements OnInit {
         this.inventoryItems = data.map(item => ({
           ...item,
           photo: item.photo ? `https://${localIP}:8080${item.photo}` : ''
-        }));
+        })).sort((a, b) => a.itemName.localeCompare(b.itemName)); // Sort items alphabetically by name
         console.log('Inventory items:', this.inventoryItems); // Log the inventory items array
       },
       (error) => {
@@ -117,7 +119,7 @@ export class DMScreenComponent implements OnInit {
   fetchSkills(characterName: string) {
     this.http.get<any[]>(`https://${localIP}:8080/character-info/${characterName}/skills`).subscribe(
       (data) => {
-        this.skillList = data;
+        this.skillList = data.sort((a, b) => a.skillName.localeCompare(b.skillName)); // Sort skills alphabetically by name
         console.log('Skills:', this.skillList); // Log the skills array
       },
       (error) => {
@@ -313,5 +315,43 @@ export class DMScreenComponent implements OnInit {
 
   formatDescription(description: string): string {
     return description.replace(/\\n/g, '<br>');
+  }
+
+  selectSkill(skill: any) {
+    this.selectedSkill = skill;
+  }
+
+  selectInventoryItem(item: any) {
+    this.selectedInventoryItem = item;
+  }
+
+  deleteSkill() {
+    if (this.selectedSkill) {
+      this.http.delete(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/skill/${this.selectedSkill.skillID}`).subscribe(
+        () => {
+          console.log('Skill deleted successfully');
+          this.skillList = this.skillList.filter(skill => skill !== this.selectedSkill);
+          this.selectedSkill = null;
+        },
+        (error) => {
+          console.error('Error deleting skill:', error);
+        }
+      );
+    }
+  }
+
+  deleteInventoryItem() {
+    if (this.selectedInventoryItem) {
+      this.http.delete(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/inventory-item/${this.selectedInventoryItem.itemID}`).subscribe(
+        () => {
+          console.log('Inventory item deleted successfully');
+          this.inventoryItems = this.inventoryItems.filter(item => item !== this.selectedInventoryItem);
+          this.selectedInventoryItem = null;
+        },
+        (error) => {
+          console.error('Error deleting inventory item:', error);
+        }
+      );
+    }
   }
 }

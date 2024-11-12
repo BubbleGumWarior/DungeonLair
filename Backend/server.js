@@ -810,6 +810,48 @@ app.put('/character-info/:characterName/skills', async (req, res) => {
   }
 });
 
+app.delete('/character-info/:characterName/skill/:skillID', async (req, res) => {
+  const { characterName, skillID } = req.params;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    await SkillList.destroy({ where: { skillID } });
+
+    const updatedSkillList = characterInfo.skillList.filter(id => id !== parseInt(skillID));
+    await CharacterInfo.update({ skillList: updatedSkillList }, { where: { characterName } });
+
+    res.status(200).json({ message: 'Skill deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting skill:', error);
+    res.status(500).send('Failed to delete skill');
+  }
+});
+
+app.delete('/character-info/:characterName/inventory-item/:itemID', async (req, res) => {
+  const { characterName, itemID } = req.params;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    await ItemList.destroy({ where: { itemID } });
+
+    const updatedInventoryItems = characterInfo.itemInventory.filter(id => id !== parseInt(itemID));
+    await CharacterInfo.update({ itemInventory: updatedInventoryItems }, { where: { characterName } });
+
+    res.status(200).json({ message: 'Inventory item deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting inventory item:', error);
+    res.status(500).send('Failed to delete inventory item');
+  }
+});
+
 // Endpoint to add a new note
 app.post('/character-info/:characterName/note', async (req, res) => {
   const { characterName } = req.params;
