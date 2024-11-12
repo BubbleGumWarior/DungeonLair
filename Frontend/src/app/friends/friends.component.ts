@@ -66,5 +66,7 @@ export class FriendsComponent implements OnInit {
     character.photo = character.photo ? `https://${localIP}:8080${character.photo}` : '';
     // Append the fetched character to the Characters array
     this.Characters.push(character);
+    // Sort characters alphabetically by characterName
+    this.Characters.sort((a, b) => a.characterName.localeCompare(b.characterName));
   }
 }
