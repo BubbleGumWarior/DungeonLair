@@ -38,6 +38,7 @@ export class SkillsComponent implements OnInit {
   mapping: string = "";
   persuasion: string = "";
   searchQuery: string = ''; // Add searchQuery property
+  sortCriteria: string = 'alphabetically'; // Add sortCriteria property
 
   @Input() characterName: string | null = '';
   @Output() resultRolled = new EventEmitter<string>();
@@ -172,10 +173,29 @@ export class SkillsComponent implements OnInit {
   }
 
   get filteredSkills() {
-    return this.Skill.filter(skill => 
+    let sortedSkills = [...this.Skill];
+
+    switch (this.sortCriteria) {
+      case 'diceRoll':
+        sortedSkills.sort((a, b) => parseInt(b.diceRoll) - parseInt(a.diceRoll));
+        break;
+      case 'mainStat':
+        sortedSkills.sort((a, b) => a.mainStat.localeCompare(b.mainStat));
+        break;
+      case 'alphabetically':
+      default:
+        sortedSkills.sort((a, b) => a.skillName.localeCompare(b.skillName));
+        break;
+    }
+
+    return sortedSkills.filter(skill => 
       skill.skillName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
       skill.description.toLowerCase().includes(this.searchQuery.toLowerCase())
     );
+  }
+
+  setSortCriteria(criteria: string) {
+    this.sortCriteria = criteria;
   }
 
   rollDice(event: Event) {

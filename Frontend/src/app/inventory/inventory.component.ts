@@ -35,6 +35,7 @@ export class InventoryComponent implements OnInit {
   splicing: string = "";
   forceStrength: string = "";
   searchQuery: string = ''; // Add searchQuery property
+  sortCriteria: string = 'alphabetically'; // Add sortCriteria property
 
   @Input() characterName: string | null = '';
   @Output() resultRolled = new EventEmitter<string>();
@@ -158,12 +159,34 @@ export class InventoryComponent implements OnInit {
   }
 
   get filteredItems() {
-    return this.Item.filter(item => 
+    let sortedItems = [...this.Item];
+
+    switch (this.sortCriteria) {
+      case 'damage':
+        sortedItems.sort((a, b) => parseInt(b.damage) - parseInt(a.damage));
+        break;
+      case 'type':
+        sortedItems.sort((a, b) => a.type.localeCompare(b.type));
+        break;
+      case 'mainStat':
+        sortedItems.sort((a, b) => a.mainStat.localeCompare(b.mainStat));
+        break;
+      case 'alphabetically':
+      default:
+        sortedItems.sort((a, b) => a.itemName.localeCompare(b.itemName));
+        break;
+    }
+
+    return sortedItems.filter(item => 
       item.itemName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
       item.type.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
       item.mainStat.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(this.searchQuery.toLowerCase())
     );
+  }
+
+  setSortCriteria(criteria: string) {
+    this.sortCriteria = criteria;
   }
 
   rollDice(event: Event) {

@@ -1,5 +1,10 @@
 <div class="p-6">
   <input type="text" [(ngModel)]="searchQuery" placeholder="Search skills..." class="w-full p-2 mb-4 border border-purple-500 rounded-md bg-stone-950 text-purple-500">
+  <div class="flex space-x-4 mb-4">
+    <button (click)="setSortCriteria('alphabetically')" [class.bg-purple-700]="sortCriteria === 'alphabetically'" class="p-2 border border-purple-500 rounded-md focus:text-stone-950 text-purple-500">Alphabetically</button>
+    <button (click)="setSortCriteria('diceRoll')" [class.bg-purple-700]="sortCriteria === 'diceRoll'" class="p-2 border border-purple-500 rounded-md focus:text-stone-950 text-purple-500">Damage</button>
+    <button (click)="setSortCriteria('mainStat')" [class.bg-purple-700]="sortCriteria === 'mainStat'" class="p-2 border border-purple-500 rounded-md focus:text-stone-950 text-purple-500">Stat Modifier</button>
+  </div>
 </div>
 <div class="grid grid-cols-2 gap-6 p-6">
     <div *ngFor="let skill of filteredSkills" 
