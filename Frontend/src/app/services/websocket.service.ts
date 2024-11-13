@@ -181,4 +181,16 @@ export class WebSocketService {
       callback(data);
     });
   }
+
+  updateUserPosition(position: { username: string, topRatio: number, leftRatio: number }) {
+    this.socket.emit('updateUserPosition', position);
+  }
+
+  onUserPositionUpdate(callback: (position: { username: string, topRatio: number, leftRatio: number }) => void) {
+    this.socket.on('userPositionUpdate', callback);
+  }
+
+  onUserPositions(callback: (positions: { username: string, topRatio: number, leftRatio: number }[]) => void) {
+    this.socket.on('userPositions', callback);
+  }
 }

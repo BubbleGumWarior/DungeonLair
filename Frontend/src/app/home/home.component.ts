@@ -127,6 +127,9 @@ export class HomeComponent implements OnInit {
         this.showGalleryImageModal = true;
       }
     });
+    if (this.role === 'Dungeon Master') {
+      this.username = 'Dungeon Master';
+    }
   }
 
   loadDataFromToken() {

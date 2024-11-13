@@ -1003,6 +1003,7 @@ app.post('/upload-gallery-image', upload.single('image'), (req, res) => {
 
 // Socket.IO connection
 let activeBattleUsers = [];
+let userPositions = []; // Add variable to store user positions
 
 io.on('connection', (socket) => {
     console.log('A user connected with socket ID:', socket.id);
@@ -1030,8 +1031,9 @@ io.on('connection', (socket) => {
         }
 
         broadcastUserUpdate();
-        // Send active battle users to the newly connected user
+        // Send active battle users and their positions to the newly connected user
         socket.emit('activeBattleUsers', activeBattleUsers);
+        socket.emit('userPositions', userPositions);
     });
 
     // Handle disconnection
@@ -1039,6 +1041,7 @@ io.on('connection', (socket) => {
         console.log('A user disconnected with socket ID:', socket.id);
         liveUsers = liveUsers.filter(user => user.id !== socket.id);
         activeBattleUsers = activeBattleUsers.filter(user => user.id !== socket.id);
+        userPositions = userPositions.filter(p => p.username !== socket.username);
         console.log('Current live users after disconnection:', liveUsers);
         broadcastUserUpdate();
         broadcastActiveBattleUsers();
@@ -1053,6 +1056,7 @@ io.on('connection', (socket) => {
     socket.on('endBattle', () => {
         io.emit('battleEnded');
         activeBattleUsers = []; // Clear the array
+        userPositions = []; // Clear user positions
         broadcastActiveBattleUsers(); // Emit the updated empty array
     });
 
@@ -1091,12 +1095,14 @@ io.on('connection', (socket) => {
 
     socket.on('leaveBattle', (user) => {
         activeBattleUsers = activeBattleUsers.filter(u => u.username !== user.username);
+        userPositions = userPositions.filter(p => p.username !== user.username); // Remove user position
         console.log('User left battle:', user.characterName);
         broadcastActiveBattleUsers();
     });
 
     socket.on('getActiveBattleUsers', () => {
         socket.emit('activeBattleUsers', activeBattleUsers);
+        socket.emit('userPositions', userPositions); // Send user positions
     });
 
     socket.on('sendInitiativePrompt', (username) => {
@@ -1158,16 +1164,31 @@ io.on('connection', (socket) => {
             battleUser.shield = user.shield;
         }
         io.emit('healthUpdate', user);
+        io.emit('userPositions', userPositions); // Emit user positions after health update
     });
 
     socket.on('updateTurnIndex', (index) => {
         console.log('Turn index update received:', index);
         io.emit('turnIndexUpdate', index);
+        io.emit('userPositions', userPositions); // Emit user positions after turn index update
     });
 
     socket.on('broadcastGalleryImage', (data) => {
         console.log('Broadcasting gallery image:', data);
         socket.broadcast.emit('galleryImage', data);
+        io.emit('userPositions', userPositions); // Emit user positions after gallery image broadcast
+    });
+
+    socket.on('updateUserPosition', (position) => {
+      const existingPosition = userPositions.find(p => p.username === position.username);
+      if (existingPosition) {
+        existingPosition.topRatio = position.topRatio;
+        existingPosition.leftRatio = position.leftRatio;
+      } else {
+        userPositions.push(position);
+      }
+      io.emit('userPositionUpdate', position);
+      io.emit('userPositions', userPositions); // Emit user positions after position update
     });
 
     socket.on('error', (error) => {
@@ -1184,6 +1205,7 @@ function broadcastUserUpdate() {
 // Function to broadcast active battle users
 function broadcastActiveBattleUsers() {
     io.emit('activeBattleUsers', activeBattleUsers);
+    io.emit('userPositions', userPositions); // Ensure positions are broadcasted
 }
 
 // Redirect HTTP to HTTPS

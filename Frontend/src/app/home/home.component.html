@@ -34,7 +34,8 @@
       [showInitiativePrompt]="showInitiativePrompt" 
       [username]="username" 
       [characterName]="characterName"
-      [currentTurnIndex]="currentTurnIndex"> <!-- Pass currentTurnIndex -->
+      [currentTurnIndex]="currentTurnIndex"
+      [role]="role"> <!-- Pass role -->
     </app-battle-area>
     <app-board *ngIf="currentView === 'board'" [characterName]= "characterName" (resultRolled)="handleDiceResult($event)"></app-board>
     <app-family *ngIf="currentView === 'family'" [characterName]= "characterName"></app-family>

@@ -42,6 +42,7 @@ export class BattleAreaComponent implements OnInit {
   @Input() characterName: string | null = null;
   @Input() npcMaxHealth: number | null = null;
   @Input() currentTurnIndex: number | null = null; // Add Input property to receive current turn index
+  @Input() role: string | null = null; // Add Input property to receive role
 
   modifierSign: string = '+';
   modifierValue: number = 0;
@@ -54,6 +55,8 @@ export class BattleAreaComponent implements OnInit {
   private dragStartY = 0;
   private initialTop = 0;
   private initialLeft = 0;
+  private initialTopRatio = 0;
+  private initialLeftRatio = 0;
   private dragGroupElement: HTMLElement | null = null;
 
   constructor(private webSocketService: WebSocketService) {}
@@ -119,8 +122,10 @@ export class BattleAreaComponent implements OnInit {
       const rect = this.dragGroupElement.getBoundingClientRect();
       this.initialTop = rect.top;
       this.initialLeft = rect.left;
-      this.dragGroupElement.style.top = `${this.initialTop}px`;
-      this.dragGroupElement.style.left = `${this.initialLeft}px`;
+      this.initialTopRatio = this.initialTop / window.innerHeight;
+      this.initialLeftRatio = this.initialLeft / window.innerWidth;
+      this.dragGroupElement.style.top = `${this.initialTopRatio * 100}vh`;
+      this.dragGroupElement.style.left = `${this.initialLeftRatio * 100}vw`;
     }
     event.preventDefault();
   }
@@ -128,17 +133,47 @@ export class BattleAreaComponent implements OnInit {
   onDrag(event: MouseEvent) {
     if (this.isDragging && this.dragGroupElement) {
       console.log("Dragging");
-      const deltaX = event.clientX - this.dragStartX;
-      const deltaY = event.clientY - this.dragStartY;
-      this.dragGroupElement.style.top = `${this.initialTop + deltaY}px`;
-      this.dragGroupElement.style.left = `${this.initialLeft + deltaX}px`;
+      const newTop = event.clientY - this.dragGroupElement.offsetHeight / 2;
+      const newLeft = event.clientX - this.dragGroupElement.offsetWidth / 2;
+      this.dragGroupElement.style.top = `${newTop}px`;
+      this.dragGroupElement.style.left = `${newLeft}px`;
     }
   }
 
   onDragEnd(event: MouseEvent) {
     console.log("Drag end");
     this.isDragging = false;
+    if (this.dragGroupElement) {
+      const rect = this.dragGroupElement.getBoundingClientRect();
+      const mapElement = document.querySelector('.map-image') as HTMLElement;
+      const mapRect = mapElement.getBoundingClientRect();
+
+      let topRatio = (rect.top - mapRect.top) / mapRect.height;
+      let leftRatio = (rect.left - mapRect.left) / mapRect.width;
+
+      // Check if the group is outside the map borders
+      if (rect.top < mapRect.top || rect.left < mapRect.left || rect.bottom > mapRect.bottom || rect.right > mapRect.right) {
+        // Place the group in the middle of the map
+        topRatio = 0.5;
+        leftRatio = 0.5;
+        this.dragGroupElement.style.top = `${mapRect.top + mapRect.height / 2 - this.dragGroupElement.offsetHeight / 2}px`;
+        this.dragGroupElement.style.left = `${mapRect.left + mapRect.width / 2 - this.dragGroupElement.offsetWidth / 2}px`;
+      }
+
+      const user = this.activeBattleUsers.find(u => u.username === this.username);
+      if (user || this.isDungeonMaster()) {
+        this.webSocketService.updateUserPosition({
+          username: this.dragGroupElement.getAttribute('data-username') || '',
+          topRatio,
+          leftRatio
+        });
+      }
+    }
     this.dragGroupElement = null;
+  }
+
+  private isDungeonMaster(): boolean {
+    return this.role === 'Dungeon Master';
   }
 
   ngOnInit() {
@@ -162,6 +197,32 @@ export class BattleAreaComponent implements OnInit {
         console.log('Current health:', user.currentHealth);
         console.log('Shield:', user.shield); // Log the shield value
       }
+    });
+    this.webSocketService.onUserPositionUpdate((data) => {
+      const user = this.activeBattleUsers.find(u => u.username === data.username);
+      if (user) {
+        const element = document.querySelector(`.draggable-group[data-username="${user.username}"]`) as HTMLElement;
+        const mapElement = document.querySelector('.map-image') as HTMLElement;
+        const mapRect = mapElement.getBoundingClientRect();
+        if (element) {
+          element.style.top = `${mapRect.top + data.topRatio * mapRect.height}px`;
+          element.style.left = `${mapRect.left + data.leftRatio * mapRect.width}px`;
+        }
+      }
+    });
+    this.webSocketService.onUserPositions((positions) => {
+      positions.forEach(data => {
+        const user = this.activeBattleUsers.find(u => u.username === data.username);
+        if (user) {
+          const element = document.querySelector(`.draggable-group[data-username="${user.username}"]`) as HTMLElement;
+          const mapElement = document.querySelector('.map-image') as HTMLElement;
+          const mapRect = mapElement.getBoundingClientRect();
+          if (element) {
+            element.style.top = `${mapRect.top + data.topRatio * mapRect.height}px`;
+            element.style.left = `${mapRect.left + data.leftRatio * mapRect.width}px`;
+          }
+        }
+      });
     });
     console.log('Initiative prompt listener set up');
     console.log(this.mapImageUrl)

@@ -19,13 +19,15 @@
   <div class="w-2/4 bg-stone-950 px-5 border border-purple-500 rounded-lg mx-5 text-purple-500"
        (mousemove)="onDrag($event)"
        (mouseup)="onDragEnd($event)">
-    <img [src]="mapImageUrl" alt="Map Image" class="w-full h-full object-cover">
-    <div *ngFor="let user of activeBattleUsers; let i = index" class="draggable-group flex justify-between" [ngClass]="{'bg-purple-700': i === currentTurnIndex}" style="position: absolute;">
+    <img [src]="mapImageUrl" alt="Map Image" class="w-full h-full object-cover map-image map-image">
+    <div *ngFor="let user of activeBattleUsers; let i = index" class="draggable-group flex justify-center items-center" [ngClass]="{'bg-purple-700': i === currentTurnIndex}" [attr.data-username]="user.username" style="position: absolute;">
       <div 
         class="z-50 bg-opacity-0 bg-stone-950 p-2 rounded-lg hover:cursor-pointer"
         (mousedown)="onDragStart($event)">
-        <img [src]="user.photo || defaultIcon" alt="User Photo" class="w-12 h-12 rounded-full mr-2" />
-        <p [ngClass]="{'text-red-500': user.isEnemy, 'text-purple-500': !user.isEnemy, 'line-through': user.currentHealth !== undefined && user.currentHealth <= 0}">
+        <div class="flex justify-center items-center w-full">
+          <img [src]="user.photo || defaultIcon" alt="User Photo" class="w-12 h-12 rounded-full" />
+        </div>        
+        <p class="bg-stone-950 px-2 rounded-lg text-center" [ngClass]="{'text-red-500': user.isEnemy, 'text-purple-500': !user.isEnemy, 'line-through': user.currentHealth !== undefined && user.currentHealth <= 0}">
           {{ user.characterName }}
         </p>
       </div>
