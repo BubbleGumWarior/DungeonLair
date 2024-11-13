@@ -49,6 +49,13 @@ export class BattleAreaComponent implements OnInit {
   mapImageUrl: string = `https://${localIP}:8080/assets/images/Map.jpg`;
   defaultIcon: string = `https://${localIP}:8080/assets/images/Default.png`;
 
+  private isDragging = false;
+  private dragStartX = 0;
+  private dragStartY = 0;
+  private initialTop = 0;
+  private initialLeft = 0;
+  private dragGroupElement: HTMLElement | null = null;
+
   constructor(private webSocketService: WebSocketService) {}
 
   rollForInitiative() {
@@ -100,6 +107,38 @@ export class BattleAreaComponent implements OnInit {
 
   trackByIndex(index: number, item: any): number {
     return index;
+  }
+
+  onDragStart(event: MouseEvent) {
+    console.log("Drag started");
+    this.isDragging = true;
+    this.dragStartX = event.clientX;
+    this.dragStartY = event.clientY;
+    this.dragGroupElement = (event.target as HTMLElement).closest('.draggable-group') as HTMLElement;
+    if (this.dragGroupElement) {
+      const rect = this.dragGroupElement.getBoundingClientRect();
+      this.initialTop = rect.top;
+      this.initialLeft = rect.left;
+      this.dragGroupElement.style.top = `${this.initialTop}px`;
+      this.dragGroupElement.style.left = `${this.initialLeft}px`;
+    }
+    event.preventDefault();
+  }
+
+  onDrag(event: MouseEvent) {
+    if (this.isDragging && this.dragGroupElement) {
+      console.log("Dragging");
+      const deltaX = event.clientX - this.dragStartX;
+      const deltaY = event.clientY - this.dragStartY;
+      this.dragGroupElement.style.top = `${this.initialTop + deltaY}px`;
+      this.dragGroupElement.style.left = `${this.initialLeft + deltaX}px`;
+    }
+  }
+
+  onDragEnd(event: MouseEvent) {
+    console.log("Drag end");
+    this.isDragging = false;
+    this.dragGroupElement = null;
   }
 
   ngOnInit() {

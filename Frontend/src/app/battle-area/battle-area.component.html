@@ -16,8 +16,20 @@
       </p>
     </div>
   </div>
-  <div class="w-2/4 bg-stone-950 px-5 border border-purple-500 rounded-lg mx-5 text-purple-500">
+  <div class="w-2/4 bg-stone-950 px-5 border border-purple-500 rounded-lg mx-5 text-purple-500"
+       (mousemove)="onDrag($event)"
+       (mouseup)="onDragEnd($event)">
     <img [src]="mapImageUrl" alt="Map Image" class="w-full h-full object-cover">
+    <div *ngFor="let user of activeBattleUsers; let i = index" class="draggable-group flex justify-between" [ngClass]="{'bg-purple-700': i === currentTurnIndex}" style="position: absolute;">
+      <div 
+        class="z-50 bg-opacity-0 bg-stone-950 p-2 rounded-lg hover:cursor-pointer"
+        (mousedown)="onDragStart($event)">
+        <img [src]="user.photo || defaultIcon" alt="User Photo" class="w-12 h-12 rounded-full mr-2" />
+        <p [ngClass]="{'text-red-500': user.isEnemy, 'text-purple-500': !user.isEnemy, 'line-through': user.currentHealth !== undefined && user.currentHealth <= 0}">
+          {{ user.characterName }}
+        </p>
+      </div>
+    </div>
   </div>
   <div class="w-1/4 bg-stone-950 px-5 border border-purple-500 rounded-lg ml-5 text-purple-500" [@listAnimation]>
     <div *ngFor="let user of activeBattleUsers; let i = index" class="mb-2" [ngClass]="{'opacity-50': user.currentHealth !== undefined && user.currentHealth <= 0}">

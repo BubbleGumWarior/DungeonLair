@@ -101,9 +101,6 @@ export class WebSocketService {
 
   updateHealth(user: { username: string, characterName: string, currentHealth: number, shield?: number }) {
     user.currentHealth = Math.max(0, user.currentHealth); // Ensure health is not less than 0
-    console.log('Emitting health update for:', user.characterName);
-    console.log('Current health:', user.currentHealth);
-    console.log('Shield:', user.shield); // Log the shield value
     this.socket.emit('updateHealth', user);
   }
 
