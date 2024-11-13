@@ -1,4 +1,4 @@
-<div class="flex">
+<div class="flex pb-24">
   <div class="w-1/4 bg-stone-950 px-5 border border-purple-500 rounded-lg mr-5 text-purple-500">
     <div class="flex justify-between border-b-2 border-purple-500">
       <p class="text-2xl text-purple-500">Character Name</p>
@@ -20,7 +20,7 @@
        (mousemove)="onDrag($event)"
        (mouseup)="onDragEnd($event)">
     <img [src]="mapImageUrl" alt="Map Image" class="w-full h-full object-cover map-image map-image">
-    <div *ngFor="let user of activeBattleUsers; let i = index" class="draggable-group flex justify-center items-center" [ngClass]="{'bg-purple-700': i === currentTurnIndex}" [attr.data-username]="user.username" style="position: absolute;">
+    <div *ngFor="let user of activeBattleUsers; let i = index" class="draggable-group flex justify-center items-center" [attr.data-username]="user.username" style="position: absolute;">
       <div 
         class="z-50 bg-opacity-0 bg-stone-950 p-2 rounded-lg hover:cursor-pointer"
         (mousedown)="onDragStart($event)">
