@@ -58,6 +58,8 @@ export class BattleAreaComponent implements OnInit {
   private initialTopRatio = 0;
   private initialLeftRatio = 0;
   private dragGroupElement: HTMLElement | null = null;
+  private lastValidTop: number = 0;
+  private lastValidLeft: number = 0;
 
   constructor(private webSocketService: WebSocketService) {}
 
@@ -114,20 +116,26 @@ export class BattleAreaComponent implements OnInit {
 
   onDragStart(event: MouseEvent) {
     console.log("Drag started");
-    this.isDragging = true;
-    this.dragStartX = event.clientX;
-    this.dragStartY = event.clientY;
-    this.dragGroupElement = (event.target as HTMLElement).closest('.draggable-group') as HTMLElement;
-    if (this.dragGroupElement) {
-      const rect = this.dragGroupElement.getBoundingClientRect();
-      this.initialTop = rect.top;
-      this.initialLeft = rect.left;
-      this.initialTopRatio = this.initialTop / window.innerHeight;
-      this.initialLeftRatio = this.initialLeft / window.innerWidth;
-      this.dragGroupElement.style.top = `${this.initialTopRatio * 100}vh`;
-      this.dragGroupElement.style.left = `${this.initialLeftRatio * 100}vw`;
+    const targetElement = (event.target as HTMLElement).closest('.draggable-group') as HTMLElement;
+    const username = targetElement?.getAttribute('data-username');
+    const user = this.activeBattleUsers.find(u => u.username === username);
+
+    if (this.isDungeonMaster() || (user && user.characterName === this.characterName)) {
+      this.isDragging = true;
+      this.dragStartX = event.clientX;
+      this.dragStartY = event.clientY;
+      this.dragGroupElement = targetElement;
+      if (this.dragGroupElement) {
+        const rect = this.dragGroupElement.getBoundingClientRect();
+        this.initialTop = rect.top;
+        this.initialLeft = rect.left;
+        this.initialTopRatio = this.initialTop / window.innerHeight;
+        this.initialLeftRatio = this.initialLeft / window.innerWidth;
+        this.dragGroupElement.style.top = `${this.initialTopRatio * 100}vh`;
+        this.dragGroupElement.style.left = `${this.initialLeftRatio * 100}vw`;
+      }
+      event.preventDefault();
     }
-    event.preventDefault();
   }
 
   onDrag(event: MouseEvent) {
@@ -135,6 +143,17 @@ export class BattleAreaComponent implements OnInit {
       console.log("Dragging");
       const newTop = event.clientY - this.dragGroupElement.offsetHeight / 2;
       const newLeft = event.clientX - this.dragGroupElement.offsetWidth / 2;
+      const mapElement = document.querySelector('.map-image') as HTMLElement;
+      const mapRect = mapElement.getBoundingClientRect();
+
+      // Check if the new position is within the map bounds
+      if (newTop >= mapRect.top && newLeft >= mapRect.left && 
+          newTop + this.dragGroupElement.offsetHeight <= mapRect.bottom && 
+          newLeft + this.dragGroupElement.offsetWidth <= mapRect.right) {
+        this.lastValidTop = newTop;
+        this.lastValidLeft = newLeft;
+      }
+
       this.dragGroupElement.style.top = `${newTop}px`;
       this.dragGroupElement.style.left = `${newLeft}px`;
     }
@@ -144,20 +163,21 @@ export class BattleAreaComponent implements OnInit {
     console.log("Drag end");
     this.isDragging = false;
     if (this.dragGroupElement) {
-      const rect = this.dragGroupElement.getBoundingClientRect();
       const mapElement = document.querySelector('.map-image') as HTMLElement;
       const mapRect = mapElement.getBoundingClientRect();
+      const rect = this.dragGroupElement.getBoundingClientRect();
 
       let topRatio = (rect.top - mapRect.top) / mapRect.height;
       let leftRatio = (rect.left - mapRect.left) / mapRect.width;
 
       // Check if the group is outside the map borders
-      if (rect.top < mapRect.top || rect.left < mapRect.left || rect.bottom > mapRect.bottom || rect.right > mapRect.right) {
-        // Place the group in the middle of the map
-        topRatio = 0.5;
-        leftRatio = 0.5;
-        this.dragGroupElement.style.top = `${mapRect.top + mapRect.height / 2 - this.dragGroupElement.offsetHeight / 2}px`;
-        this.dragGroupElement.style.left = `${mapRect.left + mapRect.width / 2 - this.dragGroupElement.offsetWidth / 2}px`;
+      if (rect.top < mapRect.top || rect.left < mapRect.left || 
+          rect.bottom > mapRect.bottom || rect.right > mapRect.right) {
+        // Place the group at the last valid position
+        this.dragGroupElement.style.top = `${this.lastValidTop}px`;
+        this.dragGroupElement.style.left = `${this.lastValidLeft}px`;
+        topRatio = (this.lastValidTop - mapRect.top) / mapRect.height;
+        leftRatio = (this.lastValidLeft - mapRect.left) / mapRect.width;
       }
 
       const user = this.activeBattleUsers.find(u => u.username === this.username);
