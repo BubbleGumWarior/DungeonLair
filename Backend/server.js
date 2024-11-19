@@ -17,8 +17,9 @@ const SkillList = require('./models/SkillList'); // Import the SkillList model
 const ChatHistory = require('./models/ChatHistory'); // Import the ChatHistory model
 const DMChatHistory = require('./models/DMChatHistory'); // Import the DMChatHistory model
 const Note = require('./models/Note'); // Ensure the file name and path are correct
-const { localIP, JWT_SECRET } = require('./config'); // Import the IP address and JWT secret
 const User = require('./models/User'); // Import the User model
+const Score = require('./models/Score'); // Import the Score model
+const { localIP, JWT_SECRET } = require('./config'); // Import the IP address and JWT secret
 const multer = require('multer');
 const path = require('path');
 const http = require('http'); // Import http module
@@ -999,6 +1000,39 @@ app.post('/upload-gallery-image', upload.single('image'), (req, res) => {
   const filePath = `/assets/images/${req.file.filename}`;
   console.log('Gallery image uploaded:', filePath);
   res.json({ filePath });
+});
+
+// Endpoint to fetch scores
+app.get('/api/scores', async (req, res) => {
+  try {
+    const scores = await Score.findAll({
+      order: [['characterName', 'ASC']] // Sort alphabetically by characterName
+    });
+    res.json(scores);
+  } catch (error) {
+    console.error('Error fetching scores:', error);
+    res.status(500).send('Failed to fetch scores');
+  }
+});
+
+app.put('/api/scores/:characterName', async (req, res) => {
+  const { characterName } = req.params;
+  const { field, value } = req.body;
+
+  try {
+    const score = await Score.findOne({ where: { characterName } });
+    if (!score) {
+      return res.status(404).json({ message: 'Score not found' });
+    }
+
+    score[field] = value;
+    await score.save();
+
+    res.json({ message: 'Score updated successfully' });
+  } catch (error) {
+    console.error('Error updating score:', error);
+    res.status(500).json({ message: 'Failed to update score' });
+  }
 });
 
 // Socket.IO connection

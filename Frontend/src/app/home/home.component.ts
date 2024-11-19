@@ -18,6 +18,7 @@ import { BattleAreaComponent } from '../battle-area/battle-area.component';
 import { jwtDecode } from 'jwt-decode';
 import { WebSocketService } from '../services/websocket.service';
 import { localIP } from '../config'; // Import localIP from config
+import { ScoreComponent } from '../score/score.component';
 
 @Component({
   selector: 'app-home',
@@ -37,6 +38,7 @@ import { localIP } from '../config'; // Import localIP from config
     SoundbarComponent,
     DMScreenComponent,
     BattleAreaComponent,
+    ScoreComponent,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],

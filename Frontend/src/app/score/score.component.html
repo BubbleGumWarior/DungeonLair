@@ -1,0 +1,37 @@
+<h1>You are {{ characterName }}</h1>
+<table class="text-purple-500 w-full">
+  <thead>
+    <tr>
+      <th class="p-4 text-4xl">Character Name</th>
+      <th class="p-4 text-4xl">Wishes</th>
+      <th class="p-4 text-4xl">Anti-Wishes</th>
+      <th class="p-4 text-4xl">Inspiration</th>
+      <th class="p-4 text-4xl">Discouragement</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let score of scores" [ngClass]="{'highlight': score.characterName === characterName}">
+      <td class="p-4">{{ score.characterName }}</td>
+      <td class="p-4 text-center">
+        <button *ngIf="role === 'Dungeon Master'" class="p-2 mx-2 w-1/6 rounded-full text-stone-950 bg-purple-500 hover:text-white" (click)="decrementScore(score.characterName, 'wishes')">-</button>
+        {{ score.wishes }}
+        <button *ngIf="role === 'Dungeon Master'" class="p-2 mx-2 w-1/6 rounded-full text-stone-950 bg-purple-500 hover:text-white" (click)="incrementScore(score.characterName, 'wishes')">+</button>
+      </td>
+      <td class="p-4 text-center">
+        <button *ngIf="role === 'Dungeon Master'" class="p-2 mx-2 w-1/6 rounded-full text-stone-950 bg-purple-500 hover:text-white" (click)="decrementScore(score.characterName, 'antiWishes')">-</button>
+        {{ score.antiWishes }}
+        <button *ngIf="role === 'Dungeon Master'" class="p-2 mx-2 w-1/6 rounded-full text-stone-950 bg-purple-500 hover:text-white" (click)="incrementScore(score.characterName, 'antiWishes')">+</button>
+      </td>
+      <td class="p-4 text-center">
+        <button *ngIf="role === 'Dungeon Master'" class="p-2 mx-2 w-1/6 rounded-full text-stone-950 bg-purple-500 hover:text-white" (click)="decrementScore(score.characterName, 'inspiration')">-</button>
+        {{ score.inspiration }}
+        <button *ngIf="role === 'Dungeon Master'" class="p-2 mx-2 w-1/6 rounded-full text-stone-950 bg-purple-500 hover:text-white" (click)="incrementScore(score.characterName, 'inspiration')">+</button>
+      </td>
+      <td class="p-4 text-center">
+        <button *ngIf="role === 'Dungeon Master'" class="p-2 mx-2 w-1/6 rounded-full text-stone-950 bg-purple-500 hover:text-white" (click)="decrementScore(score.characterName, 'discouragement')">-</button>
+        {{ score.discouragement }}
+        <button *ngIf="role === 'Dungeon Master'" class="p-2 mx-2 w-1/6 rounded-full text-stone-950 bg-purple-500 hover:text-white" (click)="incrementScore(score.characterName, 'discouragement')">+</button>
+      </td>
+    </tr>
+  </tbody>
+</table>

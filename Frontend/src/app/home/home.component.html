@@ -15,6 +15,7 @@
         <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('inventory')"[ngClass]="{'underline font-bold': currentView === 'inventory'}">Inventory</a></li>
         <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('skills')"[ngClass]="{'underline font-bold': currentView === 'skills'}">Skills</a></li>
         <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('notes')"[ngClass]="{'underline font-bold': currentView === 'notes'}">Notes</a></li>
+        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('score')" [ngClass]="{'underline font-bold': currentView === 'score'}">Score</a></li>
         <li *ngIf="role === 'Dungeon Master'"><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('dm-screen')"[ngClass]="{'underline font-bold': currentView === 'dm-screen'}">Dm Screen</a></li>
       </ul>
       <ul class="flex space-x-4">
@@ -43,6 +44,7 @@
     <app-inventory *ngIf="currentView === 'inventory'" (resultRolled)="handleDiceResult($event)" [characterName]= "characterName"></app-inventory>
     <app-skills *ngIf="currentView === 'skills'" (resultRolled)="handleDiceResult($event)" [characterName]= "characterName"></app-skills>
     <app-notes *ngIf="currentView === 'notes'" [characterName]="characterName"></app-notes> <!-- Pass characterName as username -->
+    <app-score *ngIf="currentView === 'score'" [characterName]="characterName || ''" [role]="role || ''"></app-score> <!-- Ensure characterName and role are strings -->
     <app-dmscreen *ngIf="currentView === 'dm-screen'"></app-dmscreen>
   </div>
 
