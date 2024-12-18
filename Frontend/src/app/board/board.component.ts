@@ -67,14 +67,20 @@ export class BoardComponent implements OnInit {
   level: number = 0;
 
   statsSheet: any;
+  isMobile: boolean = false;
 
   constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
 
   ngOnInit() {
+    this.isMobile = this.detectMobileDevice();
     if (this.characterName) {
       this.fetchStatsSheet(this.characterName);
-      this.fetchCharacterInfo(this.characterName)
+      this.fetchCharacterInfo(this.characterName);
     }
+  }
+
+  detectMobileDevice(): boolean {
+    return window.innerWidth <= 768; // Adjust the width as needed for mobile detection
   }
 
   fetchStatsSheet(characterName: string) {

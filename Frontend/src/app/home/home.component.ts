@@ -357,4 +357,12 @@ export class HomeComponent implements OnInit {
     this.showGalleryImageModal = false;
     this.galleryImageData = null;
   }
+
+  isMobile(): boolean {
+    return window.innerWidth <= 768;
+  }
+
+  isHomeView(): boolean {
+    return this.currentView === 'home';
+  }
 }
