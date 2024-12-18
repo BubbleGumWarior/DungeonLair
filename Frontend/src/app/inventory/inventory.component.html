@@ -7,7 +7,7 @@
     <button (click)="setSortCriteria('mainStat')" [class.bg-purple-700]="sortCriteria === 'mainStat'" class="p-2 border border-purple-500 rounded-md focus:text-stone-950 text-purple-500">Main Stat</button>
   </div>
 </div>
-<div class="grid grid-cols-4 gap-6 p-6">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
     <div *ngFor="let item of filteredItems" class="flex flex-col justify-between p-4 text-purple-500 h-full w-full bg-purple-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-purple-500 mb-4">
         <div class="flex-grow flex flex-col">
             <div class="flex-grow flex items-center justify-center mb-4">
