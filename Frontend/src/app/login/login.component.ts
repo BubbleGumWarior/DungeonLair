@@ -17,6 +17,8 @@ export class LoginComponent {
   password: string = '';
   loginImageUrl: string = `https://${localIP}:8080/assets/images/LoginBackground.jpg`;
   isMobile: boolean = false;
+  errorMessage: string | null = null;
+  showModal: boolean = false; // Add this line
 
   constructor(private router: Router) {
     this.isMobile = window.innerWidth <= 768; // Detect if the device is mobile
@@ -56,11 +58,18 @@ export class LoginComponent {
     })
     .catch(error => {
       console.error('Login error:', error);
-      // Optionally, display an error message to the user
+      this.errorMessage = 'Invalid credentials';
+      this.showModal = true; // Show modal on error
     });
   }
 
   navigateTo(route: string) {
     this.router.navigate([route]);
+  }
+
+  closeModal(event: MouseEvent) {
+    if ((event.target as HTMLElement).classList.contains('modal')) {
+      this.showModal = false;
+    }
   }
 }

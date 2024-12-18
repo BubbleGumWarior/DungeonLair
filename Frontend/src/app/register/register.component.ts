@@ -18,6 +18,7 @@ export class RegisterComponent {
   errorMessage: string | null = null;
   isMobile: boolean = false;
   loginImageUrl: string = `https://${localIP}:8080/assets/images/LoginBackground.jpg`;
+  showModal: boolean = false; // Add this line
 
   constructor(private fb: FormBuilder, private router: Router) {
     this.isMobile = window.innerWidth <= 768; // Detect if the device is mobile
@@ -40,7 +41,13 @@ export class RegisterComponent {
     console.log('Form submitted:', this.registerForm.value);
 
     if (this.registerForm.invalid) {
-      this.errorMessage = 'Please fill out the form correctly.';
+      if (this.f['email'].errors?.['email']) {
+        this.errorMessage = 'Please enter a valid email address.';
+      } else if (this.f['password'].errors?.['minlength']) {
+        this.errorMessage = 'Password must be at least 6 characters long.';
+      } else {
+        this.errorMessage = 'Please fill out the form correctly.';
+      }
       console.log('Form is invalid:', this.registerForm.errors);
       Object.keys(this.registerForm.controls).forEach(key => {
         const controlErrors = this.registerForm.get(key)?.errors;
@@ -48,6 +55,15 @@ export class RegisterComponent {
           console.log(`Control: ${key}, Errors:`, controlErrors);
         }
       });
+      this.showModal = true; // Show modal on error
+      return;
+    }
+
+    const password = this.registerForm.value.password;
+    if (!this.isPasswordValid(password)) {
+      this.errorMessage = 'Password must contain a mix of letters and numbers.';
+      console.log('Password validation failed:', password);
+      this.showModal = true; // Show modal on error
       return;
     }
 
@@ -99,10 +115,22 @@ export class RegisterComponent {
     .catch(error => {
       this.errorMessage = `There was a problem with the fetch operation: ${error.message}`;
       console.error('There was a problem with the fetch operation:', error);
+      this.showModal = true; // Show modal on error
     });
+  }
+
+  isPasswordValid(password: string): boolean {
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+    return passwordRegex.test(password);
   }
 
   navigateTo(route: string) {
     this.router.navigate([route]);
+  }
+
+  closeModal(event: MouseEvent) {
+    if ((event.target as HTMLElement).classList.contains('modal')) {
+      this.showModal = false;
+    }
   }
 }
