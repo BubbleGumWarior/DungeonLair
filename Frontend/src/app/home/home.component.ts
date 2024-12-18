@@ -82,6 +82,7 @@ export class HomeComponent implements OnInit {
   showGalleryImageModal: boolean = false; // Add property to control gallery image display modal visibility
   galleryImageData: { filePath: string, name: string } | null = null; // Add property to store the received gallery image data
   photo: string = "";
+  showMobileMenu: boolean = false; // Add property to control mobile menu visibility
 
   constructor(private router: Router, private webSocketService: WebSocketService) {}
 
