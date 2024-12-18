@@ -33,9 +33,17 @@ export class RegisterComponent {
   onSubmit(): void {
     this.submitted = true;
     this.errorMessage = null;
+    console.log('Form submitted:', this.registerForm.value);
 
     if (this.registerForm.invalid) {
       this.errorMessage = 'Please fill out the form correctly.';
+      console.log('Form is invalid:', this.registerForm.errors);
+      Object.keys(this.registerForm.controls).forEach(key => {
+        const controlErrors = this.registerForm.get(key)?.errors;
+        if (controlErrors) {
+          console.log(`Control: ${key}, Errors:`, controlErrors);
+        }
+      });
       return;
     }
 
@@ -55,13 +63,17 @@ export class RegisterComponent {
       skillList: []
     };
 
+    console.log('Sanitized form data:', formData);
+
     // Validate data types
     if (typeof formData.username !== 'string' || typeof formData.email !== 'string' || typeof formData.password !== 'string' || typeof formData.role !== 'string' || typeof formData.characterName !== 'string') {
       this.errorMessage = 'Invalid data types in form fields.';
+      console.log('Invalid data types:', formData);
       return;
     }
 
     // Use fetch API to send POST request to the register endpoint
+    console.log('Sending POST request to register endpoint');
     fetch(`https://${localIP}:8080/register`, {
       method: 'POST',
       headers: {
@@ -70,12 +82,14 @@ export class RegisterComponent {
       body: JSON.stringify(formData)
     })
     .then(response => {
+      console.log('Received response:', response);
       if (!response.ok) {
         return response.text().then(text => { throw new Error(text) });
       }
       return response.text();
     })
     .then(data => {
+      console.log('Registration successful:', data);
       this.navigateTo('/');
     })
     .catch(error => {

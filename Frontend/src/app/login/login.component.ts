@@ -18,8 +18,12 @@ export class LoginComponent {
   constructor(private router: Router) {}
 
   onSubmit() {
+    console.log('Login form submitted with email:', this.email);
     const sanitizedEmail = DOMPurify.sanitize(this.email);
     const sanitizedPassword = DOMPurify.sanitize(this.password);
+
+    console.log('Sanitized email:', sanitizedEmail);
+    console.log('Sanitized password:', sanitizedPassword);
 
     // Use fetch API to send login request
     fetch(`https://${localIP}:8080/login`, { // Change http to https
@@ -30,6 +34,7 @@ export class LoginComponent {
       body: JSON.stringify({ email: sanitizedEmail, password: sanitizedPassword })
     })
     .then(response => {
+      console.log('Received response:', response);
       if (!response.ok) {
         throw new Error('Invalid credentials');
       }
@@ -37,9 +42,11 @@ export class LoginComponent {
     })
     .then(data => {
       // Log the response from the server
-      console.log(data);
+      console.log('Login successful, received data:', data);
       // Store the JWT token in localStorage
       localStorage.setItem('token', data.token);
+      localStorage.setItem('username', data.username); // Store username in localStorage
+      localStorage.setItem('role', data.role); // Store role in localStorage
       this.navigateTo('/'); // Redirect to home or desired route
     })
     .catch(error => {
