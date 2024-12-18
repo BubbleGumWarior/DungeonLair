@@ -29,6 +29,7 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
   buttonColor: string = 'default-color'; // Default button color
   isPublicRollsEnabled: boolean = false; // State for the toggle button
   userRole: string = ''; // User role
+  isMobile: boolean = false; // Property to detect mobile device
 
   @Input() set newMessage(message: string) {
     if (message) {
@@ -49,6 +50,7 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
     this.loadChatHistory();
     this.setupSocketConnection();
     this.loadPublicRollsState(); // Load the public rolls state from local storage
+    this.isMobile = window.innerWidth <= 768; // Check if the user is on a mobile device
   }
 
   constructor() {}

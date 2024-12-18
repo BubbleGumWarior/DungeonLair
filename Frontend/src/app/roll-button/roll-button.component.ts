@@ -18,6 +18,7 @@ interface RollMessage {
 export class RollButtonComponent {
   isOpen = false;
   rollHistory: RollMessage[] = [];
+  isMobile: boolean = false;
   
   @Output() resultRolled = new EventEmitter<string>();
 
@@ -27,6 +28,10 @@ export class RollButtonComponent {
 
   closeRoll() {
     this.isOpen = false;
+  }
+
+  ngOnInit() {
+    this.isMobile = window.innerWidth <= 768; // Check if the user is on a mobile device
   }
 
   diceSizeText: string = '20';
