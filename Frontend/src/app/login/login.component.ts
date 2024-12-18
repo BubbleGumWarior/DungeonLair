@@ -3,19 +3,24 @@ import { FormsModule } from '@angular/forms'; // Import FormsModule
 import { Router } from '@angular/router';
 import { localIP } from '../config'; // Import the IP address
 import DOMPurify from 'dompurify'; // Import DOMPurify
+import { CommonModule } from '@angular/common'; // Import CommonModule
 
 @Component({
   selector: 'app-login',
   standalone: true,
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  imports: [FormsModule] // Add FormsModule here
+  imports: [FormsModule, CommonModule] // Add CommonModule here
 })
 export class LoginComponent {
   email: string = '';
   password: string = '';
+  loginImageUrl: string = `https://${localIP}:8080/assets/images/LoginBackground.jpg`;
+  isMobile: boolean = false;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router) {
+    this.isMobile = window.innerWidth <= 768; // Detect if the device is mobile
+  }
 
   onSubmit() {
     console.log('Login form submitted with email:', this.email);

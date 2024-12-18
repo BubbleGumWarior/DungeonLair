@@ -3,20 +3,24 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { localIP } from '../config'; // Import the IP address
 import DOMPurify from 'dompurify'; // Import DOMPurify
+import { CommonModule } from '@angular/common'; // Import CommonModule
 
 @Component({
   selector: 'app-register',
   standalone: true,
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css'],
-  imports: [ReactiveFormsModule]
+  imports: [ReactiveFormsModule, CommonModule] // Add CommonModule here
 })
 export class RegisterComponent {
   registerForm: FormGroup;
   submitted = false;
   errorMessage: string | null = null;
+  isMobile: boolean = false;
+  loginImageUrl: string = `https://${localIP}:8080/assets/images/LoginBackground.jpg`;
 
   constructor(private fb: FormBuilder, private router: Router) {
+    this.isMobile = window.innerWidth <= 768; // Detect if the device is mobile
     this.registerForm = this.fb.group({
       username: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
