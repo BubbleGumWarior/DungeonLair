@@ -14,10 +14,12 @@ export class ScoreComponent implements OnInit {
   @Input() characterName: string = ''; // Add characterName input
   @Input() role: string = ''; // Add role input
   scores: any[] = []; // Add property to store scores
+  isMobile: boolean = false; // Add property to detect mobile device
 
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
+    this.isMobile = window.innerWidth <= 768; // Check if the device is mobile
     this.fetchScores();
   }
 
