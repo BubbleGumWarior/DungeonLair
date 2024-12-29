@@ -1,7 +1,9 @@
 <div class="h-screen flex items-center justify-center bg-stone-950 w-screen">
   <div [ngClass]="{'grid grid-cols-2 gap-6': !isMobile, 'flex flex-col': isMobile}" class="h-2/3 login-container mx-auto border rounded-3xl border-purple-500 w-2/3">
     <div *ngIf="!isMobile" class="h-full p-4">
-      <img [src]="loginImageUrl" alt="Register Image" class="w-full h-full object-cover map-image map-image rounded-3xl">
+      <div class="h-full">
+        <img [src]="loginImageUrl" alt="Register Image" class="rounded-3xl h-full">
+      </div>      
     </div>
     <div class="w-full h-full flex flex-col justify-evenly">
       <h2 class="text-center text-4xl mb-4 text-purple-500">Register</h2>
