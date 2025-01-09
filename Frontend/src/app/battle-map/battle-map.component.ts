@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms'; // Import FormsModule
 import { HttpClientModule, HttpClient } from '@angular/common/http'; // Import HttpClientModule and HttpClient
 import { localIP } from '../config'; // Import localIP from config
 import { WebSocketService } from '../services/websocket.service'; // Import WebSocketService
+import { ChatButtonComponent } from '../chat-button/chat-button.component'; // Import ChatButtonComponent
 
 @Component({
   selector: 'app-battle-map',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule], // Add CommonModule, FormsModule, and HttpClientModule to imports
+  imports: [CommonModule, FormsModule, HttpClientModule, ChatButtonComponent], // Add CommonModule, FormsModule, HttpClientModule, and ChatButtonComponent to imports
   templateUrl: './battle-map.component.html',
   styleUrls: ['./battle-map.component.css']
 })
@@ -30,10 +31,12 @@ export class BattleMapComponent implements OnInit {
   combatTarget: string = '';
   combatValue: number | null = null;
   defaultIcon: string = `https://${localIP}:8080/assets/images/Default.png`; // Add defaultIcon property
+  mapUrl: string = `https://${localIP}:8080/assets/images/Map.jpg`;
   turnCounter: number | null = null; // Add turnCounter property
   currentTurnIndex: number | null = null; // Add currentTurnIndex property
   usersInBattle: { username: string, characterName: string, initiative: number, maxHealth: number, currentHealth: number, isEnemy: boolean, isCurrentTurn?: boolean, photo?: string }[] = []; // Remove initial values
   characters: { name: string, photo: string }[] = [];
+  diceResult: string = ''; // Add diceResult property
 
   constructor(private route: ActivatedRoute, private router: Router, private webSocketService: WebSocketService, private http: HttpClient) {}
 
@@ -205,5 +208,9 @@ export class BattleMapComponent implements OnInit {
     this.turnCounter = null;
     this.currentTurnIndex = null;
     this.webSocketService.endCombat();
+  }
+
+  handleDiceResult(result: string) {
+    this.diceResult = result; // Update the result when emitted
   }
 }
