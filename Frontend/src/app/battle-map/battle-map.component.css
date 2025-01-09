@@ -1,0 +1,52 @@
+.battle-map {
+  /* Add your styles here */
+}
+
+.text-white {
+  color: white;
+}
+
+.text-purple-500 {
+  color: #9f7aea;
+}
+
+.text-red-500 {
+  color: #f56565;
+}
+
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  margin-bottom: 10px;
+}
+
+.bg-gray-400 {
+  background-color: #cbd5e0;
+}
+
+.bg-green-500 {
+  background-color: #48bb78;
+}
+
+.rounded-full {
+  border-radius: 9999px;
+}
+
+.group:hover .group-hover\:block {
+  display: block;
+}
+
+.group-hover\:block {
+  display: none;
+}

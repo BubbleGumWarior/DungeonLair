@@ -46,6 +46,14 @@ export class WebSocketService {
     this.socket.on('newMessage', callback);
   }
 
+  onBattleUpdate(callback: (data: any) => void) {
+    this.socket.on('battleUpdate', callback);
+  }
+
+  sendBattleUpdate(data: any) {
+    this.socket.emit('battleUpdate', data);
+  }
+
   loginUser(user: { username: string, role: string }) {
     this.socket.emit('loginUser', user);
   }
@@ -75,52 +83,6 @@ export class WebSocketService {
     });
   }
 
-  onBattleStarted(callback: () => void) {
-    this.socket.on('battleStarted', callback);
-  }
-
-  onBattleEnded(callback: () => void) {
-    this.socket.on('battleEnded', callback);
-  }
-
-  startBattle() {
-    this.socket.emit('startBattle');
-  }
-
-  endBattle() {
-    this.socket.emit('endBattle');
-  }
-
-  joinBattle(user: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number }, isNPC?: boolean, isEnemy?: boolean, maxHealth?: number, currentHealth?: number, shield?: number, photo?: string }) {
-    this.socket.emit('joinBattle', user);
-  }
-
-  leaveBattle(user: { username: string, characterName: string }) {
-    this.socket.emit('leaveBattle', user);
-  }
-
-  updateHealth(user: { username: string, characterName: string, currentHealth: number, shield?: number }) {
-    user.currentHealth = Math.max(0, user.currentHealth); // Ensure health is not less than 0
-    this.socket.emit('updateHealth', user);
-  }
-
-  onHealthUpdate(callback: (user: { username: string, characterName: string, currentHealth: number, shield?: number }) => void) {
-    this.socket.on('healthUpdate', callback);
-  }
-
-  getActiveBattleUsers() {
-    return new Observable<{ username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }[]>(observer => {
-      this.socket.emit('getActiveBattleUsers');
-      this.socket.on('activeBattleUsers', (users: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }[]) => {
-        observer.next(users);
-      });
-    });
-  }
-
-  onActiveBattleUsers(callback: (users: { username: string, characterName: string, initiative: { random: number, modifier: number, final: number } }[]) => void) {
-    this.socket.on('activeBattleUsers', callback);
-  }
-
   getLiveUsers() {
     return new Observable<{ username: string }[]>(observer => {
       this.socket.emit('getLiveUsers');
@@ -128,35 +90,6 @@ export class WebSocketService {
         observer.next(users);
       });
     });
-  }
-
-  sendInitiativePrompt(username: string) {
-    console.log('Emitting initiative prompt for:', username);
-    this.socket.emit('sendInitiativePrompt', username);
-  }
-
-  getAllCharacterNames() {
-    return new Observable<{ characterName: string }[]>(observer => {
-      this.socket.emit('getAllCharacterNames');
-      this.socket.on('allCharacterNames', (characterNames: { characterName: string }[]) => {
-        observer.next(characterNames);
-      });
-    });
-  }
-
-  onInitiativePrompt(callback: () => void) {
-    this.socket.on('initiativePrompt', () => {
-      console.log('Initiative prompt received');
-      callback();
-    });
-  }
-
-  updateTurnIndex(index: number) {
-    this.socket.emit('updateTurnIndex', index);
-  }
-
-  onTurnIndexUpdate(callback: (index: number) => void) {
-    this.socket.on('turnIndexUpdate', callback);
   }
 
   async uploadGalleryImage(formData: FormData) {
@@ -182,15 +115,7 @@ export class WebSocketService {
     });
   }
 
-  updateUserPosition(position: { username: string, topRatio: number, leftRatio: number }) {
-    this.socket.emit('updateUserPosition', position);
-  }
-
-  onUserPositionUpdate(callback: (position: { username: string, topRatio: number, leftRatio: number }) => void) {
-    this.socket.on('userPositionUpdate', callback);
-  }
-
-  onUserPositions(callback: (positions: { username: string, topRatio: number, leftRatio: number }[]) => void) {
-    this.socket.on('userPositions', callback);
+  requestBattleState() {
+    this.socket.emit('requestBattleState');
   }
 }

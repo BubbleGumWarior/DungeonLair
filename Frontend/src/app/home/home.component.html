@@ -50,15 +50,7 @@
   </nav>
 
   <div class="container mx-auto mt-10">
-    <h1 class="text-3xl font-bold text-center text-purple-500" *ngIf="currentView === 'home' && !battleActive">Welcome to the Home Page!</h1>
-    <app-battle-area *ngIf="currentView === 'home' && battleActive" 
-      [activeBattleUsers]="activeBattleUsers" 
-      [showInitiativePrompt]="showInitiativePrompt" 
-      [username]="username" 
-      [characterName]="characterName"
-      [currentTurnIndex]="currentTurnIndex"
-      [role]="role"> <!-- Pass role -->
-    </app-battle-area>
+    <h1 class="text-3xl font-bold text-center text-purple-500" *ngIf="currentView === 'home'">Welcome to the Home Page!</h1>
     <app-board *ngIf="currentView === 'board'" [characterName]= "characterName" (resultRolled)="handleDiceResult($event)"></app-board>
     <app-family *ngIf="currentView === 'family'" [characterName]= "characterName"></app-family>
     <app-friends *ngIf="currentView === 'friends'" [characterName]= "characterName"></app-friends>
@@ -73,104 +65,6 @@
   <app-roll-button *ngIf="isHomeView() || !isMobile()" (resultRolled)="handleDiceResult($event)"></app-roll-button>
   <app-vc-button *ngIf="isHomeView() || !isMobile()" [username]="username || 'DefaultUser'"></app-vc-button>
   <app-soundbar class="hidden md:block"></app-soundbar> <!-- Hide soundbar on mobile devices -->
-
-  <!-- Battle prompt modal -->
-  <div *ngIf="showBattlePrompt" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-    <div class="modal-content bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4 rounded-lg shadow-lg text-center">
-      <p class="text-lg font-bold mb-4">A battle has started. Would you like to join?</p>
-      <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="joinBattle()">Yes</button>
-      <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="declineBattle()">No</button>
-    </div>
-  </div>
-</div>
-<div *ngIf="role === 'Dungeon Master'" class="fixed bottom-44 left-4 mb-2">
-  <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="toggleBattle()">
-    <i class="fa fa-lg" [ngClass]="{'fa-regular fa-flag': battleActive, 'fa-solid fa-fist-raised': !battleActive}" aria-hidden="true"></i>
-  </button>
-</div>
-<div *ngIf="role === 'Dungeon Master' && battleActive" class="fixed top-4 left-4 mt-16">
-  <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="showAddUserModal = true">
-    <i class="fa fa-lg fa-user-plus" aria-hidden="true"></i>
-  </button>
-</div>
-<div *ngIf="role === 'Dungeon Master' && battleActive" class="fixed top-20 left-4 mt-16">
-  <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="showAddUserModal = true">
-    <i class="fa-solid fa-user"></i>
-    <i class="fa-solid fa-arrow-right"></i>
-  </button>
-</div>
-<div *ngIf="role === 'Dungeon Master' && battleActive" class="fixed top-20 left-4 mt-16">
-  <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="showDealDamageModal = true">
-    <i class="fa-solid fa-user"></i>
-    <i class="fa-solid fa-arrow-right"></i>
-  </button>
-</div>
-
-<!-- Add User Modal -->
-<div *ngIf="showAddUserModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-  <div class="modal-content bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4 rounded-lg shadow-lg text-center">
-    <p class="text-lg font-bold mb-4">Add User to Battle</p>
-    <div class="mb-4">
-      <label class="block text-white font-bold mb-2">Type</label>
-      <select [(ngModel)]="addUserType" class="bg-white text-black px-2 py-1 rounded">
-        <option value="Player">Player</option>
-        <option value="NPC">NPC</option>
-      </select>
-    </div>
-    <div *ngIf="addUserType === 'Player'" class="mb-4">
-      <label class="block text-white font-bold mb-2">Player Name</label>
-      <select [(ngModel)]="selectedPlayer" class="bg-white text-black px-2 py-1 rounded">
-        <option *ngFor="let user of availableUsers" [value]="user.username">{{ user.username }}</option>
-      </select>
-    </div>
-    <div *ngIf="addUserType === 'NPC'" class="mb-4">
-      <label class="block text-white font-bold mb-2">Name</label>
-      <input type="text" [(ngModel)]="npcName" class="bg-white text-black px-2 py-1 rounded" />
-      <div class="mt-2">
-        <label class="text-white font-bold">
-          <input type="checkbox" [(ngModel)]="isEnemy" class="mr-2" />
-          Enemy
-        </label>
-      </div>
-      <div class="mt-2">
-        <label class="block text-white font-bold mb-2">Max Health</label>
-        <input type="number" [(ngModel)]="npcMaxHealth" class="bg-white text-black px-2 py-1 rounded" />
-      </div>
-    </div>
-    <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="submitAddUser()">Submit</button>
-    <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="showAddUserModal = false">Cancel</button>
-  </div>
-</div>
-
-<!-- Deal Damage Modal -->
-<div *ngIf="showDealDamageModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-  <div class="modal-content bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4 rounded-lg shadow-lg text-center">
-    <p class="text-lg font-bold mb-4">Action</p>
-    <div class="mb-4">
-      <label class="block text-white font-bold mb-2">Action Type</label>
-      <select [(ngModel)]="actionType" class="bg-white text-black px-2 py-1 rounded">
-        <option value="damage">Damage</option>
-        <option value="heal">Heal</option>
-        <option value="shield">Shield</option>
-      </select>
-    </div>
-    <div class="mb-4">
-      <label class="block text-white font-bold mb-2">Amount</label>
-      <input type="number" [(ngModel)]="actionAmount" class="bg-white text-black px-2 py-1 rounded" />
-    </div>
-    <div class="mb-4">
-      <label class="block text-white font-bold mb-2">Target</label>
-      <select [(ngModel)]="selectedDefender" class="bg-white text-black px-2 py-1 rounded">
-        <option *ngFor="let user of activeBattleUsers" [ngValue]="user">
-          <ng-container *ngIf="user.maxHealth !== undefined">{{ user.characterName }}</ng-container>
-        </option>
-      </select>
-    </div>
-    <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="performAction()" [disabled]="currentTurnIndex === null">Submit</button>
-    <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="showDealDamageModal = false">Cancel</button>
-    <button class="bg-white text-black px-4 py-2 rounded ml-2" (click)="nextTurn()">Next Turn</button> <!-- Add Next Turn button -->
-  </div>
-</div>
 
 <!-- Gallery Modal -->
 <div *ngIf="showGalleryModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
@@ -201,5 +95,11 @@
 <div *ngIf="role === 'Dungeon Master' && (isHomeView() || !isMobile())" class="fixed bottom-48 left-4 mb-12">
   <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="openGalleryModal()">
     <i class="fa fa-lg fa-image" aria-hidden="true"></i>
+  </button>
+</div>
+
+<div *ngIf="(isHomeView() || !isMobile())" class="fixed bottom-4 right-4 mb-0">
+  <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="navigateToBattle()">
+    <i class="fa fa-lg fa-solid fa-fist-raised" aria-hidden="true"></i>
   </button>
 </div>

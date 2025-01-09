@@ -1,0 +1,94 @@
+<div class="battle-map">
+  <button class="mt-1 close-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 w-10 h-10 rounded-full fixed top-4 right-4 hover:bg-purple-700 transition duration-200 flex items-center justify-center" (click)="closeBattleMap()">X</button>
+  <button class="mt-1 join-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full fixed top-4 left-4 hover:bg-purple-700 transition duration-200 flex items-center justify-center" (click)="joinBattle()">
+    {{ isUserInBattle() ? 'Leave Battle' : 'Join Battle' }}
+  </button>
+  <button class="mt-1 end-turn-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full fixed top-16 left-4 hover:bg-purple-700 transition duration-200 flex items-center justify-center"
+    [class.bg-gray-500]="!(role === 'Dungeon Master' || isCurrentUserTurn())"
+    [class.cursor-not-allowed]="!(role === 'Dungeon Master' || isCurrentUserTurn())"
+    [disabled]="!(role === 'Dungeon Master' || isCurrentUserTurn())"
+    (click)="startOrEndTurn()">
+    {{ turnCounter === null ? 'Start Battle' : 'End Turn' }}
+  </button>
+  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-4 left-40" (click)="openAddNPCModal()">
+    Add NPC
+  </button>
+  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-4 left-80" (click)="openCombatActionsModal()">
+    Combat Actions
+  </button>
+  <div class="bg-stone-950 h-screen w-screen">
+    <div class="flex pb-24 pt-32">
+      <div class="w-1/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4">
+        <ul>
+          <li *ngFor="let user of usersInBattle" [ngClass]="{'text-white': user.username === username, 'text-purple-500': user.username !== username && !user.isEnemy, 'text-red-500': user.isEnemy, 'bg-purple-300': user.isCurrentTurn}" class="relative group p-2 rounded">
+            {{ user.characterName }} <span class="float-right">{{ user.initiative }}</span>
+            <div class="relative w-full h-4 bg-gray-400 mt-1 rounded-full">
+              <div class="absolute top-0 left-0 h-full bg-green-500 rounded-full" [style.width.%]="(user.currentHealth / user.maxHealth) * 100"></div>
+            </div>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-cover bg-center hidden group-hover:block" [style.background-image]="getUserPhoto(user.characterName)"></div>
+          </li>
+        </ul>
+      </div>
+      <div class="w-1/2 h-full mx-4 border-2 border-purple-500 rounded-lg p-4">Test</div>
+      <div class="w-1/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4">Test</div>
+    </div>
+  </div>
+
+  <!-- Add NPC Modal -->
+  <div *ngIf="showAddNPCModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="modal-content bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4 rounded-lg shadow-lg text-center">
+      <p class="text-lg font-bold mb-4">Add NPC</p>
+      <div class="mb-4">
+        <label class="block text-white font-bold mb-2">Character Name</label>
+        <input type="text" [(ngModel)]="npcName" class="bg-white text-black px-2 py-1 rounded" />
+      </div>
+      <div class="mb-4">
+        <label class="block text-white font-bold mb-2">Max Health</label>
+        <input type="number" [(ngModel)]="npcMaxHealth" class="bg-white text-black px-2 py-1 rounded" />
+      </div>
+      <div class="mb-4">
+        <label class="block text-white font-bold mb-2">Current Health</label>
+        <input type="number" [(ngModel)]="npcCurrentHealth" class="bg-white text-black px-2 py-1 rounded" />
+      </div>
+      <div class="mb-4">
+        <label class="block text-white font-bold mb-2">Initiative</label>
+        <input type="number" [(ngModel)]="npcInitiative" class="bg-white text-black px-2 py-1 rounded" placeholder="Leave empty for random" />
+      </div>
+      <div class="mb-4">
+        <label class="text-white font-bold">
+          <input type="checkbox" [(ngModel)]="npcIsEnemy" class="mr-2" />
+          Enemy
+        </label>
+      </div>
+      <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="addNPC()">Add</button>
+      <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="closeAddNPCModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Combat Actions Modal -->
+  <div *ngIf="showCombatActionsModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="modal-content bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4 rounded-lg shadow-lg text-center">
+      <p class="text-lg font-bold mb-4">Combat Actions</p>
+      <div class="mb-4">
+        <label class="block text-white font-bold mb-2">Action</label>
+        <select [(ngModel)]="combatAction" class="bg-white text-black px-2 py-1 rounded">
+          <option value="Take Damage">Take Damage</option>
+          <option value="Heal">Heal</option>
+          <option value="Shield">Shield</option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label class="block text-white font-bold mb-2">Target</label>
+        <select [(ngModel)]="combatTarget" class="bg-white text-black px-2 py-1 rounded">
+          <option *ngFor="let user of usersInBattle" [value]="user.characterName">{{ user.characterName }}</option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label class="block text-white font-bold mb-2">Value</label>
+        <input type="number" [(ngModel)]="combatValue" class="bg-white text-black px-2 py-1 rounded" />
+      </div>
+      <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="performCombatAction()">Submit</button>
+      <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="closeCombatActionsModal()">Cancel</button>
+    </div>
+  </div>
+</div>

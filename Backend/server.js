@@ -1039,6 +1039,17 @@ app.put('/api/scores/:characterName', async (req, res) => {
 let activeBattleUsers = [];
 let userPositions = []; // Add variable to store user positions
 
+let usersInBattle = [
+  { username: 'aragorn', characterName: 'Aragorn', initiative: 17, maxHealth: 100, currentHealth: 80, isEnemy: false },
+  { username: 'legolas', characterName: 'Legolas', initiative: 2, maxHealth: 90, currentHealth: 90, isEnemy: false },
+  { username: 'gimli', characterName: 'Gimli', initiative: 3, maxHealth: 120, currentHealth: 110, isEnemy: false },
+  { username: 'frodo', characterName: 'Frodo', initiative: 4, maxHealth: 70, currentHealth: 50, isEnemy: true },
+  { username: 'gandalf', characterName: 'Gandalf', initiative: 20, maxHealth: 150, currentHealth: 150, isEnemy: false }
+]; // Move usersInBattle to the server
+
+let turnCounter = null;
+let currentTurnIndex = null;
+
 io.on('connection', (socket) => {
     console.log('A user connected with socket ID:', socket.id);
 
@@ -1081,86 +1092,6 @@ io.on('connection', (socket) => {
         broadcastActiveBattleUsers();
     });
 
-    // Handle battle start
-    socket.on('startBattle', () => {
-        io.emit('battleStarted');
-    });
-
-    // Handle battle end
-    socket.on('endBattle', () => {
-        io.emit('battleEnded');
-        activeBattleUsers = []; // Clear the array
-        userPositions = []; // Clear user positions
-        broadcastActiveBattleUsers(); // Emit the updated empty array
-    });
-
-    socket.on('joinBattle', async (user) => {
-      try {
-        if (user.isNPC) { // Check if the user is an NPC
-          const userWithPhoto = {
-            ...user,
-            photo: user.photo || '' // Use provided photo or empty string
-          };
-          if (!activeBattleUsers.some(u => u.username === user.username)) {
-            activeBattleUsers.push(userWithPhoto);
-            activeBattleUsers.sort((a, b) => b.initiative.final - a.initiative.final); // Sort by final initiative value
-            console.log('NPC joined battle:', user.characterName, 'with initiative', user.initiative);
-            broadcastActiveBattleUsers();
-          }
-        } else {
-          const characterInfo = await CharacterInfo.findOne({ where: { characterName: user.characterName } });
-          if (characterInfo) {
-            const userWithPhoto = {
-              ...user,
-              photo: characterInfo.photo ? `https://${localIP}:8080${characterInfo.photo}` : ''
-            };
-            if (!activeBattleUsers.some(u => u.username === user.username)) {
-              activeBattleUsers.push(userWithPhoto);
-              activeBattleUsers.sort((a, b) => b.initiative.final - a.initiative.final); // Sort by final initiative value
-              console.log('User joined battle:', user.characterName, 'with initiative', user.initiative);
-              broadcastActiveBattleUsers();
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching character info:', error);
-      }
-    });
-
-    socket.on('leaveBattle', (user) => {
-        activeBattleUsers = activeBattleUsers.filter(u => u.username !== user.username);
-        userPositions = userPositions.filter(p => p.username !== user.username); // Remove user position
-        console.log('User left battle:', user.characterName);
-        broadcastActiveBattleUsers();
-    });
-
-    socket.on('getActiveBattleUsers', () => {
-        socket.emit('activeBattleUsers', activeBattleUsers);
-        socket.emit('userPositions', userPositions); // Send user positions
-    });
-
-    socket.on('sendInitiativePrompt', (username) => {
-        console.log('Received request to send initiative prompt to:', username);
-        console.log('Current live users:', liveUsers);
-        const userSocket = liveUsers.find(user => user.username === username);
-        if (userSocket) {
-            console.log('Sending initiative prompt to socket ID:', userSocket.id);
-            io.to(userSocket.id).emit('initiativePrompt');
-        } else {
-            console.log('User not found:', username);
-        }
-    });
-
-    socket.on('getAllCharacterNames', async () => {
-        try {
-            const characterInfos = await CharacterInfo.findAll({ attributes: ['characterName'] });
-            const characterNames = characterInfos.map(info => ({ characterName: info.characterName }));
-            socket.emit('allCharacterNames', characterNames);
-        } catch (error) {
-            console.error('Error fetching character names:', error);
-        }
-    });
-
     // Handle incoming messages if needed
     socket.on('message', (message) => {
         console.log('Received:', message);
@@ -1187,42 +1118,22 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('audio', audioData); // Broadcast audio data with MIME type to other clients
     });
 
-    socket.on('updateHealth', (user) => {
-        user.currentHealth = Math.max(0, user.currentHealth); // Ensure health is not less than 0
-        console.log('Health update received for:', user.characterName);
-        console.log('New health:', user.currentHealth);
-        console.log('New shield:', user.shield); // Log the shield value
-        const battleUser = activeBattleUsers.find(u => u.username === user.username);
-        if (battleUser) {
-            battleUser.currentHealth = user.currentHealth;
-            battleUser.shield = user.shield;
-        }
-        io.emit('healthUpdate', user);
-        io.emit('userPositions', userPositions); // Emit user positions after health update
-    });
-
-    socket.on('updateTurnIndex', (index) => {
-        console.log('Turn index update received:', index);
-        io.emit('turnIndexUpdate', index);
-        io.emit('userPositions', userPositions); // Emit user positions after turn index update
-    });
-
     socket.on('broadcastGalleryImage', (data) => {
         console.log('Broadcasting gallery image:', data);
         socket.broadcast.emit('galleryImage', data);
         io.emit('userPositions', userPositions); // Emit user positions after gallery image broadcast
     });
 
-    socket.on('updateUserPosition', (position) => {
-      const existingPosition = userPositions.find(p => p.username === position.username);
-      if (existingPosition) {
-        existingPosition.topRatio = position.topRatio;
-        existingPosition.leftRatio = position.leftRatio;
-      } else {
-        userPositions.push(position);
-      }
-      io.emit('userPositionUpdate', position);
-      io.emit('userPositions', userPositions); // Emit user positions after position update
+    socket.on('battleUpdate', (data) => {
+      console.log('Battle update received:', data);
+      usersInBattle = data.usersInBattle;
+      turnCounter = data.turnCounter;
+      currentTurnIndex = data.currentTurnIndex;
+      socket.broadcast.emit('battleUpdate', data);
+    });
+
+    socket.on('requestBattleState', () => {
+      socket.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex });
     });
 
     socket.on('error', (error) => {
