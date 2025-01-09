@@ -10,11 +10,14 @@
     (click)="startOrEndTurn()">
     {{ turnCounter === null ? 'Start Battle' : 'End Turn' }}
   </button>
-  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-4 left-40" (click)="openAddNPCModal()">
+  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-4 left-1/4" (click)="openAddNPCModal()">
     Add NPC
   </button>
-  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-4 left-80" (click)="openCombatActionsModal()">
+  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-4 left-1/2" (click)="openCombatActionsModal()">
     Combat Actions
+  </button>
+  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-4 left-3/4" (click)="endCombat()">
+    End Combat
   </button>
   <div class="bg-stone-950 h-screen w-screen">
     <div class="flex pb-24 pt-32">

@@ -1036,9 +1036,6 @@ app.put('/api/scores/:characterName', async (req, res) => {
 });
 
 // Socket.IO connection
-let activeBattleUsers = [];
-let userPositions = []; // Add variable to store user positions
-
 let usersInBattle = [
   { username: 'aragorn', characterName: 'Aragorn', initiative: 17, maxHealth: 100, currentHealth: 80, isEnemy: false },
   { username: 'legolas', characterName: 'Legolas', initiative: 2, maxHealth: 90, currentHealth: 90, isEnemy: false },
@@ -1074,22 +1071,14 @@ io.on('connection', (socket) => {
         if (role === 'Dungeon Master') {
             socket.join('dungeonMaster');
         }
-
-        broadcastUserUpdate();
-        // Send active battle users and their positions to the newly connected user
-        socket.emit('activeBattleUsers', activeBattleUsers);
-        socket.emit('userPositions', userPositions);
     });
 
     // Handle disconnection
     socket.on('disconnect', () => {
         console.log('A user disconnected with socket ID:', socket.id);
         liveUsers = liveUsers.filter(user => user.id !== socket.id);
-        activeBattleUsers = activeBattleUsers.filter(user => user.id !== socket.id);
-        userPositions = userPositions.filter(p => p.username !== socket.username);
         console.log('Current live users after disconnection:', liveUsers);
         broadcastUserUpdate();
-        broadcastActiveBattleUsers();
     });
 
     // Handle incoming messages if needed
@@ -1121,7 +1110,6 @@ io.on('connection', (socket) => {
     socket.on('broadcastGalleryImage', (data) => {
         console.log('Broadcasting gallery image:', data);
         socket.broadcast.emit('galleryImage', data);
-        io.emit('userPositions', userPositions); // Emit user positions after gallery image broadcast
     });
 
     socket.on('battleUpdate', (data) => {
@@ -1136,6 +1124,17 @@ io.on('connection', (socket) => {
       socket.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex });
     });
 
+    socket.on('endCombat', () => {
+        console.log('Received endCombat event');
+        usersInBattle = [];
+        turnCounter = null;
+        currentTurnIndex = null;
+        console.log('Updated usersInBattle:', usersInBattle);
+        console.log('Updated turnCounter:', turnCounter);
+        console.log('Updated currentTurnIndex:', currentTurnIndex);
+        io.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex });
+    });
+
     socket.on('error', (error) => {
         console.error('Socket.IO error:', error);
     });
@@ -1145,12 +1144,6 @@ io.on('connection', (socket) => {
 function broadcastUserUpdate() {
     const userUpdateMessage = { type: 'userUpdate', users: liveUsers.map(user => ({ username: user.username, role: user.role })) };
     io.emit('userUpdate', userUpdateMessage);
-}
-
-// Function to broadcast active battle users
-function broadcastActiveBattleUsers() {
-    io.emit('activeBattleUsers', activeBattleUsers);
-    io.emit('userPositions', userPositions); // Ensure positions are broadcasted
 }
 
 // Redirect HTTP to HTTPS

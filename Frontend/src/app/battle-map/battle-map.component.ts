@@ -198,4 +198,12 @@ export class BattleMapComponent implements OnInit {
       user.isCurrentTurn = index === this.currentTurnIndex;
     });
   }
+
+  endCombat() {
+    console.log('Ending combat');
+    this.usersInBattle = [];
+    this.turnCounter = null;
+    this.currentTurnIndex = null;
+    this.webSocketService.endCombat();
+  }
 }

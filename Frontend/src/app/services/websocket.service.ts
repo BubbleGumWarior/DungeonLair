@@ -118,4 +118,9 @@ export class WebSocketService {
   requestBattleState() {
     this.socket.emit('requestBattleState');
   }
+
+  endCombat() {
+    console.log('Emitting endCombat event');
+    this.socket.emit('endCombat');
+  }
 }
