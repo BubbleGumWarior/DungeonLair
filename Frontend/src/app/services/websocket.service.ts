@@ -123,4 +123,8 @@ export class WebSocketService {
     console.log('Emitting endCombat event');
     this.socket.emit('endCombat');
   }
+
+  killTarget(target: string) {
+    this.socket.emit('killTarget', target);
+  }
 }

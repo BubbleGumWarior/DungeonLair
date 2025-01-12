@@ -16,6 +16,7 @@ const ItemList = require('./models/ItemList'); // Import the ItemList model
 const SkillList = require('./models/SkillList'); // Import the SkillList model
 const ChatHistory = require('./models/ChatHistory'); // Import the ChatHistory model
 const DMChatHistory = require('./models/DMChatHistory'); // Import the DMChatHistory model
+const Images = require('./models/Images'); // Import the Images model
 const Note = require('./models/Note'); // Ensure the file name and path are correct
 const User = require('./models/User'); // Import the User model
 const Score = require('./models/Score'); // Import the Score model
@@ -541,14 +542,20 @@ app.put('/character-info-board/:characterName/photo', async (req, res) => {
 app.use('/assets/images', express.static(path.join(__dirname, 'assets/images')));
 
 // Endpoint to handle gallery image upload
-app.post('/upload-gallery-image', upload.single('image'), (req, res) => {
+app.post('/upload-gallery-image', upload.single('image'), async (req, res) => {
   if (!req.file) {
-    console.error('No file uploaded.');
     return res.status(400).send('No file uploaded.');
   }
   const filePath = `/assets/images/${req.file.filename}`;
-  console.log('Gallery image uploaded:', filePath);
-  res.json({ filePath });
+  const { imageName } = req.body;
+
+  try {
+    await Images.create({ photo: filePath, imageName });
+    res.json({ filePath });
+  } catch (error) {
+    console.error('Error saving image:', error);
+    res.status(500).send('Failed to save image');
+  }
 });
 
 app.post('/character-info/:characterName/family-member', async (req, res) => {
@@ -1135,6 +1142,16 @@ io.on('connection', (socket) => {
         io.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex });
     });
 
+    socket.on('killTarget', (target) => {
+      console.log('Kill target received:', target);
+      const targetUser = usersInBattle.find(user => user.characterName === target);
+      if (targetUser) {
+        targetUser.currentHealth = 0;
+        console.log('Target killed:', targetUser.characterName);
+        io.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex });
+      }
+    });
+
     socket.on('error', (error) => {
         console.error('Socket.IO error:', error);
     });
@@ -1159,4 +1176,14 @@ httpServer.listen(80, '0.0.0.0', () => {
 // Start the server
 server.listen(PORT, '0.0.0.0', () => { // Ensure it listens on all interfaces
     console.log(`Server is running on https://${localIP}:${PORT}`);
+});
+
+app.get('/images', async (req, res) => {
+  try {
+    const images = await Images.findAll();
+    res.json(images);
+  } catch (error) {
+    console.error('Error fetching images:', error);
+    res.status(500).send('Failed to fetch images');
+  }
 });

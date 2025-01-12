@@ -66,40 +66,14 @@
   <app-vc-button *ngIf="isHomeView() || !isMobile()" [username]="username || 'DefaultUser'"></app-vc-button>
   <app-soundbar class="hidden md:block"></app-soundbar> <!-- Hide soundbar on mobile devices -->
 
-<!-- Gallery Modal -->
-<div *ngIf="showGalleryModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-  <div class="modal-content bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4 rounded-lg shadow-lg text-center">
-    <p class="text-lg font-bold mb-4">Upload Image to Gallery</p>
-    <div class="mb-4">
-      <label class="block text-white font-bold mb-2">Name</label>
-      <input type="text" [(ngModel)]="galleryImageName" class="bg-white text-black px-2 py-1 rounded" />
-    </div>
-    <div class="mb-4">
-      <label class="block text-white font-bold mb-2">Image</label>
-      <input type="file" (change)="handleImageUpload($event)" class="bg-white text-black px-2 py-1 rounded" />
-    </div>
-    <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="submitGalleryImage()">Send</button>
-    <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="closeGalleryModal()">Cancel</button>
-  </div>
-</div>
-
-<!-- Gallery Image Display Modal -->
-<div *ngIf="showGalleryImageModal && galleryImageData" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" (click)="closeGalleryImageModal()">
-  <div class="modal-content bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4 rounded-lg shadow-lg text-center" (click)="$event.stopPropagation()">
-    <p class="text-lg font-bold mb-4">{{ galleryImageData.name }}</p>
-    <img *ngIf="galleryImageData.filePath" [src]="galleryImageData.filePath" alt="Gallery Image" class="mb-4 max-w-lg h-auto rounded-lg" />
-    <button class="bg-white text-black px-4 py-2 rounded" (click)="closeGalleryImageModal()">Close</button>
-  </div>
-</div>
-
-<div *ngIf="role === 'Dungeon Master' && (isHomeView() || !isMobile())" class="fixed bottom-48 left-4 mb-12">
-  <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="openGalleryModal()">
-    <i class="fa fa-lg fa-image" aria-hidden="true"></i>
-  </button>
-</div>
-
 <div *ngIf="(isHomeView() || !isMobile())" class="fixed bottom-4 right-4 mb-0">
   <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="navigateToBattle()">
     <i class="fa fa-lg fa-solid fa-fist-raised" aria-hidden="true"></i>
+  </button>
+</div>
+
+<div *ngIf="(isHomeView() || !isMobile())" class="fixed bottom-20 right-4 mb-0">
+  <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="navigateToGallery()">
+    <i class="fa fa-lg fa-image" aria-hidden="true"></i>
   </button>
 </div>

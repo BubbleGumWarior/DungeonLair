@@ -47,12 +47,6 @@ export class HomeComponent implements OnInit {
   characterName: string | null = null;
   role: string | null = null; // Initialize role as null
   localIP: string = localIP; // Initialize localIP with the value from config
-  showGalleryModal: boolean = false; // Add property to control gallery modal visibility
-  galleryImageName: string = ''; // Add property to store the image name
-  galleryImageFile: File | null = null; // Add property to store the selected image file
-  showGalleryImageModal: boolean = false; // Add property to control gallery image display modal visibility
-  galleryImageData: { filePath: string, name: string } | null = null; // Add property to store the received gallery image data
-  photo: string = "";
   showMobileMenu: boolean = false; // Add property to control mobile menu visibility
 
   constructor(private router: Router, private webSocketService: WebSocketService) {}
@@ -67,16 +61,6 @@ export class HomeComponent implements OnInit {
       console.log('Logging in user:', this.username, 'with role:', this.role);
       this.webSocketService.loginUser({ username: this.username, role: this.role });
     }
-    this.webSocketService.onGalleryImage((data: { filePath: string, name: string }) => {
-      console.log('Gallery image received:', data);
-      if (data.name !== this.username) { // Show the image to all users except the one who uploaded it
-        this.galleryImageData = {
-          ...data,
-          filePath: `https://${localIP}:8080${data.filePath}`
-        };
-        this.showGalleryImageModal = true;
-      }
-    });
     if (this.role === 'Dungeon Master') {
       this.username = 'Dungeon Master';
     }
@@ -113,44 +97,6 @@ export class HomeComponent implements OnInit {
     this.router.navigate([route]);
   }
 
-  openGalleryModal() {
-    this.showGalleryModal = true;
-  }
-
-  closeGalleryModal() {
-    this.showGalleryModal = false;
-    this.galleryImageName = '';
-    this.galleryImageFile = null;
-  }
-
-  handleImageUpload(event: any) {
-    this.galleryImageFile = event.target.files[0];
-    console.log('Selected image file:', this.galleryImageFile);
-  }
-
-  submitGalleryImage() {
-    if (this.galleryImageName && this.galleryImageFile) {
-      const formData = new FormData();
-      formData.append('image', this.galleryImageFile);
-      formData.append('name', this.galleryImageName);
-
-      // Send the image to the server
-      this.webSocketService.uploadGalleryImage(formData).then(response => {
-        console.log('Image uploaded successfully:', response);
-        this.webSocketService.broadcastGalleryImage(response.filePath, this.galleryImageName);
-        this.closeGalleryModal();
-      }).catch(error => {
-        console.error('Error uploading image:', error);
-      });
-    }
-  }
-
-  closeGalleryImageModal() {
-    console.log('Closing gallery image modal');
-    this.showGalleryImageModal = false;
-    this.galleryImageData = null;
-  }
-
   isMobile(): boolean {
     return window.innerWidth <= 768;
   }
@@ -161,5 +107,9 @@ export class HomeComponent implements OnInit {
 
   navigateToBattle() {
     this.router.navigate(['/battle-map'], { queryParams: { characterName: this.characterName, username: this.username, maxHealth: 100, currentHealth: 100, role: this.role } });
+  }
+
+  navigateToGallery() {
+    this.router.navigate(['/gallery'], { queryParams: { username: this.username, role: this.role } });
   }
 }

@@ -22,6 +22,7 @@ export class BattleMapComponent implements OnInit {
   role: string | null = null;
   showAddNPCModal: boolean = false;
   showCombatActionsModal: boolean = false;
+  showKillTargetModal: boolean = false;
   npcName: string = '';
   npcMaxHealth: number | null = null;
   npcCurrentHealth: number | null = null;
@@ -30,6 +31,7 @@ export class BattleMapComponent implements OnInit {
   combatAction: string = 'Take Damage';
   combatTarget: string = '';
   combatValue: number | null = null;
+  killTargetName: string = '';
   defaultIcon: string = `https://${localIP}:8080/assets/images/Default.png`; // Add defaultIcon property
   mapUrl: string = `https://${localIP}:8080/assets/images/Map.jpg`;
   turnCounter: number | null = null; // Add turnCounter property
@@ -163,6 +165,22 @@ export class BattleMapComponent implements OnInit {
         turnCounter: this.turnCounter,
         currentTurnIndex: this.currentTurnIndex
       });
+    }
+  }
+
+  openKillTargetModal() {
+    this.showKillTargetModal = true;
+  }
+
+  closeKillTargetModal() {
+    this.showKillTargetModal = false;
+    this.killTargetName = '';
+  }
+
+  killTarget() {
+    if (this.killTargetName) {
+      this.webSocketService.killTarget(this.killTargetName);
+      this.closeKillTargetModal();
     }
   }
 

@@ -1,29 +1,33 @@
 <div class="battle-map">
   <button class="mt-1 close-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 w-10 h-10 rounded-full fixed top-4 right-4 hover:bg-purple-700 transition duration-200 flex items-center justify-center" (click)="closeBattleMap()">X</button>
-  <button class="mt-1 join-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full fixed top-4 left-4 hover:bg-purple-700 transition duration-200 flex items-center justify-center" (click)="joinBattle()">
+  <button class="mt-1 join-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full fixed top-4 left-4 hover:bg-purple-700 transition duration-200 flex items-center justify-center  w-64" (click)="joinBattle()">
     {{ isUserInBattle() ? 'Leave Battle' : 'Join Battle' }}
   </button>
-  <button class="mt-1 end-turn-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full fixed top-16 left-4 hover:bg-purple-700 transition duration-200 flex items-center justify-center"
+  <button class="mt-1 end-turn-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full fixed top-16 left-4 hover:bg-purple-700 transition duration-200 flex items-center justify-center w-64"
     [class.bg-gray-500]="!(role === 'Dungeon Master' || isCurrentUserTurn())"
     [class.cursor-not-allowed]="!(role === 'Dungeon Master' || isCurrentUserTurn())"
     [disabled]="!(role === 'Dungeon Master' || isCurrentUserTurn())"
     (click)="startOrEndTurn()">
     {{ turnCounter === null ? 'Start Battle' : 'End Turn' }}
   </button>
-  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-4 left-1/4" (click)="openAddNPCModal()">
+  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-4 left-1/4 w-64" (click)="openAddNPCModal()">
     Add NPC
   </button>
-  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-4 left-1/2" (click)="openCombatActionsModal()">
+  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-16 left-1/4 w-64" (click)="openKillTargetModal()">
+    Kill Target
+  </button>
+  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-4 left-2/4 w-64" (click)="openCombatActionsModal()">
     Combat Actions
   </button>
-  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-4 left-3/4" (click)="endCombat()">
+  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-16 left-2/4 w-64" (click)="endCombat()">
     End Combat
   </button>
+
   <div class="bg-stone-950 h-screen w-screen">
     <div class="flex pt-32">
       <div class="w-1/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4">
         <ul>
-          <li *ngFor="let user of usersInBattle" [ngClass]="{'text-white': user.username === username, 'text-purple-500': user.username !== username && !user.isEnemy, 'text-red-500': user.isEnemy, 'bg-purple-300': user.isCurrentTurn}" class="relative group p-2 rounded">
+          <li *ngFor="let user of usersInBattle" [ngClass]="{'text-white': user.username === username, 'text-purple-500': user.username !== username && !user.isEnemy, 'text-red-500': user.isEnemy, 'bg-purple-300': user.isCurrentTurn, 'line-through': user.currentHealth === 0}" class="relative group p-2 rounded">
             {{ user.characterName }} <span class="float-right">{{ user.initiative }}</span>
             <div class="relative w-full h-4 bg-gray-400 mt-1 rounded-full">
               <div class="absolute top-0 left-0 h-full bg-green-500 rounded-full" [style.width.%]="(user.currentHealth / user.maxHealth) * 100"></div>
@@ -93,6 +97,21 @@
       </div>
       <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="performCombatAction()">Submit</button>
       <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="closeCombatActionsModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Kill Target Modal -->
+  <div *ngIf="showKillTargetModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="modal-content bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-4 rounded-lg shadow-lg text-center">
+      <p class="text-lg font-bold mb-4">Kill Target</p>
+      <div class="mb-4">
+        <label class="block text-white font-bold mb-2">Select Target</label>
+        <select [(ngModel)]="killTargetName" class="bg-white text-black px-2 py-1 rounded">
+          <option *ngFor="let user of usersInBattle" [value]="user.characterName">{{ user.characterName }}</option>
+        </select>
+      </div>
+      <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="killTarget()">Submit</button>
+      <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="closeKillTargetModal()">Cancel</button>
     </div>
   </div>
 
