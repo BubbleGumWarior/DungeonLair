@@ -35,12 +35,12 @@
                     class="max-h-52 h-auto w-full object-contain rounded-md pt-4" 
                     style="max-height: 300px;"
                 >
-                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong>Ship Name:</strong> {{ latestSpaceshipImage.spaceshipImageName }}</p>
-                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong>Class:</strong> {{ latestSpaceshipImage.shipClass }}</p>
-                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong>Size:</strong> {{ latestSpaceshipImage.shipSize }}</p>
-                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong>Atmosphere Speed:</strong> {{ latestSpaceshipImage.atmosphereSpeed }}</p>
-                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong>Space Speed:</strong> {{ latestSpaceshipImage.spaceSpeed }}</p>
-                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong>Description:</strong><br> <span [innerHTML]="formatDescription(latestSpaceshipImage.description)"></span></p>
+                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong class="text-lg">Ship Name:</strong> {{ latestSpaceshipImage.spaceshipImageName }}</p>
+                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong class="text-lg">Class:</strong> {{ latestSpaceshipImage.shipClass }}</p>
+                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong class="text-lg">Size:</strong> {{ latestSpaceshipImage.shipSize }}</p>
+                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong class="text-lg">Atmosphere Speed:</strong> {{ latestSpaceshipImage.atmosphereSpeed }}</p>
+                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong class="text-lg">Space Speed:</strong> {{ latestSpaceshipImage.spaceSpeed }}</p>
+                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong class="text-lg">Description:</strong><br> <span [innerHTML]="formatDescription(latestSpaceshipImage.description)"></span></p>
             </div>
             <div class="w-3/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4">
                 <p class="text-purple-500">All SpaceshipImages:</p>
@@ -56,11 +56,11 @@
                         </div>
                         <div class="text-center">
                             <h2 class="text-3xl font-bold text-purple-500">{{ spaceshipImage.spaceshipImageName }}</h2>
-                            <p class="text-purple-500"><strong>Class:</strong> {{ spaceshipImage.shipClass }}</p>
-                            <p class="text-purple-500"><strong>Size:</strong> {{ spaceshipImage.shipSize }}</p>
-                            <p class="text-purple-500"><strong>Atmosphere Speed:</strong> {{ spaceshipImage.atmosphereSpeed }}</p>
-                            <p class="text-purple-500"><strong>Space Speed:</strong> {{ spaceshipImage.spaceSpeed }}</p>
-                            <p class="text-purple-500"><strong>Description:</strong><br> <span [innerHTML]="formatDescription(spaceshipImage.description)"></span></p>
+                            <p class="text-purple-500"><strong class="text-lg">Class:</strong> {{ spaceshipImage.shipClass }}</p>
+                            <p class="text-purple-500"><strong class="text-lg">Size:</strong> {{ spaceshipImage.shipSize }}</p>
+                            <p class="text-purple-500"><strong class="text-lg">Atmosphere Speed:</strong> {{ spaceshipImage.atmosphereSpeed }}</p>
+                            <p class="text-purple-500"><strong class="text-lg">Space Speed:</strong> {{ spaceshipImage.spaceSpeed }}</p>
+                            <p class="text-purple-500"><strong class="text-lg">Description:</strong><br> <span [innerHTML]="formatDescription(spaceshipImage.description)"></span></p>
                         </div>
                     </div>
                 </div>             
