@@ -1073,11 +1073,6 @@ app.put('/api/scores/:characterName', async (req, res) => {
 
 // Socket.IO connection
 let usersInBattle = [
-  { username: 'aragorn', characterName: 'Aragorn', initiative: 17, maxHealth: 100, currentHealth: 80, isEnemy: false },
-  { username: 'legolas', characterName: 'Legolas', initiative: 2, maxHealth: 90, currentHealth: 90, isEnemy: false },
-  { username: 'gimli', characterName: 'Gimli', initiative: 3, maxHealth: 120, currentHealth: 110, isEnemy: false },
-  { username: 'frodo', characterName: 'Frodo', initiative: 4, maxHealth: 70, currentHealth: 50, isEnemy: true },
-  { username: 'gandalf', characterName: 'Gandalf', initiative: 20, maxHealth: 150, currentHealth: 150, isEnemy: false }
 ]; // Move usersInBattle to the server
 
 let turnCounter = null;

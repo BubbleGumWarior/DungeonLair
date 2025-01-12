@@ -21,7 +21,7 @@
 
     <div class="bg-stone-950 h-full max-w-screen">
         <div class="flex py-32">
-            <div class="w-1/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4">
+            <div *ngIf="!isMobile" class="w-1/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4">
                 <p class="text-purple-500">Latest Image:</p>
                 <img 
                     *ngIf="latestImage"
@@ -31,7 +31,7 @@
                     style="max-height: 300px;"
                 >
             </div>
-            <div class="w-3/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4">
+            <div [ngClass]="{'w-full': isMobile, 'w-3/4': !isMobile}" class="h-full mx-4 border-2 border-purple-500 rounded-lg p-4">
                 <p class="text-purple-500">All Images:</p>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
                     <div *ngFor="let image of images" class="flex-grow flex flex-col border-2 border-purple-500 rounded-lg p-4">

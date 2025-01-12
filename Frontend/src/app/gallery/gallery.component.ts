@@ -24,10 +24,12 @@ export class GalleryComponent implements OnInit {
   isAddImageModalOpen: boolean = false;
   images: any[] = []; // Add this property to store images
   latestImage: any = null; // Add this property to store the latest image
+  isMobile: boolean = false; // Add property to check if the user is on a mobile device
 
   constructor(private route: ActivatedRoute, private router: Router, private webSocketService: WebSocketService, private http: HttpClient) {}
 
   ngOnInit() {
+    this.isMobile = window.innerWidth <= 768; // Check if the user is on a mobile device
     this.loadDataFromToken(); // Load data from token
     this.fetchImages(); // Fetch images on initialization
   }

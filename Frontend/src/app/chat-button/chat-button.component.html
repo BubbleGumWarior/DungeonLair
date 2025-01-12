@@ -1,7 +1,7 @@
-<div *ngIf="!isOpen" class="fixed bottom-4 left-4">
+<div *ngIf="!isOpen" class="fixed bottom-4 left-4 mb-0">
   <button
     [ngClass]="{'bg-red-500': isNewMessage, 'bg-purple-500': !isNewMessage}"
-    class="chat-button p-3 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200"
+    class="chat-button p-3 w-12 h-12 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200"
     (click)="toggleChat()"
   >
     <i class="fas fa-comment"></i>

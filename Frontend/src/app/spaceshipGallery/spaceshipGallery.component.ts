@@ -30,10 +30,12 @@ export class SpaceshipGalleryComponent implements OnInit {
   spaceshipSpaceshipImages: any[] = []; // Add this property to store spaceshipSpaceshipImages
   latestSpaceshipImage: any = null; // Add this property to store the latest spaceshipSpaceshipImage
   hoveredDescription: string | null = null; // Add property to store hovered description
+  isMobile: boolean = false; // Add property to check if the user is on a mobile device
 
   constructor(private route: ActivatedRoute, private router: Router, private webSocketService: WebSocketService, private http: HttpClient) {}
 
   ngOnInit() {
+    this.isMobile = window.innerWidth <= 768; // Check if the user is on a mobile device
     this.loadDataFromToken(); // Load data from token
     this.fetchSpaceshipImages(); // Fetch spaceshipSpaceshipImages on initialization
   }

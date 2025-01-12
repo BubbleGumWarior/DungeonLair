@@ -67,18 +67,18 @@
   <app-soundbar class="hidden md:block"></app-soundbar> <!-- Hide soundbar on mobile devices -->
 
 <div *ngIf="(isHomeView() || !isMobile())" class="fixed bottom-4 right-4 mb-0">
-  <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="navigateToBattle()">
+  <button class="vc-button p-3 w-12 h-12 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="navigateToBattle()">
     <i class="fa fa-lg fa-solid fa-fist-raised" aria-hidden="true"></i>
   </button>
 </div>
 
 <div *ngIf="(isHomeView() || !isMobile())" class="fixed bottom-20 right-4 mb-0">
-  <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="navigateToGallery()">
+  <button class="vc-button p-3 w-12 h-12 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="navigateToGallery()">
     <i class="fa fa-lg fa-image" aria-hidden="true"></i>
   </button>
 </div>
 <div *ngIf="(isHomeView() || !isMobile())" class="fixed bottom-32 right-4 mb-4">
-  <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="navigateToSpaceShipGallery()">
+  <button class="vc-button p-3 w-12 h-12 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="navigateToSpaceShipGallery()">
     <i class="fa fa-space-shuttle" aria-hidden="true"></i>
   </button>
 </div>
