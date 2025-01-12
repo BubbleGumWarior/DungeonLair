@@ -3,13 +3,13 @@
     <app-chat-button [newMessage]="diceResult" [username]="username || 'DefaultUser'"></app-chat-button>
 
     <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-4 left-4 w-64" (click)="openAddSpaceshipImageModal()">
-        Add SpaceshipImage
+        Add Ship Image
     </button>
 
     <!-- Modal Dialog for SpaceshipImage Upload -->
     <div *ngIf="isAddSpaceshipImageModalOpen" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
         <div class="bg-white p-6 rounded-lg shadow-lg w-1/3">
-            <h2 class="text-2xl font-bold mb-4">Upload SpaceshipImage</h2>
+            <h2 class="text-2xl font-bold mb-4">Upload Ship Image</h2>
             <input type="text" [(ngModel)]="newSpaceshipImageName" placeholder="SpaceshipImage Name" class="border p-2 w-full mb-4">
             <input type="text" [(ngModel)]="newShipClass" placeholder="Ship Class" class="border p-2 w-full mb-4"> <!-- Add input for ship class -->
             <input type="text" [(ngModel)]="newShipSize" placeholder="Ship Size" class="border p-2 w-full mb-4"> <!-- Add input for ship size -->
@@ -27,7 +27,7 @@
     <div class="bg-stone-950 h-full max-w-screen">
         <div class="flex py-32">
             <div class="w-1/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4">
-                <p class="text-purple-500">Latest SpaceshipImage:</p>
+                <p class="text-purple-500">Latest Ship:</p>
                 <img 
                     *ngIf="latestSpaceshipImage"
                     [src]="latestSpaceshipImage.photo" 
@@ -40,10 +40,12 @@
                 <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong class="text-lg">Size:</strong> {{ latestSpaceshipImage.shipSize }}</p>
                 <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong class="text-lg">Atmosphere Speed:</strong> {{ latestSpaceshipImage.atmosphereSpeed }}</p>
                 <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong class="text-lg">Space Speed:</strong> {{ latestSpaceshipImage.spaceSpeed }}</p>
-                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong class="text-lg">Description:</strong><br> <span [innerHTML]="formatDescription(latestSpaceshipImage.description)"></span></p>
+                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong class="text-lg">Description:</strong>
+                    <i class="fa fa-search" aria-hidden="true" (mouseover)="showDescription(latestSpaceshipImage.description)" (mouseout)="hideDescription()"></i>
+                </p>
             </div>
             <div class="w-3/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4">
-                <p class="text-purple-500">All SpaceshipImages:</p>
+                <p class="text-purple-500">All Ships:</p>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
                     <div *ngFor="let spaceshipImage of spaceshipSpaceshipImages" class="flex-grow flex flex-col border-2 border-purple-500 rounded-lg p-4">
                         <div class="flex-grow flex items-center justify-center mb-4">
@@ -60,11 +62,18 @@
                             <p class="text-purple-500"><strong class="text-lg">Size:</strong> {{ spaceshipImage.shipSize }}</p>
                             <p class="text-purple-500"><strong class="text-lg">Atmosphere Speed:</strong> {{ spaceshipImage.atmosphereSpeed }}</p>
                             <p class="text-purple-500"><strong class="text-lg">Space Speed:</strong> {{ spaceshipImage.spaceSpeed }}</p>
-                            <p class="text-purple-500"><strong class="text-lg">Description:</strong><br> <span [innerHTML]="formatDescription(spaceshipImage.description)"></span></p>
+                            <p class="text-purple-500"><strong class="text-lg">Description:  </strong>
+                                <i class="fa fa-search" aria-hidden="true" (mouseover)="showDescription(spaceshipImage.description)" (mouseout)="hideDescription()"></i>
+                            </p>
                         </div>
                     </div>
                 </div>             
             </div>
         </div>
     </div>
+</div>
+
+<!-- Popup for description -->
+<div *ngIf="hoveredDescription" class="fixed top-4 left-4 w-1/4 h-1/4 bg-stone-950 border-2 border-purple-500 rounded-lg p-4 z-50">
+    <p class="text-purple-500" [innerHTML]="formatDescription(hoveredDescription)"></p>
 </div>

@@ -29,6 +29,7 @@ export class SpaceshipGalleryComponent implements OnInit {
   isAddSpaceshipImageModalOpen: boolean = false;
   spaceshipSpaceshipImages: any[] = []; // Add this property to store spaceshipSpaceshipImages
   latestSpaceshipImage: any = null; // Add this property to store the latest spaceshipSpaceshipImage
+  hoveredDescription: string | null = null; // Add property to store hovered description
 
   constructor(private route: ActivatedRoute, private router: Router, private webSocketService: WebSocketService, private http: HttpClient) {}
 
@@ -126,5 +127,13 @@ export class SpaceshipGalleryComponent implements OnInit {
 
   formatDescription(description: string): string {
     return description.replace(/\\n/g, '<br>');
+  }
+
+  showDescription(description: string) {
+    this.hoveredDescription = description;
+  }
+
+  hideDescription() {
+    this.hoveredDescription = null;
   }
 }
