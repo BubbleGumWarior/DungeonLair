@@ -77,3 +77,8 @@
     <i class="fa fa-lg fa-image" aria-hidden="true"></i>
   </button>
 </div>
+<div *ngIf="(isHomeView() || !isMobile())" class="fixed bottom-32 right-4 mb-4">
+  <button class="vc-button p-3 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200" (click)="navigateToSpaceShipGallery()">
+    <i class="fa fa-space-shuttle" aria-hidden="true"></i>
+  </button>
+</div>

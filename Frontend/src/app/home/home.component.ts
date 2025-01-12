@@ -106,10 +106,13 @@ export class HomeComponent implements OnInit {
   }
 
   navigateToBattle() {
-    this.router.navigate(['/battle-map'], { queryParams: { characterName: this.characterName, username: this.username, maxHealth: 100, currentHealth: 100, role: this.role } });
+    this.router.navigate(['/battle-map'], { queryParams: { maxHealth: 100, currentHealth: 100} });
   }
 
   navigateToGallery() {
-    this.router.navigate(['/gallery'], { queryParams: { username: this.username, role: this.role } });
+    this.router.navigate(['/gallery']);
+  }
+  navigateToSpaceShipGallery() {
+    this.router.navigate(['/spaceship-gallery']);
   }
 }

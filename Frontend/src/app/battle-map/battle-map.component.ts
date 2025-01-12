@@ -6,6 +6,7 @@ import { HttpClientModule, HttpClient } from '@angular/common/http'; // Import H
 import { localIP } from '../config'; // Import localIP from config
 import { WebSocketService } from '../services/websocket.service'; // Import WebSocketService
 import { ChatButtonComponent } from '../chat-button/chat-button.component'; // Import ChatButtonComponent
+import { jwtDecode } from 'jwt-decode'; // Import jwtDecode
 
 @Component({
   selector: 'app-battle-map',
@@ -43,12 +44,10 @@ export class BattleMapComponent implements OnInit {
   constructor(private route: ActivatedRoute, private router: Router, private webSocketService: WebSocketService, private http: HttpClient) {}
 
   ngOnInit() {
+    this.loadDataFromToken(); // Load data from token
     this.route.queryParams.subscribe(params => {
-      this.characterName = params['characterName'];
-      this.username = params['username'];
       this.maxHealth = +params['maxHealth'];
       this.currentHealth = +params['currentHealth'];
-      this.role = params['role'];
     });
     this.webSocketService.onBattleUpdate((data) => {
       this.usersInBattle = data.usersInBattle;
@@ -57,6 +56,20 @@ export class BattleMapComponent implements OnInit {
     });
     this.webSocketService.requestBattleState(); // Request initial battle state from the server
     this.fetchCharacterNames();
+  }
+
+  loadDataFromToken() {
+    const token = localStorage.getItem('token'); // Get the JWT from localStorage
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token); // Decode the JWT
+        this.username = decoded.username; // Extract the username
+        this.characterName = decoded.characterName;
+        this.role = decoded.role; // Extract the role
+      } catch (error) {
+        console.error('Failed to decode token:', error);
+      }
+    }
   }
 
   fetchCharacterNames() {

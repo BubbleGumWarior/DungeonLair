@@ -17,6 +17,7 @@ const SkillList = require('./models/SkillList'); // Import the SkillList model
 const ChatHistory = require('./models/ChatHistory'); // Import the ChatHistory model
 const DMChatHistory = require('./models/DMChatHistory'); // Import the DMChatHistory model
 const Images = require('./models/Images'); // Import the Images model
+const SpaceshipImages = require('./models/SpaceShipImages'); // Correct the import for SpaceShipImages
 const Note = require('./models/Note'); // Ensure the file name and path are correct
 const User = require('./models/User'); // Import the User model
 const Score = require('./models/Score'); // Import the Score model
@@ -555,6 +556,34 @@ app.post('/upload-gallery-image', upload.single('image'), async (req, res) => {
   } catch (error) {
     console.error('Error saving image:', error);
     res.status(500).send('Failed to save image');
+  }
+});
+
+// Endpoint to handle spaceship image upload
+app.post('/upload-spaceshipGallery-spaceshipImage', upload.single('spaceshipImage'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+  const filePath = `/assets/images/${req.file.filename}`;
+  const { spaceshipImageName, shipClass, shipSize, atmosphereSpeed, spaceSpeed, description } = req.body;
+
+  try {
+    await SpaceshipImages.create({ photo: filePath, spaceshipImageName, shipClass, shipSize, atmosphereSpeed, spaceSpeed, description });
+    res.json({ filePath });
+  } catch (error) {
+    console.error('Error saving spaceship image:', error);
+    res.status(500).send('Failed to save spaceship image');
+  }
+});
+
+// Endpoint to fetch spaceship images
+app.get('/spaceshipImages', async (req, res) => {
+  try {
+    const spaceshipImages = await SpaceshipImages.findAll();
+    res.json(spaceshipImages);
+  } catch (error) {
+    console.error('Error fetching spaceship images:', error);
+    res.status(500).send('Failed to fetch spaceship images');
   }
 });
 

@@ -1,0 +1,70 @@
+<div class="battle-map">
+    <button class="mt-1 close-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 w-10 h-10 rounded-full fixed top-4 right-4 hover:bg-purple-700 transition duration-200 flex items-center justify-center" (click)="closeGallery()">X</button>
+    <app-chat-button [newMessage]="diceResult" [username]="username || 'DefaultUser'"></app-chat-button>
+
+    <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-4 left-4 w-64" (click)="openAddSpaceshipImageModal()">
+        Add SpaceshipImage
+    </button>
+
+    <!-- Modal Dialog for SpaceshipImage Upload -->
+    <div *ngIf="isAddSpaceshipImageModalOpen" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-1/3">
+            <h2 class="text-2xl font-bold mb-4">Upload SpaceshipImage</h2>
+            <input type="text" [(ngModel)]="newSpaceshipImageName" placeholder="SpaceshipImage Name" class="border p-2 w-full mb-4">
+            <input type="text" [(ngModel)]="newShipClass" placeholder="Ship Class" class="border p-2 w-full mb-4"> <!-- Add input for ship class -->
+            <input type="text" [(ngModel)]="newShipSize" placeholder="Ship Size" class="border p-2 w-full mb-4"> <!-- Add input for ship size -->
+            <input type="text" [(ngModel)]="newAtmosphereSpeed" placeholder="Atmosphere Speed" class="border p-2 w-full mb-4"> <!-- Add input for atmosphere speed -->
+            <input type="text" [(ngModel)]="newSpaceSpeed" placeholder="Space Speed" class="border p-2 w-full mb-4"> <!-- Add input for space speed -->
+            <textarea [(ngModel)]="newDescription" placeholder="Description" class="border p-2 w-full mb-4"></textarea> <!-- Add textarea for description -->
+            <input type="file" (change)="onFileSelected($event)" class="border p-2 w-full mb-4">
+            <div class="flex justify-end">
+                <button class="bg-red-500 text-white p-2 rounded mr-2" (click)="closeAddSpaceshipImageModal()">Cancel</button>
+                <button class="bg-green-500 text-white p-2 rounded" (click)="uploadSpaceshipImage()">Upload</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-stone-950 h-full max-w-screen">
+        <div class="flex py-32">
+            <div class="w-1/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4">
+                <p class="text-purple-500">Latest SpaceshipImage:</p>
+                <img 
+                    *ngIf="latestSpaceshipImage"
+                    [src]="latestSpaceshipImage.photo" 
+                    alt="{{ latestSpaceshipImage.spaceshipImageName }}" 
+                    class="max-h-52 h-auto w-full object-contain rounded-md pt-4" 
+                    style="max-height: 300px;"
+                >
+                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong>Ship Name:</strong> {{ latestSpaceshipImage.spaceshipImageName }}</p>
+                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong>Class:</strong> {{ latestSpaceshipImage.shipClass }}</p>
+                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong>Size:</strong> {{ latestSpaceshipImage.shipSize }}</p>
+                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong>Atmosphere Speed:</strong> {{ latestSpaceshipImage.atmosphereSpeed }}</p>
+                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong>Space Speed:</strong> {{ latestSpaceshipImage.spaceSpeed }}</p>
+                <p *ngIf="latestSpaceshipImage" class="text-purple-500"><strong>Description:</strong><br> <span [innerHTML]="formatDescription(latestSpaceshipImage.description)"></span></p>
+            </div>
+            <div class="w-3/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4">
+                <p class="text-purple-500">All SpaceshipImages:</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+                    <div *ngFor="let spaceshipImage of spaceshipSpaceshipImages" class="flex-grow flex flex-col border-2 border-purple-500 rounded-lg p-4">
+                        <div class="flex-grow flex items-center justify-center mb-4">
+                            <img 
+                                [src]="spaceshipImage.photo" 
+                                alt="{{ spaceshipImage.spaceshipImageName }}" 
+                                class="max-h-52 h-auto w-full object-contain rounded-md" 
+                                style="max-height: 300px;"
+                            >
+                        </div>
+                        <div class="text-center">
+                            <h2 class="text-3xl font-bold text-purple-500">{{ spaceshipImage.spaceshipImageName }}</h2>
+                            <p class="text-purple-500"><strong>Class:</strong> {{ spaceshipImage.shipClass }}</p>
+                            <p class="text-purple-500"><strong>Size:</strong> {{ spaceshipImage.shipSize }}</p>
+                            <p class="text-purple-500"><strong>Atmosphere Speed:</strong> {{ spaceshipImage.atmosphereSpeed }}</p>
+                            <p class="text-purple-500"><strong>Space Speed:</strong> {{ spaceshipImage.spaceSpeed }}</p>
+                            <p class="text-purple-500"><strong>Description:</strong><br> <span [innerHTML]="formatDescription(spaceshipImage.description)"></span></p>
+                        </div>
+                    </div>
+                </div>             
+            </div>
+        </div>
+    </div>
+</div>
