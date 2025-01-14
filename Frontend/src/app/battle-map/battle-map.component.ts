@@ -37,7 +37,7 @@ export class BattleMapComponent implements OnInit {
   mapUrl: string = `https://${localIP}:8080/assets/images/Map.jpg`;
   turnCounter: number | null = null; // Add turnCounter property
   currentTurnIndex: number | null = null; // Add currentTurnIndex property
-  usersInBattle: { username: string, characterName: string, initiative: number, maxHealth: number, currentHealth: number, isEnemy: boolean, isCurrentTurn?: boolean, photo?: string }[] = []; // Remove initial values
+  usersInBattle: { username: string, characterName: string, initiative: number, maxHealth: number, currentHealth: number, isEnemy: boolean, isCurrentTurn?: boolean, photo?: string, positionX?: number, positionY?: number }[] = []; // Add positionX and positionY properties
   characters: { name: string, photo: string }[] = [];
   diceResult: string = ''; // Add diceResult property
 
@@ -97,15 +97,21 @@ export class BattleMapComponent implements OnInit {
     return character && character.photo ? `url(${character.photo})` : `url(${this.defaultIcon})`;
   }
 
+  getUserPhotoUrl(characterName: string): string {
+    const character = this.characters.find(char => char.name === characterName);
+    return character && character.photo ? character.photo : this.defaultIcon;
+  }
+
   joinBattle() {
     if (this.username && this.characterName && this.maxHealth !== null && this.currentHealth !== null) {
       console.log('Joining battle with maxHealth:', this.maxHealth, 'and currentHealth:', this.currentHealth);
       const userIndex = this.usersInBattle.findIndex(user => user.username === this.username);
       if (userIndex === -1) {
         const initiative = Math.floor(Math.random() * 20) + 1;
-        const character = this.characters.find(char => char.name === this.characterName);
-        const photo = character ? character.photo : '';
-        this.usersInBattle.push({ username: this.username, characterName: this.characterName, initiative, maxHealth: this.maxHealth, currentHealth: this.currentHealth, isEnemy: false, photo });
+        const photo = this.getUserPhotoUrl(this.characterName);
+        const positionX = Math.random() * 100; // Random position for demonstration
+        const positionY = Math.random() * 100; // Random position for demonstration
+        this.usersInBattle.push({ username: this.username, characterName: this.characterName, initiative, maxHealth: this.maxHealth, currentHealth: this.currentHealth, isEnemy: false, photo, positionX, positionY });
         console.log('User joined battle:', this.username, 'with initiative:', initiative);
       } else {
         this.usersInBattle.splice(userIndex, 1);
@@ -140,7 +146,10 @@ export class BattleMapComponent implements OnInit {
   addNPC() {
     if (this.npcName && this.npcMaxHealth !== null && this.npcCurrentHealth !== null) {
       const initiative = this.npcInitiative !== null ? this.npcInitiative : Math.floor(Math.random() * 20) + 1;
-      this.usersInBattle.push({ username: this.npcName, characterName: this.npcName, initiative, maxHealth: this.npcMaxHealth, currentHealth: this.npcCurrentHealth, isEnemy: this.npcIsEnemy });
+      const photo = this.getUserPhotoUrl(this.npcName);
+      const positionX = Math.random() * 100; // Random position for demonstration
+      const positionY = Math.random() * 100; // Random position for demonstration
+      this.usersInBattle.push({ username: this.npcName, characterName: this.npcName, initiative, maxHealth: this.npcMaxHealth, currentHealth: this.npcCurrentHealth, isEnemy: this.npcIsEnemy, photo, positionX, positionY });
       console.log('NPC added:', this.npcName, 'with initiative:', initiative);
       this.usersInBattle.sort((a, b) => b.initiative - a.initiative); // Sort by initiative
       this.closeAddNPCModal();
@@ -243,5 +252,37 @@ export class BattleMapComponent implements OnInit {
 
   handleDiceResult(result: string) {
     this.diceResult = result; // Update the result when emitted
+  }
+
+  startDrag(event: MouseEvent, user: any) {
+    if (this.role === 'Dungeon Master' || (user.username === this.username && this.isCurrentUserTurn())) {
+      event.preventDefault();
+      const onMouseMove = (e: MouseEvent) => this.dragging(e, user);
+      const onMouseUp = () => {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        this.webSocketService.sendBattleUpdate({
+          usersInBattle: this.usersInBattle,
+          turnCounter: this.turnCounter,
+          currentTurnIndex: this.currentTurnIndex
+        });
+      };
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    }
+  }
+
+  dragging(event: MouseEvent, user: any) {
+    const mapElement = document.querySelector('.map-container');
+    if (mapElement) {
+      const rect = mapElement.getBoundingClientRect();
+      user.positionX = ((event.clientX - rect.left) / rect.width) * 100;
+      user.positionY = ((event.clientY - rect.top) / rect.height) * 100;
+      this.webSocketService.sendBattleUpdate({
+        usersInBattle: this.usersInBattle,
+        turnCounter: this.turnCounter,
+        currentTurnIndex: this.currentTurnIndex
+      });
+    }
   }
 }

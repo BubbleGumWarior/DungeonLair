@@ -36,8 +36,11 @@
           </li>
         </ul>
       </div>
-      <div class="w-3/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4 overflow-auto flex items-center justify-center">
-        <img *ngIf="mapUrl" [src]="mapUrl" alt="mapUrl" class="h-[75vh] object-contain" />
+      <div class="w-3/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4 overflow-auto relative map-container" style="position: relative; aspect-ratio: 16/9;">
+        <img *ngIf="mapUrl" [src]="mapUrl" alt="mapUrl" class="h-full w-full object-contain" />
+        <div *ngFor="let user of usersInBattle" class="absolute cursor-pointer" [ngStyle]="{'top': user.positionY + '%', 'left': user.positionX + '%', 'display': user.currentHealth > 0 ? 'block' : 'none'}" (mousedown)="startDrag($event, user)">
+          <div class="w-16 h-16 rounded-full bg-cover bg-center" [style.background-image]="'url(' + user.photo + ')'"></div>
+        </div>
       </div>
     </div>
   </div>
