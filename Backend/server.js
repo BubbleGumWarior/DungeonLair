@@ -253,7 +253,6 @@ app.post('/chat-history/', async (req, res) => {
 
         // Emit the new message to all connected clients
         io.emit('newMessage', newChatMessage); // Broadcast the new message
-        console.log('New message emitted:', newChatMessage);
 
         res.status(201).json(newChatMessage);
     } catch (error) {
@@ -281,7 +280,6 @@ app.post('/dm-chat-history/', async (req, res) => {
 
         // Emit the new DM message to all connected clients
         io.emit('newDMMessage', newDMChatMessage); // Broadcast the new DM message
-        console.log('New DM message emitted:', newDMChatMessage);
 
         res.status(201).json(newDMChatMessage);
     } catch (error) {
@@ -295,26 +293,11 @@ function verifyToken(req, res, next) {
     const token = req.headers['authorization'];
     if (!token) {
         console.log('Token Required')
-        console.log('Token Required')
-        console.log('Token Required')
-        console.log('Token Required')
-        console.log('Token Required')
-        console.log('Token Required')
-        console.log('Token Required')
-        console.log('Token Required')
-        console.log('Token Required')
         return res.status(403).send('Token is required');
     }
 
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) {
-            console.log('Invalid token')
-            console.log('Invalid token')
-            console.log('Invalid token')
-            console.log('Invalid token')
-            console.log('Invalid token')
-            console.log('Invalid token')
-            console.log('Invalid token')
             console.log('Invalid token')
             return res.status(401).send('Invalid token');
         }
@@ -325,12 +308,6 @@ function verifyToken(req, res, next) {
 
 // Endpoint to fetch DM chat history
 app.get('/dm-chat-history/', verifyToken, async (req, res) => {
-    console.log(req.user.role)
-    console.log(req.user.role)
-    console.log(req.user.role)
-    console.log(req.user.role)
-    console.log(req.user.role)
-    console.log(req.user.role)
     if (req.user.role !== 'Dungeon Master') {
         return res.status(403).send('Access denied');
     }
@@ -345,11 +322,6 @@ app.get('/dm-chat-history/', verifyToken, async (req, res) => {
         console.error('Error fetching DM chat history:', error);
         res.status(500).json({ error: 'Failed to fetch DM chat history' });
     }
-});
-
-// Endpoint to fetch live users
-app.get('/api/live-users', (req, res) => {
-    res.json(liveUsers.map(user => ({ username: user.username })));
 });
 
 app.get('/stats-sheet/:characterName', async (req, res) => {
@@ -963,7 +935,6 @@ app.post('/character-info/:username/note', async (req, res) => {
   const { title, description } = req.body;
 
   try {
-    console.log(`Adding note for username: ${username}`); // Log the username
     const characterInfo = await CharacterInfo.findOne({ where: { characterName: username } });
     if (!characterInfo) {
       console.log(`Character info not found for username: ${username}`); // Log if character info is not found
@@ -1034,7 +1005,6 @@ app.post('/upload-gallery-image', upload.single('image'), (req, res) => {
     return res.status(400).send('No file uploaded.');
   }
   const filePath = `/assets/images/${req.file.filename}`;
-  console.log('Gallery image uploaded:', filePath);
   res.json({ filePath });
 });
 
@@ -1077,6 +1047,7 @@ let usersInBattle = [
 
 let turnCounter = null;
 let currentTurnIndex = null;
+let vcMembers = [];
 
 io.on('connection', (socket) => {
     console.log('A user connected with socket ID:', socket.id);
@@ -1107,6 +1078,11 @@ io.on('connection', (socket) => {
     // Handle disconnection
     socket.on('disconnect', () => {
         console.log('A user disconnected with socket ID:', socket.id);
+        const disconnectedUser = liveUsers.find(user => user.id === socket.id);
+        if (disconnectedUser) {
+            vcMembers = vcMembers.filter(member => member.username !== disconnectedUser.username);
+            io.emit('vcMembersUpdate', vcMembers);
+        }
         liveUsers = liveUsers.filter(user => user.id !== socket.id);
         console.log('Current live users after disconnection:', liveUsers);
         broadcastUserUpdate();
@@ -1114,7 +1090,6 @@ io.on('connection', (socket) => {
 
     // Handle incoming messages if needed
     socket.on('message', (message) => {
-        console.log('Received:', message);
         if (message.type === 'userUpdate') {
             liveUsers = message.users;
             broadcastUserUpdate();
@@ -1131,20 +1106,11 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Handle incoming audio data
-    socket.on('audio', (audioData) => {
-        console.log('Received audio chunk from client:', audioData.buffer);
-        console.log('Audio MIME type:', audioData.type); // Log the MIME type of the received audio data
-        socket.broadcast.emit('audio', audioData); // Broadcast audio data with MIME type to other clients
-    });
-
     socket.on('broadcastGalleryImage', (data) => {
-        console.log('Broadcasting gallery image:', data);
         socket.broadcast.emit('galleryImage', data);
     });
 
     socket.on('battleUpdate', (data) => {
-      console.log('Battle update received:', data);
       usersInBattle = data.usersInBattle;
       turnCounter = data.turnCounter;
       currentTurnIndex = data.currentTurnIndex;
@@ -1156,24 +1122,39 @@ io.on('connection', (socket) => {
     });
 
     socket.on('endCombat', () => {
-        console.log('Received endCombat event');
         usersInBattle = [];
         turnCounter = null;
         currentTurnIndex = null;
-        console.log('Updated usersInBattle:', usersInBattle);
-        console.log('Updated turnCounter:', turnCounter);
-        console.log('Updated currentTurnIndex:', currentTurnIndex);
         io.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex });
     });
 
     socket.on('killTarget', (target) => {
-      console.log('Kill target received:', target);
       const targetUser = usersInBattle.find(user => user.characterName === target);
       if (targetUser) {
         targetUser.currentHealth = 0;
-        console.log('Target killed:', targetUser.characterName);
         io.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex });
       }
+    });
+
+    socket.on('updateVcMembers', (members) => {
+      vcMembers = members;
+      io.emit('vcMembersUpdate', vcMembers);
+    });
+
+    socket.on('addVcMember', (member) => {
+      if (!vcMembers.some(m => m.username === member.username)) {
+        vcMembers.push(member);
+        io.emit('vcMembersUpdate', vcMembers);
+      }
+    });
+
+    socket.on('removeVcMember', (username) => {
+      vcMembers = vcMembers.filter(member => member.username !== username);
+      io.emit('vcMembersUpdate', vcMembers);
+    });
+
+    socket.on('requestVcMembers', () => {
+      socket.emit('vcMembersUpdate', vcMembers);
     });
 
     socket.on('error', (error) => {
