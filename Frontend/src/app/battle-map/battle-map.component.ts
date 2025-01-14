@@ -37,7 +37,7 @@ export class BattleMapComponent implements OnInit {
   mapUrl: string = `https://${localIP}:8080/assets/images/Map.jpg`;
   turnCounter: number | null = null; // Add turnCounter property
   currentTurnIndex: number | null = null; // Add currentTurnIndex property
-  usersInBattle: { username: string, characterName: string, initiative: number, maxHealth: number, currentHealth: number, isEnemy: boolean, isCurrentTurn?: boolean, photo?: string, positionX?: number, positionY?: number }[] = []; // Add positionX and positionY properties
+  usersInBattle: { username: string, characterName: string, initiative: number, maxHealth: number, currentHealth: number, isEnemy: boolean, isCurrentTurn?: boolean, photo?: string, positionX?: number, positionY?: number, isHovered?: boolean, isReadied?: boolean }[] = []; // Add positionX and positionY properties and isHovered property and isReadied property
   characters: { name: string, photo: string }[] = [];
   diceResult: string = ''; // Add diceResult property
 
@@ -174,11 +174,13 @@ export class BattleMapComponent implements OnInit {
 
   performCombatAction() {
     const targetUser = this.usersInBattle.find(user => user.characterName === this.combatTarget);
-    if (targetUser && this.combatValue !== null) {
-      if (this.combatAction === 'Take Damage') {
+    if (targetUser) {
+      if (this.combatAction === 'Take Damage' && this.combatValue !== null) {
         targetUser.currentHealth = Math.max(0, targetUser.currentHealth - this.combatValue);
-      } else if (this.combatAction === 'Heal' || this.combatAction === 'Shield') {
+      } else if ((this.combatAction === 'Heal' || this.combatAction === 'Shield') && this.combatValue !== null) {
         targetUser.currentHealth = Math.min(targetUser.maxHealth, targetUser.currentHealth + this.combatValue);
+      } else if (this.combatAction === 'Set Readied') {
+        targetUser.isReadied = true;
       }
       console.log(`${this.combatAction} performed on ${targetUser.characterName} with value ${this.combatValue}`);
       this.closeCombatActionsModal();
@@ -239,6 +241,9 @@ export class BattleMapComponent implements OnInit {
   highlightCurrentTurn() {
     this.usersInBattle.forEach((user, index) => {
       user.isCurrentTurn = index === this.currentTurnIndex;
+      if (user.isCurrentTurn) {
+        user.isReadied = false; // Remove the readied state when the user's turn starts
+      }
     });
   }
 

@@ -27,19 +27,18 @@
     <div class="flex pt-32">
       <div class="w-1/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4">
         <ul>
-          <li *ngFor="let user of usersInBattle" [ngClass]="{'text-white': user.username === username, 'text-purple-500': user.username !== username && !user.isEnemy, 'text-red-500': user.isEnemy, 'bg-purple-300': user.isCurrentTurn, 'line-through': user.currentHealth === 0}" class="relative group p-2 rounded">
-            {{ user.characterName }} <span class="float-right">{{ user.initiative }}</span>
+          <li *ngFor="let user of usersInBattle" [ngClass]="{'text-white': user.username === username, 'text-purple-500': user.username !== username && !user.isEnemy, 'text-red-500': user.isEnemy, 'bg-purple-300': user.isCurrentTurn, 'line-through': user.currentHealth === 0, 'text-cyan-500 text-xl': user.isHovered}" class="relative group p-2 rounded" (mouseenter)="user.isHovered = true" (mouseleave)="user.isHovered = false">
+            {{ user.characterName }} <span *ngIf="user.isReadied" class="text-sm">(Readied)</span> <span class="float-right">{{ user.initiative }}</span>
             <div class="relative w-full h-4 bg-gray-400 mt-1 rounded-full">
               <div class="absolute top-0 left-0 h-full bg-green-500 rounded-full" [style.width.%]="(user.currentHealth / user.maxHealth) * 100"></div>
             </div>
-            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-cover bg-center hidden group-hover:block" [style.background-image]="getUserPhoto(user.characterName)"></div>
           </li>
         </ul>
       </div>
       <div class="w-3/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4 overflow-auto relative map-container" style="position: relative; aspect-ratio: 16/9;">
         <img *ngIf="mapUrl" [src]="mapUrl" alt="mapUrl" class="h-full w-full object-contain" />
-        <div *ngFor="let user of usersInBattle" class="absolute cursor-pointer" [ngStyle]="{'top': user.positionY + '%', 'left': user.positionX + '%', 'display': user.currentHealth > 0 ? 'block' : 'none'}" (mousedown)="startDrag($event, user)">
-          <div class="w-16 h-16 rounded-full bg-cover bg-center" [style.background-image]="'url(' + user.photo + ')'"></div>
+        <div *ngFor="let user of usersInBattle" class="absolute cursor-pointer" [ngStyle]="{'top': user.positionY + '%', 'left': user.positionX + '%', 'display': user.currentHealth > 0 ? 'block' : 'none'}" (mousedown)="startDrag($event, user)" (mouseenter)="user.isHovered = true" (mouseleave)="user.isHovered = false">
+          <div class="w-16 h-16 rounded-full bg-cover bg-cente" [style.background-image]="'url(' + user.photo + ')'" [ngClass]="{'border-4 border-green-500': !user.isEnemy, 'border-4 border-red-500': user.isHovered}"></div>
         </div>
       </div>
     </div>
@@ -86,6 +85,7 @@
           <option value="Take Damage">Take Damage</option>
           <option value="Heal">Heal</option>
           <option value="Shield">Shield</option>
+          <option value="Set Readied">Set Readied</option>
         </select>
       </div>
       <div class="mb-4">
@@ -94,7 +94,7 @@
           <option *ngFor="let user of usersInBattle" [value]="user.characterName">{{ user.characterName }}</option>
         </select>
       </div>
-      <div class="mb-4">
+      <div class="mb-4" *ngIf="combatAction !== 'Set Readied'">
         <label class="block text-white font-bold mb-2">Value</label>
         <input type="number" [(ngModel)]="combatValue" class="bg-white text-black px-2 py-1 rounded" />
       </div>
