@@ -50,7 +50,10 @@ export class BattleMapComponent implements OnInit {
       this.currentHealth = +params['currentHealth'];
     });
     this.webSocketService.onBattleUpdate((data) => {
-      this.usersInBattle = data.usersInBattle;
+      this.usersInBattle = data.usersInBattle.map((user: { username: string, characterName: string, initiative: number, maxHealth: number, currentHealth: number, isEnemy: boolean, isCurrentTurn?: boolean, photo?: string, positionX?: number, positionY?: number, isHovered?: boolean, isReadied?: boolean }) => ({
+        ...user,
+        isHovered: false // Initialize isHovered to false
+      }));
       this.turnCounter = data.turnCounter;
       this.currentTurnIndex = data.currentTurnIndex;
     });

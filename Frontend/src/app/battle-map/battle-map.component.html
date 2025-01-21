@@ -27,7 +27,7 @@
     <div class="flex pt-32">
       <div class="w-1/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4">
         <ul>
-          <li *ngFor="let user of usersInBattle" [ngClass]="{'text-white': user.username === username, 'text-purple-500': user.username !== username && !user.isEnemy, 'text-red-500': user.isEnemy, 'bg-purple-300': user.isCurrentTurn, 'line-through': user.currentHealth === 0, 'text-cyan-500 text-xl': user.isHovered}" class="relative group p-2 rounded" (mouseenter)="user.isHovered = true" (mouseleave)="user.isHovered = false">
+          <li *ngFor="let user of usersInBattle" [ngClass]="{'text-white': user.username === username && !user.isHovered, 'text-purple-500': user.username !== username && !user.isHovered, 'bg-purple-300': user.isCurrentTurn, 'line-through': user.currentHealth === 0, 'text-cyan-500': user.isHovered}" class="relative group p-2 rounded" (mouseenter)="user.isHovered = true" (mouseleave)="user.isHovered = false">
             {{ user.characterName }} <span *ngIf="user.isReadied" class="text-sm">(Readied)</span> <span class="float-right">{{ user.initiative }}</span>
             <div class="relative w-full h-4 bg-gray-400 mt-1 rounded-full">
               <div class="absolute top-0 left-0 h-full bg-green-500 rounded-full" [style.width.%]="(user.currentHealth / user.maxHealth) * 100"></div>
@@ -38,7 +38,7 @@
       <div class="w-3/4 h-full mx-4 border-2 border-purple-500 rounded-lg p-4 overflow-auto relative map-container" style="position: relative; aspect-ratio: 16/9;">
         <img *ngIf="mapUrl" [src]="mapUrl" alt="mapUrl" class="h-full w-full object-contain" />
         <div *ngFor="let user of usersInBattle" class="absolute cursor-pointer" [ngStyle]="{'top': user.positionY + '%', 'left': user.positionX + '%', 'display': user.currentHealth > 0 ? 'block' : 'none'}" (mousedown)="startDrag($event, user)" (mouseenter)="user.isHovered = true" (mouseleave)="user.isHovered = false">
-          <div class="w-16 h-16 rounded-full bg-cover bg-cente" [style.background-image]="'url(' + user.photo + ')'" [ngClass]="{'border-4 border-green-500': !user.isEnemy, 'border-4 border-red-500': user.isHovered}"></div>
+          <div class="w-16 h-16 rounded-full bg-cover bg-cente" [style.background-image]="'url(' + user.photo + ')'" [ngClass]="{'border-4': true, 'border-green-500': !user.isEnemy && !user.isHovered, 'border-red-500': user.isEnemy && !user.isHovered, 'border-cyan-500': user.isHovered}"></div>
         </div>
       </div>
     </div>
