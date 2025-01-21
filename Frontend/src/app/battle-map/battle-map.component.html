@@ -27,10 +27,12 @@
     <div class="flex pt-32">
       <div class="w-1/4 h-full mx-4 border-2 border-blue-800 rounded-lg p-4">
         <ul>
-          <li *ngFor="let user of usersInBattle" [ngClass]="{'text-white': user.username === username && !user.isHovered, 'text-red-500': user.isEnemy && !user.isHovered, 'text-blue-800': user.username !== username && !user.isHovered, 'bg-purple-300': user.isCurrentTurn, 'line-through': user.currentHealth === 0, 'text-cyan-500': user.isHovered}" class="relative group p-2 rounded" (mouseenter)="user.isHovered = true" (mouseleave)="user.isHovered = false">
+          <li *ngFor="let user of sortedUsersInBattle" [ngClass]="{'text-white': user.username === username && !user.isHovered, 'text-red-500': user.isEnemy && !user.isHovered, 'text-blue-800': user.username !== username && !user.isHovered, 'bg-blue-500': user.isCurrentTurn, 'line-through': user.currentHealth === 0, 'text-cyan-500': user.isHovered}" class="relative group p-2 rounded" (mouseenter)="user.isHovered = true" (mouseleave)="user.isHovered = false">
             {{ user.characterName }} <span *ngIf="user.isReadied" class="text-sm">(Readied)</span> <span class="float-right">{{ user.initiative }}</span>
             <div class="relative w-full h-4 bg-gray-400 mt-1 rounded-full">
-              <div class="absolute top-0 left-0 h-full bg-green-500 rounded-full" [style.width.%]="(user.currentHealth / user.maxHealth) * 100"></div>
+              <div class="absolute top-0 left-0 h-full bg-green-500 rounded-full text-xs" [style.width.%]="(user.currentHealth / user.maxHealth) * 100">
+                Test Health
+              </div>
             </div>
           </li>
         </ul>
@@ -91,7 +93,7 @@
       <div class="mb-4">
         <label class="block text-white font-bold mb-2">Target</label>
         <select [(ngModel)]="combatTarget" class="bg-white text-black px-2 py-1 rounded">
-          <option *ngFor="let user of usersInBattle" [value]="user.characterName">{{ user.characterName }}</option>
+          <option *ngFor="let user of alphabeticallySortedUsersInBattle" [value]="user.characterName">{{ user.characterName }}</option>
         </select>
       </div>
       <div class="mb-4" *ngIf="combatAction !== 'Set Readied'">
@@ -115,6 +117,32 @@
       </div>
       <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="killTarget()">Submit</button>
       <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="closeKillTargetModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- End Combat Modal -->
+  <div *ngIf="showEndCombatModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="modal-content bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 p-4 rounded-lg shadow-lg text-center w-9/10 h-9/10">
+      <p class="text-lg font-bold mb-4">The battle has ended!</p>
+      <table class="table-auto w-full text-white">
+        <thead>
+          <tr>
+            <th class="px-4 py-2">Username</th>
+            <th class="px-4 py-2">Damage Dealt</th>
+            <th class="px-4 py-2">Healed</th>
+            <th class="px-4 py-2">Shielded</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let username of getCombatStatsKeys()">
+            <td class="border px-4 py-2">{{ username }}</td>
+            <td class="border px-4 py-2">{{ combatStats[username].damageDealt }}</td>
+            <td class="border px-4 py-2">{{ combatStats[username].healed }}</td>
+            <td class="border px-4 py-2">{{ combatStats[username].shielded }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <button class="bg-white text-black px-4 py-2 rounded mt-4" (click)="closeEndCombatModal()">Close</button>
     </div>
   </div>
 

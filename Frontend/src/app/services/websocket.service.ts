@@ -27,6 +27,9 @@ export class WebSocketService {
     });
     this.socket.on('disconnect', () => console.log('Socket.IO connection closed'));
     this.socket.on('connect_error', (error) => console.error('Socket.IO error:', error));
+    this.socket.on('endCombat', () => {
+      this.showEndCombatModal();
+    });
   }
 
   sendMessage(message: any) {
@@ -137,5 +140,34 @@ export class WebSocketService {
 
   onRtcIceCandidate(callback: (username: string, candidate: RTCIceCandidateInit) => void) {
     this.socket.on('rtcIceCandidate', callback);
+  }
+
+  showEndCombatModal() {
+    const event = new CustomEvent('endCombat');
+    window.dispatchEvent(event);
+  }
+
+  sendCombatAction(action: string, target: string, value: number, username: string) {
+    this.socket.emit('combatAction', { action, target, value, username });
+  }
+
+  onCombatAction(callback: (data: { action: string, target: string, value: number, username: string }) => void) {
+    this.socket.on('combatAction', callback);
+  }
+
+  sendCombatStats(stats: { [username: string]: { damageDealt: number, healed: number, shielded: number } }) {
+    this.socket.emit('combatStats', stats);
+  }
+
+  requestCombatStats() {
+    this.socket.emit('requestCombatStats');
+  }
+
+  onEndCombat(callback: () => void) {
+    this.socket.on('endCombat', callback);
+  }
+
+  onCombatStats(callback: (stats: { [username: string]: { damageDealt: number, healed: number, shielded: number } }) => void) {
+    this.socket.on('combatStats', callback);
   }
 }

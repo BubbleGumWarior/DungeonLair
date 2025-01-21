@@ -24,6 +24,7 @@ export class BattleMapComponent implements OnInit {
   showAddNPCModal: boolean = false;
   showCombatActionsModal: boolean = false;
   showKillTargetModal: boolean = false;
+  showEndCombatModal: boolean = false; // Add showEndCombatModal property
   npcName: string = '';
   npcMaxHealth: number | null = null;
   npcCurrentHealth: number | null = null;
@@ -39,8 +40,11 @@ export class BattleMapComponent implements OnInit {
   currentTurnIndex: number | null = null; // Add currentTurnIndex property
   usersInBattle: { username: string, characterName: string, initiative: number, maxHealth: number, currentHealth: number, isEnemy: boolean, isCurrentTurn?: boolean, photo?: string, positionX?: number, positionY?: number, isHovered?: boolean, isReadied?: boolean }[] = []; // Add positionX and positionY properties and isHovered property and isReadied property
   characters: { name: string, photo: string }[] = [];
+  sortedUsersInBattle: { username: string, characterName: string, initiative: number, maxHealth: number, currentHealth: number, isEnemy: boolean, isCurrentTurn?: boolean, photo?: string, positionX?: number, positionY?: number, isHovered?: boolean, isReadied?: boolean }[] = []; // Add sortedUsersInBattle property
+  alphabeticallySortedUsersInBattle: { username: string, characterName: string, initiative: number, maxHealth: number, currentHealth: number, isEnemy: boolean, isCurrentTurn?: boolean, photo?: string, positionX?: number, positionY?: number, isHovered?: boolean, isReadied?: boolean }[] = []; // Add alphabeticallySortedUsersInBattle property
   diceResult: string = ''; // Add diceResult property
   galleryImages: any[] = []; // Add property to store gallery images
+  combatStats: { [username: string]: { damageDealt: number, healed: number, shielded: number } } = {}; // Update combatStats property
 
   constructor(private route: ActivatedRoute, private router: Router, private webSocketService: WebSocketService, private http: HttpClient) {}
 
@@ -55,12 +59,33 @@ export class BattleMapComponent implements OnInit {
         ...user,
         isHovered: false // Initialize isHovered to false
       }));
+      this.sortedUsersInBattle = [...this.usersInBattle].sort((a, b) => b.initiative - a.initiative); // Sort by initiative (highest to lowest)
+      this.alphabeticallySortedUsersInBattle = [...this.usersInBattle].sort((a, b) => a.characterName.localeCompare(b.characterName)); // Sort alphabetically by characterName
       this.turnCounter = data.turnCounter;
       this.currentTurnIndex = data.currentTurnIndex;
+
+      // Highlight the current turn
+      this.highlightCurrentTurn();
+
+      // Log the current turn
+      if (this.currentTurnIndex !== null) {
+      }
     });
     this.webSocketService.requestBattleState(); // Request initial battle state from the server
     this.fetchCharacterNames();
     this.fetchGalleryImages(); // Fetch gallery images on initialization
+    this.webSocketService.onCombatAction((data) => {
+      this.updateCombatStats(data.action, data.target, data.value, data.username);
+    });
+    this.webSocketService.onCombatStats((stats) => {
+      this.combatStats = stats;
+    });
+    window.addEventListener('endCombat', () => {
+      this.webSocketService.requestCombatStats(); // Request combat stats before showing the modal
+    });
+    this.webSocketService.onEndCombat(() => {
+      this.showEndCombatModal = true; // Show the modal after receiving the end combat event
+    });
   }
 
   loadDataFromToken() {
@@ -117,7 +142,6 @@ export class BattleMapComponent implements OnInit {
 
   joinBattle() {
     if (this.username && this.characterName && this.maxHealth !== null && this.currentHealth !== null) {
-      console.log('Joining battle with maxHealth:', this.maxHealth, 'and currentHealth:', this.currentHealth);
       const userIndex = this.usersInBattle.findIndex(user => user.username === this.username);
       if (userIndex === -1) {
         const initiative = Math.floor(Math.random() * 20) + 1;
@@ -125,12 +149,10 @@ export class BattleMapComponent implements OnInit {
         const positionX = Math.random() * 100; // Random position for demonstration
         const positionY = Math.random() * 100; // Random position for demonstration
         this.usersInBattle.push({ username: this.username, characterName: this.characterName, initiative, maxHealth: this.maxHealth, currentHealth: this.currentHealth, isEnemy: false, photo, positionX, positionY });
-        console.log('User joined battle:', this.username, 'with initiative:', initiative);
       } else {
         this.usersInBattle.splice(userIndex, 1);
-        console.log('User left battle:', this.username);
       }
-      this.usersInBattle.sort((a, b) => b.initiative - a.initiative); // Sort by initiative
+      this.sortedUsersInBattle = [...this.usersInBattle].sort((a, b) => b.initiative - a.initiative); // Sort by initiative (highest to lowest)
       this.webSocketService.sendBattleUpdate({
         usersInBattle: this.usersInBattle,
         turnCounter: this.turnCounter,
@@ -172,8 +194,7 @@ export class BattleMapComponent implements OnInit {
       }
 
       this.usersInBattle.push({ username: npcName, characterName: npcName, initiative, maxHealth: this.npcMaxHealth, currentHealth: this.npcCurrentHealth, isEnemy: this.npcIsEnemy, photo, positionX, positionY });
-      console.log('NPC added:', npcName, 'with initiative:', initiative);
-      this.usersInBattle.sort((a, b) => b.initiative - a.initiative); // Sort by initiative
+      this.sortedUsersInBattle = [...this.usersInBattle].sort((a, b) => b.initiative - a.initiative); // Sort by initiative (highest to lowest)
       this.closeAddNPCModal();
       this.webSocketService.sendBattleUpdate({
         usersInBattle: this.usersInBattle,
@@ -185,8 +206,7 @@ export class BattleMapComponent implements OnInit {
 
   openCombatActionsModal() {
     this.showCombatActionsModal = true;
-    // Sort usersInBattle alphabetically by characterName for the dropdown list
-    this.usersInBattle.sort((a, b) => a.characterName.localeCompare(b.characterName));
+    this.alphabeticallySortedUsersInBattle = [...this.usersInBattle].sort((a, b) => a.characterName.localeCompare(b.characterName)); // Ensure the list is sorted alphabetically
   }
 
   closeCombatActionsModal() {
@@ -198,21 +218,61 @@ export class BattleMapComponent implements OnInit {
 
   performCombatAction() {
     const targetUser = this.usersInBattle.find(user => user.characterName === this.combatTarget);
-    if (targetUser) {
+    if (targetUser && this.currentTurnIndex !== null) {
+      const currentUser = this.sortedUsersInBattle[this.currentTurnIndex];
       if (this.combatAction === 'Take Damage' && this.combatValue !== null) {
         targetUser.currentHealth = Math.max(0, targetUser.currentHealth - this.combatValue);
+        this.webSocketService.sendCombatAction('Take Damage', this.combatTarget, this.combatValue, currentUser.username);
+        this.updateCombatStats('Take Damage', this.combatTarget, this.combatValue, currentUser.username);
       } else if ((this.combatAction === 'Heal' || this.combatAction === 'Shield') && this.combatValue !== null) {
         targetUser.currentHealth = Math.min(targetUser.maxHealth, targetUser.currentHealth + this.combatValue);
+        this.webSocketService.sendCombatAction(this.combatAction, this.combatTarget, this.combatValue, currentUser.username);
+        this.updateCombatStats(this.combatAction, this.combatTarget, this.combatValue, currentUser.username);
       } else if (this.combatAction === 'Set Readied') {
         targetUser.isReadied = true;
       }
-      console.log(`${this.combatAction} performed on ${targetUser.characterName} with value ${this.combatValue}`);
       this.closeCombatActionsModal();
       this.webSocketService.sendBattleUpdate({
         usersInBattle: this.usersInBattle,
         turnCounter: this.turnCounter,
         currentTurnIndex: this.currentTurnIndex
       });
+    }
+  }
+
+  updateCombatStats(action: string, target: string, value: number, username: string) {
+    if (!username) return; // Ensure username is defined
+    if (!this.combatStats[username]) {
+      this.combatStats[username] = { damageDealt: 0, healed: 0, shielded: 0 };
+    }
+    if (action === 'Take Damage') {
+      this.combatStats[username].damageDealt += value;
+    } else if (action === 'Heal') {
+      this.combatStats[username].healed += value;
+    } else if (action === 'Shield') {
+      this.combatStats[username].shielded += value;
+    }
+    this.webSocketService.sendCombatStats(this.combatStats); // Send updated stats to the server
+  }
+
+  getCombatStatsKeys() {
+    const keys = Object.keys(this.combatStats);
+    console.log("Raw___________");
+    console.log(keys);
+    console.log(keys.indexOf('undefined'));
+    console.log("Raw___________");
+    const totalIndex = keys.indexOf('undefined');
+    if (totalIndex !== -1) {
+      console.log("totalIndex !== -1___________");
+      console.log(keys.sort());
+      console.log("totalIndex !== -1___________");
+      return keys.sort();
+    }
+    else{
+      console.log("Else___________");
+      console.log(keys.filter(key => key !== 'Total').sort().concat('Total'));
+      console.log("Else___________");
+      return keys.filter(key => key !== 'Total').sort().concat('Total');
     }
   }
 
@@ -255,15 +315,20 @@ export class BattleMapComponent implements OnInit {
 
   advanceTurn() {
     if (this.currentTurnIndex !== null) {
+      let nextTurnIndex = this.currentTurnIndex;
       do {
-        this.currentTurnIndex = (this.currentTurnIndex + 1) % this.usersInBattle.length;
-      } while (this.usersInBattle[this.currentTurnIndex].currentHealth === 0);
-      this.highlightCurrentTurn();
+        nextTurnIndex = (nextTurnIndex + 1) % this.sortedUsersInBattle.length;
+      } while (this.sortedUsersInBattle[nextTurnIndex].currentHealth === 0 && nextTurnIndex !== this.currentTurnIndex);
+
+      if (nextTurnIndex !== this.currentTurnIndex) {
+        this.currentTurnIndex = nextTurnIndex;
+        this.highlightCurrentTurn();
+      }
     }
   }
 
   highlightCurrentTurn() {
-    this.usersInBattle.forEach((user, index) => {
+    this.sortedUsersInBattle.forEach((user, index) => {
       user.isCurrentTurn = index === this.currentTurnIndex;
       if (user.isCurrentTurn) {
         user.isReadied = false; // Remove the readied state when the user's turn starts
@@ -272,11 +337,12 @@ export class BattleMapComponent implements OnInit {
   }
 
   endCombat() {
-    console.log('Ending combat');
-    this.usersInBattle = [];
-    this.turnCounter = null;
-    this.currentTurnIndex = null;
+    this.webSocketService.sendCombatStats(this.combatStats); // Send final stats to the server
     this.webSocketService.endCombat();
+  }
+
+  closeEndCombatModal() {
+    this.showEndCombatModal = false;
   }
 
   handleDiceResult(result: string) {

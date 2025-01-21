@@ -1048,6 +1048,7 @@ let usersInBattle = [
 let turnCounter = null;
 let currentTurnIndex = null;
 let vcMembers = [];
+let combatStats = {}; // Add combatStats variable
 
 io.on('connection', (socket) => {
     console.log('A user connected with socket ID:', socket.id);
@@ -1126,6 +1127,16 @@ io.on('connection', (socket) => {
         turnCounter = null;
         currentTurnIndex = null;
         io.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex });
+        io.emit('endCombat'); // Emit endCombat event to all clients
+    });
+
+    socket.on('combatStats', (stats) => {
+      combatStats = stats;
+      io.emit('combatStats', combatStats); // Emit stats to all clients
+    });
+
+    socket.on('requestCombatStats', () => {
+      socket.emit('combatStats', combatStats);
     });
 
     socket.on('killTarget', (target) => {
@@ -1180,6 +1191,23 @@ io.on('connection', (socket) => {
 
     socket.on('error', (error) => {
         console.error('Socket.IO error:', error);
+    });
+
+    socket.on('combatAction', (data) => {
+      const user = liveUsers.find(user => user.id === socket.id);
+      if (user) {
+        data.username = user.username;
+        io.emit('combatAction', data);
+      }
+    });
+
+    socket.on('combatStats', (stats) => {
+      combatStats = stats;
+      io.emit('combatStats', combatStats); // Emit stats to all clients
+    });
+
+    socket.on('requestCombatStats', () => {
+      socket.emit('combatStats', combatStats);
     });
 });
 
