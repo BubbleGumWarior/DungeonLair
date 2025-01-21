@@ -74,7 +74,14 @@ export class SoundbarComponent {
       for (let i = 0; i < this.dataArray.length; i++) {
         barHeight = this.dataArray[i] / 2;
 
-        canvasContext!.fillStyle = 'rgb(147, 51, 234)';
+        // Use Tailwind's blue colors
+        if (i < this.dataArray.length / 3) {
+          canvasContext!.fillStyle = 'rgb(29, 78, 216)'; // blue-700
+        } else if (i < 2 * this.dataArray.length / 3) {
+          canvasContext!.fillStyle = 'rgb(30, 64, 175)'; // blue-800
+        } else {
+          canvasContext!.fillStyle = 'rgb(30, 58, 138)'; // blue-950
+        }
         canvasContext!.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
 
         x += barWidth;
@@ -85,7 +92,14 @@ export class SoundbarComponent {
       for (let i = 0; i < this.dataArray.length; i++) {
         barHeight = this.dataArray[i] / 2;
 
-        canvasContext!.fillStyle = 'rgb(147, 51, 234)';
+        // Use Tailwind's blue colors
+        if (i < this.dataArray.length / 3) {
+          canvasContext!.fillStyle = 'rgb(29, 78, 216)'; // blue-700
+        } else if (i < 2 * this.dataArray.length / 3) {
+          canvasContext!.fillStyle = 'rgb(30, 64, 175)'; // blue-800
+        } else {
+          canvasContext!.fillStyle = 'rgb(30, 58, 138)'; // blue-950
+        }
         canvasContext!.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
 
         x -= barWidth;
