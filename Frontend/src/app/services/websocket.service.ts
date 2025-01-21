@@ -108,4 +108,28 @@ export class WebSocketService {
   requestVcMembers() {
     this.socket.emit('requestVcMembers');
   }
+
+  sendRtcOffer(username: string, offer: RTCSessionDescriptionInit) {
+    this.socket.emit('rtcOffer', { username, offer });
+  }
+
+  sendRtcAnswer(username: string, answer: RTCSessionDescriptionInit) {
+    this.socket.emit('rtcAnswer', { username, answer });
+  }
+
+  sendRtcIceCandidate(username: string, candidate: RTCIceCandidateInit) {
+    this.socket.emit('rtcIceCandidate', { username, candidate });
+  }
+
+  onRtcOffer(callback: (username: string, offer: RTCSessionDescriptionInit) => void) {
+    this.socket.on('rtcOffer', callback);
+  }
+
+  onRtcAnswer(callback: (username: string, answer: RTCSessionDescriptionInit) => void) {
+    this.socket.on('rtcAnswer', callback);
+  }
+
+  onRtcIceCandidate(callback: (username: string, candidate: RTCIceCandidateInit) => void) {
+    this.socket.on('rtcIceCandidate', callback);
+  }
 }

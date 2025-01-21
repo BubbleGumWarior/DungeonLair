@@ -1157,6 +1157,27 @@ io.on('connection', (socket) => {
       socket.emit('vcMembersUpdate', vcMembers);
     });
 
+    socket.on('rtcOffer', ({ username, offer }) => {
+        const targetUser = liveUsers.find(user => user.username === username);
+        if (targetUser) {
+            io.to(targetUser.id).emit('rtcOffer', socket.username, offer);
+        }
+    });
+
+    socket.on('rtcAnswer', ({ username, answer }) => {
+        const targetUser = liveUsers.find(user => user.username === username);
+        if (targetUser) {
+            io.to(targetUser.id).emit('rtcAnswer', socket.username, answer);
+        }
+    });
+
+    socket.on('rtcIceCandidate', ({ username, candidate }) => {
+        const targetUser = liveUsers.find(user => user.username === username);
+        if (targetUser) {
+            io.to(targetUser.id).emit('rtcIceCandidate', socket.username, candidate);
+        }
+    });
+
     socket.on('error', (error) => {
         console.error('Socket.IO error:', error);
     });
