@@ -27,7 +27,7 @@
     <div class="flex pt-32">
       <div class="w-1/4 h-full mx-4 border-2 border-blue-800 rounded-lg p-4">
         <ul>
-          <li *ngFor="let user of usersInBattle" [ngClass]="{'text-white': user.username === username && !user.isHovered, 'text-blue-800': user.username !== username && !user.isHovered, 'bg-purple-300': user.isCurrentTurn, 'line-through': user.currentHealth === 0, 'text-cyan-500': user.isHovered}" class="relative group p-2 rounded" (mouseenter)="user.isHovered = true" (mouseleave)="user.isHovered = false">
+          <li *ngFor="let user of usersInBattle" [ngClass]="{'text-white': user.username === username && !user.isHovered, 'text-red-500': user.isEnemy && !user.isHovered, 'text-blue-800': user.username !== username && !user.isHovered, 'bg-purple-300': user.isCurrentTurn, 'line-through': user.currentHealth === 0, 'text-cyan-500': user.isHovered}" class="relative group p-2 rounded" (mouseenter)="user.isHovered = true" (mouseleave)="user.isHovered = false">
             {{ user.characterName }} <span *ngIf="user.isReadied" class="text-sm">(Readied)</span> <span class="float-right">{{ user.initiative }}</span>
             <div class="relative w-full h-4 bg-gray-400 mt-1 rounded-full">
               <div class="absolute top-0 left-0 h-full bg-green-500 rounded-full" [style.width.%]="(user.currentHealth / user.maxHealth) * 100"></div>

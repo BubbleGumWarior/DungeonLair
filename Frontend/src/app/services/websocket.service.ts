@@ -66,6 +66,12 @@ export class WebSocketService {
     return result;
   }
 
+  async fetchGalleryImages() {
+    const response = await fetch(`https://${localIP}:8080/images`);
+    const images = await response.json();
+    return images;
+  }
+
   broadcastGalleryImage(filePath: string, name: string) {
     this.socket.emit('broadcastGalleryImage', { filePath, name });
   }

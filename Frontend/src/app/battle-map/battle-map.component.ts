@@ -40,6 +40,7 @@ export class BattleMapComponent implements OnInit {
   usersInBattle: { username: string, characterName: string, initiative: number, maxHealth: number, currentHealth: number, isEnemy: boolean, isCurrentTurn?: boolean, photo?: string, positionX?: number, positionY?: number, isHovered?: boolean, isReadied?: boolean }[] = []; // Add positionX and positionY properties and isHovered property and isReadied property
   characters: { name: string, photo: string }[] = [];
   diceResult: string = ''; // Add diceResult property
+  galleryImages: any[] = []; // Add property to store gallery images
 
   constructor(private route: ActivatedRoute, private router: Router, private webSocketService: WebSocketService, private http: HttpClient) {}
 
@@ -59,6 +60,7 @@ export class BattleMapComponent implements OnInit {
     });
     this.webSocketService.requestBattleState(); // Request initial battle state from the server
     this.fetchCharacterNames();
+    this.fetchGalleryImages(); // Fetch gallery images on initialization
   }
 
   loadDataFromToken() {
@@ -91,6 +93,10 @@ export class BattleMapComponent implements OnInit {
     );
   }
 
+  async fetchGalleryImages() {
+    this.galleryImages = await this.webSocketService.fetchGalleryImages();
+  }
+
   closeBattleMap() {
     this.router.navigate(['/']);
   }
@@ -101,6 +107,10 @@ export class BattleMapComponent implements OnInit {
   }
 
   getUserPhotoUrl(characterName: string): string {
+    const galleryImage = this.galleryImages.find(image => image.imageName === characterName);
+    if (galleryImage) {
+      return `https://${localIP}:8080${galleryImage.photo}`;
+    }
     const character = this.characters.find(char => char.name === characterName);
     return character && character.photo ? character.photo : this.defaultIcon;
   }
@@ -152,8 +162,17 @@ export class BattleMapComponent implements OnInit {
       const photo = this.getUserPhotoUrl(this.npcName);
       const positionX = Math.random() * 100; // Random position for demonstration
       const positionY = Math.random() * 100; // Random position for demonstration
-      this.usersInBattle.push({ username: this.npcName, characterName: this.npcName, initiative, maxHealth: this.npcMaxHealth, currentHealth: this.npcCurrentHealth, isEnemy: this.npcIsEnemy, photo, positionX, positionY });
-      console.log('NPC added:', this.npcName, 'with initiative:', initiative);
+
+      // Check if NPC name already exists and rename if necessary
+      let npcName = this.npcName;
+      let count = 1;
+      while (this.usersInBattle.some(user => user.characterName === npcName)) {
+        npcName = `${this.npcName} ${count}`;
+        count++;
+      }
+
+      this.usersInBattle.push({ username: npcName, characterName: npcName, initiative, maxHealth: this.npcMaxHealth, currentHealth: this.npcCurrentHealth, isEnemy: this.npcIsEnemy, photo, positionX, positionY });
+      console.log('NPC added:', npcName, 'with initiative:', initiative);
       this.usersInBattle.sort((a, b) => b.initiative - a.initiative); // Sort by initiative
       this.closeAddNPCModal();
       this.webSocketService.sendBattleUpdate({
@@ -166,6 +185,8 @@ export class BattleMapComponent implements OnInit {
 
   openCombatActionsModal() {
     this.showCombatActionsModal = true;
+    // Sort usersInBattle alphabetically by characterName for the dropdown list
+    this.usersInBattle.sort((a, b) => a.characterName.localeCompare(b.characterName));
   }
 
   closeCombatActionsModal() {
