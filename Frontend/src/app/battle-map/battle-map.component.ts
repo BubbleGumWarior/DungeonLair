@@ -343,6 +343,7 @@ export class BattleMapComponent implements OnInit {
 
   closeEndCombatModal() {
     this.showEndCombatModal = false;
+    this.closeBattleMap(); // Also close the battle map
   }
 
   handleDiceResult(result: string) {
