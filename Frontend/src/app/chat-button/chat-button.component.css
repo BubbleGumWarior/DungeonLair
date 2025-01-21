@@ -24,7 +24,7 @@
 }
 
 .chat-history::-webkit-scrollbar-thumb {
-  @apply bg-gradient-to-b from-purple-400 via-purple-500 to-purple-600/* Color of the scrollbar thumb */
+  @apply bg-gradient-to-b from-blue-700 via-blue-800 to-blue-900/* Color of the scrollbar thumb */
 }
 
 .chat-history::-webkit-scrollbar-thumb:hover {
@@ -73,7 +73,7 @@
 }
 
 input:checked + .toggle-slider {
-  background-color: #7c3aed; /* bg-purple-500 */
+  background-color: #7c3aed; /* bg-blue-800 */
 }
 
 input:checked + .toggle-slider:before {

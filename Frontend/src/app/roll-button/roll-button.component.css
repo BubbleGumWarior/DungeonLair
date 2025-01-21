@@ -22,7 +22,7 @@
   }
   
   .roll-history::-webkit-scrollbar-thumb {
-    @apply bg-gradient-to-b from-purple-400 via-purple-500 to-purple-600/* Color of the scrollbar thumb */
+    @apply bg-gradient-to-b from-blue-700 via-blue-800 to-blue-900/* Color of the scrollbar thumb */
   }
   
   .roll-history::-webkit-scrollbar-thumb:hover {

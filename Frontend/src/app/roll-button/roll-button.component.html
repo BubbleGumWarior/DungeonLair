@@ -1,47 +1,47 @@
 <div *ngIf="!isOpen" class="fixed bottom-20 left-4 mb-0">
     <button
-      class="roll-button p-3 w-12 h-12 bg-purple-500 text-black rounded-full shadow-lg hover:bg-purple-600 transition duration-200"
+      class="roll-button p-3 w-12 h-12 bg-blue-800 text-black rounded-full shadow-lg hover:bg-blue-900 transition duration-200"
       (click)="toggleRoll()"
     >
         <i class="fa fa-cube" aria-hidden="false"></i>
     </button>
 </div>
   
-<div *ngIf="isOpen" [ngClass]="{'w-1/3 h-1/2': !isMobile, 'w-3/4 h-3/4': isMobile}" class="roll-modal fixed bottom-4 left-16 bg-stone-950 shadow-lg rounded-lg border border-purple-500">
+<div *ngIf="isOpen" [ngClass]="{'w-1/3 h-1/2': !isMobile, 'w-3/4 h-3/4': isMobile}" class="roll-modal fixed bottom-4 left-16 bg-stone-950 shadow-lg rounded-lg border border-blue-800">
     <div class="container mx-auto my-auto p-4 h-full">
-        <h2 class="text-center text-2xl mb-4 text-purple-500">Do a Custom Roll</h2>
+        <h2 class="text-center text-2xl mb-4 text-blue-800">Do a Custom Roll</h2>
         <form (ngSubmit)="rollDice()" class="max-w-md mx-auto">
             <div class="mb-4 text-center">
-              <label for="diceSizeText" class="block mb-2 text-purple-500">Enter the size of the dice you want to roll</label>
+              <label for="diceSizeText" class="block mb-2 text-blue-800">Enter the size of the dice you want to roll</label>
               <input 
                 type="number" 
                 id="diceSizeText" 
                 [(ngModel)]="diceSizeText" 
                 name="diceSizeText" 
                 required 
-                class="rounded w-full py-2 px-3 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-2 mr-2 text-black placeholder-black text-center"
+                class="rounded w-full py-2 px-3 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 p-2 mr-2 text-black placeholder-black text-center"
                 autocomplete="off"
                 min="1"
                 value="20"
               />
             </div>
             <div class="mb-4 text-center">
-              <label for="modifierValueText" class="block mb-2 text-purple-500">Enter the size of the modifier for the dice</label>
+              <label for="modifierValueText" class="block mb-2 text-blue-800">Enter the size of the modifier for the dice</label>
               <input 
                 type="number" 
                 id="modifierValueText" 
                 [(ngModel)]="modifierValueText" 
                 name="modifierValueText" 
                 required 
-                class="rounded w-full py-2 px-3 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-2 mr-2 text-black placeholder-black text-center"
+                class="rounded w-full py-2 px-3 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 p-2 mr-2 text-black placeholder-black text-center"
                 autocomplete="off"
                 value="0"
               />
             </div>
             <br>
-            <button type="submit" class="bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 text-black rounded py-2 px-4 w-full hover:text-purple-950">Roll the Custom Dice</button>
+            <button type="submit" class="bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-black rounded py-2 px-4 w-full hover:text-purple-950">Roll the Custom Dice</button>
           </form>
         
-        <h2 class="text-center text-lg mb-4 text-purple-500">You can also click on the stat in your board to roll a D20 with that modifier!</h2>
+        <h2 class="text-center text-lg mb-4 text-blue-800">You can also click on the stat in your board to roll a D20 with that modifier!</h2>
     </div>
 </div>
