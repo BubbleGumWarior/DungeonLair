@@ -2,7 +2,7 @@
   <div class="grid grid-cols-3 gap-4">
     <div *ngFor="let character of characters" 
          class="p-4 rounded shadow-md text-white flex items-center cursor-pointer"
-         [ngClass]="{'bg-purple-700': currentlySelectedCharacter === character.name, 'bg-blue-800': currentlySelectedCharacter !== character.name}"
+         [ngClass]="{'bg-blue-600': currentlySelectedCharacter === character.name, 'bg-blue-800': currentlySelectedCharacter !== character.name}"
          (click)="selectCharacter(character.name)">
       <img *ngIf="character.photo" [src]="character.photo" alt="Character Photo" class="w-12 h-12 rounded-full mr-4" />
       <span>{{ character.name }}</span>
@@ -115,7 +115,7 @@
       <div class="grid grid-cols-3 gap-4">
         <div *ngFor="let inventoryItem of inventoryItems; let i = index" 
              class="p-4 rounded shadow-md text-white flex items-center cursor-pointer bg-blue-800 relative"
-             [ngClass]="{'bg-purple-700': selectedInventoryItem === inventoryItem}"
+             [ngClass]="{'bg-blue-700': selectedInventoryItem === inventoryItem}"
              (click)="selectInventoryItem(inventoryItem)"
              (mouseenter)="showItemModal(inventoryItem)" (mouseleave)="hideItemModal()">
           <img *ngIf="inventoryItem.photo" [src]="inventoryItem.photo" alt="Inventory Item Photo" class="w-12 h-12 rounded-full mr-4" />
@@ -123,7 +123,7 @@
             <span>{{ inventoryItem.itemName }}</span>
             <p class="text-sm">Type: {{ inventoryItem.type }}</p>
           </div>
-          <div *ngIf="hoveredItem === inventoryItem" class="absolute bottom-full mb-2 p-4 bg-purple-900 rounded-md shadow-lg z-10 w-full left-0">
+          <div *ngIf="hoveredItem === inventoryItem" class="absolute bottom-full mb-2 p-4 bg-blue-900 rounded-md shadow-lg z-10 w-full left-0">
             <div class="flex-grow flex flex-col">
               <div class="flex-grow flex items-center justify-center mb-4">
                 <img 
@@ -221,14 +221,14 @@
       <div class="grid grid-cols-3 gap-4">
         <div *ngFor="let skill of skillList; let i = index" 
              class="p-4 rounded shadow-md text-white flex items-center cursor-pointer bg-blue-800 relative"
-             [ngClass]="{'bg-purple-700': selectedSkill === skill}"
+             [ngClass]="{'bg-blue-700': selectedSkill === skill}"
              (click)="selectSkill(skill)"
              (mouseenter)="showItemModal(skill)" (mouseleave)="hideItemModal()">
           <div>
             <span>{{ skill.skillName }}</span>
             <p class="text-sm">Main Stat: {{ skill.mainStat }}</p>
           </div>
-          <div *ngIf="hoveredItem === skill" class="absolute bottom-full mb-2 p-4 bg-purple-900 rounded-md shadow-lg z-10 w-full left-0">
+          <div *ngIf="hoveredItem === skill" class="absolute bottom-full mb-2 p-4 bg-blue-900 rounded-md shadow-lg z-10 w-full left-0">
             <div class="flex-grow flex flex-col">
               <div class="text-center">
                 <h2 class="text-3xl font-bold">{{ skill.skillName }}</h2>

@@ -1,8 +1,8 @@
 <div class="battle-map">
-    <button class="mt-1 close-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 w-10 h-10 rounded-full fixed top-4 right-4 hover:bg-purple-700 transition duration-200 flex items-center justify-center" (click)="closeGallery()">X</button>
+    <button class="mt-1 close-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 w-10 h-10 rounded-full fixed top-4 right-4 hover:bg-blue-700 transition duration-200 flex items-center justify-center" (click)="closeGallery()">X</button>
     <app-chat-button [newMessage]="diceResult" [username]="username || 'DefaultUser'"></app-chat-button>
 
-    <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full hover:bg-purple-700 transition duration-200 flex items-center justify-center fixed top-4 left-4 w-64" (click)="openAddSpaceshipImageModal()">
+    <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full hover:bg-blue-700 transition duration-200 flex items-center justify-center fixed top-4 left-4 w-64" (click)="openAddSpaceshipImageModal()">
         Add Ship Image
     </button>
 

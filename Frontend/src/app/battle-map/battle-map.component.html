@@ -19,11 +19,11 @@
   <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center fixed top-4 left-2/4 w-64 h-10" (click)="openCombatActionsModal()">
     Combat Actions
   </button>
-  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center fixed top-16 left-2/4 w-64 h-10" (click)="endCombat()">
-    End Combat
-  </button>
-  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center fixed top-4 left-3/4 w-64 h-10" (click)="openChangeMapModal()">
+  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center fixed top-16 left-2/4 w-64 h-10" (click)="openChangeMapModal()">
     Change Map
+  </button>
+  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center fixed top-4 left-3/4 w-64 h-10" (click)="endCombat()">
+    End Combat
   </button>
   <div  *ngIf="role === 'Dungeon Master'" class="mt-1 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full transition duration-200 flex items-center justify-center fixed top-16 left-3/4 w-64 h-10">
     <input type="range" id="iconScale" min="0.3" max="1" step="0.1" [value]="iconScale" (input)="updateIconScale($event)" class="w-full bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 rounded-full">

@@ -92,10 +92,13 @@ export class GalleryComponent implements OnInit {
     this.http.get(`https://${localIP}:8080/images`)
       .subscribe(
         (response: any) => {
-          this.images = response.map((image: any) => ({
-            ...image,
-            photo: `https://${localIP}:8080${image.photo}`
-          })).sort((a: any, b: any) => a.imageName.localeCompare(b.imageName));
+          this.images = response
+            .filter((image: any) => image.imageName !== null) // Filter out images with null imageName
+            .map((image: any) => ({
+              ...image,
+              photo: `https://${localIP}:8080${image.photo}`
+            }))
+            .sort((a: any, b: any) => a.imageName.localeCompare(b.imageName));
           this.latestImage = this.images.reduce((latest, image) => {
             return !latest || new Date(image.createdAt) > new Date(latest.createdAt) ? image : latest;
           }, null);
