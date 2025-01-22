@@ -1122,7 +1122,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('requestBattleState', () => {
-      socket.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex });
+      socket.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex, mapUrl: currentMapUrl });
     });
 
     socket.on('endCombat', async () => {

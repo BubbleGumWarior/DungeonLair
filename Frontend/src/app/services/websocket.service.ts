@@ -86,7 +86,8 @@ export class WebSocketService {
   }
 
   requestBattleState() {
-    this.socket.emit('requestBattleState');
+    const currentMapUrl = localStorage.getItem('currentMapUrl'); // Assuming current map URL is stored in localStorage
+    this.socket.emit('requestBattleState', { currentMapUrl });
   }
 
   endCombat() {

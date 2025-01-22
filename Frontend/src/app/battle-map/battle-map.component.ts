@@ -7,11 +7,12 @@ import { localIP } from '../config'; // Import localIP from config
 import { WebSocketService } from '../services/websocket.service'; // Import WebSocketService
 import { ChatButtonComponent } from '../chat-button/chat-button.component'; // Import ChatButtonComponent
 import { jwtDecode } from 'jwt-decode'; // Import jwtDecode
+import { RollButtonComponent } from '../roll-button/roll-button.component'; // Import RollButtonComponent
 
 @Component({
   selector: 'app-battle-map',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, ChatButtonComponent], // Add CommonModule, FormsModule, HttpClientModule, and ChatButtonComponent to imports
+  imports: [CommonModule, FormsModule, HttpClientModule, ChatButtonComponent, RollButtonComponent], // Add CommonModule, FormsModule, HttpClientModule, ChatButtonComponent, and RollButtonComponent to imports
   templateUrl: './battle-map.component.html',
   styleUrls: ['./battle-map.component.css']
 })
@@ -65,6 +66,7 @@ export class BattleMapComponent implements OnInit {
       this.alphabeticallySortedUsersInBattle = [...this.usersInBattle].sort((a, b) => a.characterName.localeCompare(b.characterName)); // Sort alphabetically by characterName
       this.turnCounter = data.turnCounter;
       this.currentTurnIndex = data.currentTurnIndex;
+      this.mapUrl = data.mapUrl || this.mapUrl; // Update mapUrl from battle state
 
       // Highlight the current turn
       this.highlightCurrentTurn();
@@ -265,21 +267,11 @@ export class BattleMapComponent implements OnInit {
 
   getCombatStatsKeys() {
     const keys = Object.keys(this.combatStats);
-    console.log("Raw___________");
-    console.log(keys);
-    console.log(keys.indexOf('undefined'));
-    console.log("Raw___________");
     const totalIndex = keys.indexOf('undefined');
     if (totalIndex !== -1) {
-      console.log("totalIndex !== -1___________");
-      console.log(keys.sort());
-      console.log("totalIndex !== -1___________");
       return keys.sort();
     }
     else{
-      console.log("Else___________");
-      console.log(keys.filter(key => key !== 'Total').sort().concat('Total'));
-      console.log("Else___________");
       return keys.filter(key => key !== 'Total').sort().concat('Total');
     }
   }
@@ -318,7 +310,7 @@ export class BattleMapComponent implements OnInit {
   }
 
   isCurrentUserTurn(): boolean {
-    return this.currentTurnIndex !== null && this.usersInBattle[this.currentTurnIndex].username === this.username;
+    return this.currentTurnIndex !== null && this.sortedUsersInBattle[this.currentTurnIndex].characterName === this.characterName;
   }
 
   advanceTurn() {

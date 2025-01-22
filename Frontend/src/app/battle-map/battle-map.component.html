@@ -166,4 +166,5 @@
   </div>
 
   <app-chat-button [newMessage]="diceResult" [username]="username || 'DefaultUser'"></app-chat-button>
+  <app-roll-button (resultRolled)="handleDiceResult($event)"></app-roll-button>
 </div>
