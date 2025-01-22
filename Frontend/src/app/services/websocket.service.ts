@@ -148,8 +148,8 @@ export class WebSocketService {
     window.dispatchEvent(event);
   }
 
-  sendCombatAction(action: string, target: string, value: number, username: string) {
-    this.socket.emit('combatAction', { action, target, value, username });
+  sendCombatAction(action: string, target: string, value: number, username: string, turnIndex: number) {
+    this.socket.emit('combatAction', { action, target, value, username, turnIndex });
   }
 
   onCombatAction(callback: (data: { action: string, target: string, value: number, username: string }) => void) {

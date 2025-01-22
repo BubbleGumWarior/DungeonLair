@@ -232,11 +232,11 @@ export class BattleMapComponent implements OnInit {
       const currentUser = this.sortedUsersInBattle[this.currentTurnIndex];
       if (this.combatAction === 'Take Damage' && this.combatValue !== null) {
         targetUser.currentHealth = Math.max(0, targetUser.currentHealth - this.combatValue);
-        this.webSocketService.sendCombatAction('Take Damage', this.combatTarget, this.combatValue, currentUser.username);
+        this.webSocketService.sendCombatAction('Take Damage', this.combatTarget, this.combatValue, currentUser.username, this.currentTurnIndex);
         this.updateCombatStats('Take Damage', this.combatTarget, this.combatValue, currentUser.username);
       } else if ((this.combatAction === 'Heal' || this.combatAction === 'Shield') && this.combatValue !== null) {
         targetUser.currentHealth = Math.min(targetUser.maxHealth, targetUser.currentHealth + this.combatValue);
-        this.webSocketService.sendCombatAction(this.combatAction, this.combatTarget, this.combatValue, currentUser.username);
+        this.webSocketService.sendCombatAction(this.combatAction, this.combatTarget, this.combatValue, currentUser.username, this.currentTurnIndex);
         this.updateCombatStats(this.combatAction, this.combatTarget, this.combatValue, currentUser.username);
       } else if (this.combatAction === 'Set Readied') {
         targetUser.isReadied = true;

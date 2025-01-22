@@ -1212,6 +1212,17 @@ io.on('connection', (socket) => {
       const user = liveUsers.find(user => user.id === socket.id);
       if (user) {
         data.username = user.username;
+        if (!combatStats[data.username]) {
+          combatStats[data.username] = { damageDealt: 0, healed: 0, shielded: 0 };
+        }
+        if (data.action === 'Take Damage') {
+          combatStats[data.username].damageDealt += data.value;
+        } else if (data.action === 'Heal') {
+          combatStats[data.username].healed += data.value;
+        } else if (data.action === 'Shield') {
+          combatStats[data.username].shielded += data.value;
+        }
+        io.emit('combatStats', combatStats); // Emit updated stats to all clients
         io.emit('combatAction', data);
       }
     });
