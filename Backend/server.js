@@ -1209,6 +1209,11 @@ io.on('connection', (socket) => {
     socket.on('requestCombatStats', () => {
       socket.emit('combatStats', combatStats);
     });
+
+    // Handle map change
+    socket.on('mapChange', (newMapUrl) => {
+      io.emit('mapChange', newMapUrl);
+    });
 });
 
 // Function to broadcast user updates

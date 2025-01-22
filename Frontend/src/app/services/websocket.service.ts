@@ -170,4 +170,12 @@ export class WebSocketService {
   onCombatStats(callback: (stats: { [username: string]: { damageDealt: number, healed: number, shielded: number } }) => void) {
     this.socket.on('combatStats', callback);
   }
+
+  broadcastMapChange(newMapUrl: string) {
+    this.socket.emit('mapChange', newMapUrl);
+  }
+
+  onMapChange(callback: (newMapUrl: string) => void) {
+    this.socket.on('mapChange', callback);
+  }
 }

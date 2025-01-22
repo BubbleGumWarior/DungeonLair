@@ -25,6 +25,7 @@ export class BattleMapComponent implements OnInit {
   showCombatActionsModal: boolean = false;
   showKillTargetModal: boolean = false;
   showEndCombatModal: boolean = false; // Add showEndCombatModal property
+  showChangeMapModal: boolean = false; // Add showChangeMapModal property
   npcName: string = '';
   npcMaxHealth: number | null = null;
   npcCurrentHealth: number | null = null;
@@ -85,6 +86,9 @@ export class BattleMapComponent implements OnInit {
     });
     this.webSocketService.onEndCombat(() => {
       this.showEndCombatModal = true; // Show the modal after receiving the end combat event
+    });
+    this.webSocketService.onMapChange((newMapUrl) => {
+      this.mapUrl = newMapUrl;
     });
   }
 
@@ -339,6 +343,7 @@ export class BattleMapComponent implements OnInit {
   endCombat() {
     this.webSocketService.sendCombatStats(this.combatStats); // Send final stats to the server
     this.webSocketService.endCombat();
+    this.mapUrl = `https://${localIP}:8080/assets/images/Map.jpg`; // Reset to default map
   }
 
   closeEndCombatModal() {
@@ -379,6 +384,26 @@ export class BattleMapComponent implements OnInit {
         turnCounter: this.turnCounter,
         currentTurnIndex: this.currentTurnIndex
       });
+    }
+  }
+
+  openChangeMapModal() {
+    this.showChangeMapModal = true;
+  }
+
+  closeChangeMapModal() {
+    this.showChangeMapModal = false;
+  }
+
+  async uploadMapImage(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append('image', file);
+      const response = await this.webSocketService.uploadGalleryImage(formData);
+      this.mapUrl = `https://${localIP}:8080${response.filePath}`;
+      this.webSocketService.broadcastMapChange(this.mapUrl);
+      this.closeChangeMapModal();
     }
   }
 }
