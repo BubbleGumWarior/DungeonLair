@@ -1,6 +1,7 @@
 const express = require('express');
 const https = require('https'); // Ensure https is used
 const fs = require('fs');
+const { unlink } = require('fs').promises; // Import unlink from fs.promises
 const socketIo = require('socket.io');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -1049,6 +1050,8 @@ let turnCounter = null;
 let currentTurnIndex = null;
 let vcMembers = [];
 let combatStats = {}; // Add combatStats variable
+let currentMapUrl = null; // Add variable to store the current map URL
+let currentIconScale = 1; // Add variable to store the current icon scale
 
 io.on('connection', (socket) => {
     console.log('A user connected with socket ID:', socket.id);
@@ -1122,12 +1125,24 @@ io.on('connection', (socket) => {
       socket.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex });
     });
 
-    socket.on('endCombat', () => {
+    socket.on('endCombat', async () => {
         usersInBattle = [];
         turnCounter = null;
         currentTurnIndex = null;
         io.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex });
         io.emit('endCombat'); // Emit endCombat event to all clients
+
+        // Delete the uploaded map image if it exists
+        if (currentMapUrl && currentMapUrl !== `https://${localIP}:8080/assets/images/Map.jpg`) {
+          const filePath = path.join(__dirname, 'assets/images', path.basename(currentMapUrl));
+          try {
+            await unlink(filePath);
+            console.log(`Deleted map image: ${filePath}`);
+          } catch (error) {
+            console.error(`Error deleting map image: ${error.message}`);
+          }
+          currentMapUrl = null; // Reset the current map URL
+        }
     });
 
     socket.on('combatStats', (stats) => {
@@ -1212,7 +1227,14 @@ io.on('connection', (socket) => {
 
     // Handle map change
     socket.on('mapChange', (newMapUrl) => {
+      currentMapUrl = newMapUrl;
       io.emit('mapChange', newMapUrl);
+    });
+
+    // Handle icon scale change
+    socket.on('iconScaleChange', (newScale) => {
+      currentIconScale = newScale;
+      io.emit('iconScaleChange', newScale);
     });
 });
 

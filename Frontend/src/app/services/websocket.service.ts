@@ -178,4 +178,12 @@ export class WebSocketService {
   onMapChange(callback: (newMapUrl: string) => void) {
     this.socket.on('mapChange', callback);
   }
+
+  broadcastIconScaleChange(newScale: number) {
+    this.socket.emit('iconScaleChange', newScale);
+  }
+
+  onIconScaleChange(callback: (newScale: number) => void) {
+    this.socket.on('iconScaleChange', callback);
+  }
 }

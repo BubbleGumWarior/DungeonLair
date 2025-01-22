@@ -46,6 +46,7 @@ export class BattleMapComponent implements OnInit {
   diceResult: string = ''; // Add diceResult property
   galleryImages: any[] = []; // Add property to store gallery images
   combatStats: { [username: string]: { damageDealt: number, healed: number, shielded: number } } = {}; // Update combatStats property
+  iconScale: number = 1; // Add iconScale property
 
   constructor(private route: ActivatedRoute, private router: Router, private webSocketService: WebSocketService, private http: HttpClient) {}
 
@@ -89,6 +90,9 @@ export class BattleMapComponent implements OnInit {
     });
     this.webSocketService.onMapChange((newMapUrl) => {
       this.mapUrl = newMapUrl;
+    });
+    this.webSocketService.onIconScaleChange((newScale) => {
+      this.iconScale = newScale;
     });
   }
 
@@ -405,5 +409,10 @@ export class BattleMapComponent implements OnInit {
       this.webSocketService.broadcastMapChange(this.mapUrl);
       this.closeChangeMapModal();
     }
+  }
+
+  updateIconScale(event: any) {
+    this.iconScale = event.target.value;
+    this.webSocketService.broadcastIconScaleChange(this.iconScale);
   }
 }
