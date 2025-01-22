@@ -97,6 +97,13 @@ export class WebSocketService {
 
   killTarget(target: string) {
     this.socket.emit('killTarget', target);
+    // Remove the target from the turn list and remove their names and icons from everywhere
+    const turnList = JSON.parse(localStorage.getItem('turnList') || '[]');
+    const updatedTurnList = turnList.filter((item: any) => item.username !== target);
+    localStorage.setItem('turnList', JSON.stringify(updatedTurnList));
+
+    const targetElements = document.querySelectorAll(`[data-username="${target}"]`);
+    targetElements.forEach(element => element.remove());
   }
 
   updateVcMembers(members: VcMember[]) {

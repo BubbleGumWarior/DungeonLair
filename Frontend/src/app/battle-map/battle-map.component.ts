@@ -287,7 +287,17 @@ export class BattleMapComponent implements OnInit {
 
   killTarget() {
     if (this.killTargetName) {
-      this.webSocketService.killTarget(this.killTargetName);
+      const targetIndex = this.usersInBattle.findIndex(user => user.characterName === this.killTargetName);
+      if (targetIndex !== -1) {
+        this.usersInBattle.splice(targetIndex, 1);
+        this.sortedUsersInBattle = this.sortedUsersInBattle.filter(user => user.characterName !== this.killTargetName);
+        this.alphabeticallySortedUsersInBattle = this.alphabeticallySortedUsersInBattle.filter(user => user.characterName !== this.killTargetName);
+        this.webSocketService.sendBattleUpdate({
+          usersInBattle: this.usersInBattle,
+          turnCounter: this.turnCounter,
+          currentTurnIndex: this.currentTurnIndex
+        });
+      }
       this.closeKillTargetModal();
     }
   }

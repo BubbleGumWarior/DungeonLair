@@ -1155,11 +1155,8 @@ io.on('connection', (socket) => {
     });
 
     socket.on('killTarget', (target) => {
-      const targetUser = usersInBattle.find(user => user.characterName === target);
-      if (targetUser) {
-        targetUser.currentHealth = 0;
-        io.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex });
-      }
+      usersInBattle = usersInBattle.filter(user => user.characterName !== target);
+      io.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex });
     });
 
     socket.on('updateVcMembers', (members) => {
