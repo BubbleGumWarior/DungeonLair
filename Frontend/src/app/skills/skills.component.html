@@ -1,14 +1,14 @@
 <div class="p-6">
   <input type="text" [(ngModel)]="searchQuery" placeholder="Search skills..." class="w-full p-2 mb-4 border border-blue-800 rounded-md bg-stone-950 text-blue-800">
   <div class="flex space-x-4 mb-4">
-    <button (click)="setSortCriteria('alphabetically')" [class.bg-blue-950]="sortCriteria === 'alphabetically'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Alphabetically</button>
-    <button (click)="setSortCriteria('diceRoll')" [class.bg-blue-950]="sortCriteria === 'diceRoll'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Damage</button>
-    <button (click)="setSortCriteria('mainStat')" [class.bg-blue-950]="sortCriteria === 'mainStat'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Stat Modifier</button>
+    <button (click)="setSortCriteria('alphabetically')" [class.bg-blue-900]="sortCriteria === 'alphabetically'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Alphabetically</button>
+    <button (click)="setSortCriteria('diceRoll')" [class.bg-blue-900]="sortCriteria === 'diceRoll'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Damage</button>
+    <button (click)="setSortCriteria('mainStat')" [class.bg-blue-900]="sortCriteria === 'mainStat'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Stat Modifier</button>
   </div>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
     <div *ngFor="let skill of filteredSkills" 
-        class="flex flex-col items-start p-4 text-blue-800 h-full w-full bg-blue-950 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-blue-800 mb-4">
+        class="flex flex-col items-start p-4 text-blue-800 h-full w-full bg-blue-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-blue-800 mb-4">
         
         <!-- Top content (always at the top) -->
         <div class="w-full text-center">

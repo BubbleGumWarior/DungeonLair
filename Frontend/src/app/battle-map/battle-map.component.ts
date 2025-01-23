@@ -156,8 +156,8 @@ export class BattleMapComponent implements OnInit {
       if (userIndex === -1) {
         const initiative = Math.floor(Math.random() * 20) + 1;
         const photo = this.getUserPhotoUrl(this.characterName);
-        const positionX = Math.random() * 100; // Random position for demonstration
-        const positionY = Math.random() * 100; // Random position for demonstration
+        const positionX = 50; // Center position
+        const positionY = 50; // Center position
         this.usersInBattle.push({ username: this.username, characterName: this.characterName, initiative, maxHealth: this.maxHealth, currentHealth: this.currentHealth, isEnemy: false, photo, positionX, positionY });
       } else {
         this.usersInBattle.splice(userIndex, 1);
@@ -192,8 +192,8 @@ export class BattleMapComponent implements OnInit {
     if (this.npcName && this.npcMaxHealth !== null && this.npcCurrentHealth !== null) {
       const initiative = this.npcInitiative !== null ? this.npcInitiative : Math.floor(Math.random() * 20) + 1;
       const photo = this.getUserPhotoUrl(this.npcName);
-      const positionX = Math.random() * 100; // Random position for demonstration
-      const positionY = Math.random() * 100; // Random position for demonstration
+      const positionX = 50; // Center position
+      const positionY = 50; // Center position
 
       // Check if NPC name already exists and rename if necessary
       let npcName = this.npcName;

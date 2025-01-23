@@ -80,7 +80,7 @@ export class SoundbarComponent {
         } else if (i < 2 * this.dataArray.length / 3) {
           canvasContext!.fillStyle = 'rgb(30, 64, 175)'; // blue-800
         } else {
-          canvasContext!.fillStyle = 'rgb(30, 58, 138)'; // blue-950
+          canvasContext!.fillStyle = 'rgb(30, 58, 138)'; // blue-900
         }
         canvasContext!.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
 
@@ -98,7 +98,7 @@ export class SoundbarComponent {
         } else if (i < 2 * this.dataArray.length / 3) {
           canvasContext!.fillStyle = 'rgb(30, 64, 175)'; // blue-800
         } else {
-          canvasContext!.fillStyle = 'rgb(30, 58, 138)'; // blue-950
+          canvasContext!.fillStyle = 'rgb(30, 58, 138)'; // blue-900
         }
         canvasContext!.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
 
