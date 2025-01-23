@@ -2,9 +2,9 @@
   <i class="fas fa-plus"></i> Add Note
 </button>
 <div class="grid grid-cols-1 md:grid-cols-6 gap-6 p-6 pb-40">
-  <div *ngFor="let item of items" class="col text-blue-800 border border-blue-800 rounded p-2" (click)="openNoteModal(item)" style="height: 200px; overflow: hidden; cursor: pointer;"> <!-- Double the height -->
-    <div class="text-xl border-b-2 border-blue-800 text-center">{{ item.name }}</div>
-    <div class="w-full p-2 rounded" style="height: 160px; overflow: hidden;">{{ item.description }}</div> <!-- Adjust the height accordingly -->
+  <div *ngFor="let note of notes" class="col text-blue-800 border border-blue-800 rounded p-2" (click)="openNoteModal(note)" style="height: 200px; overflow: hidden; cursor: pointer;"> <!-- Double the height -->
+    <div class="text-xl border-b-2 border-blue-800 text-center">{{ note.name }}</div>
+    <div class="w-full p-2 rounded" style="height: 160px; overflow: hidden;">{{ note.description }}</div> <!-- Adjust the height accordingly -->
   </div>
 </div>
 
@@ -16,7 +16,7 @@
       <label class="block text-blue-800 font-bold mb-2">Note Name</label>
       <input type="text" [(ngModel)]="newNoteName" class="bbg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 px-2 py-1 rounded" />
     </div>
-    <button class="bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 px-4 py-2 rounded mr-2" (click)="addItem()">Submit</button>
+    <button class="bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 px-4 py-2 rounded mr-2" (click)="addNote()">Submit</button>
     <button class="bg-stone-950 text-blue-800 border border-blue-800 px-4 py-2 rounded" (click)="showAddNoteModal = false">Cancel</button>
   </div>
 </div>

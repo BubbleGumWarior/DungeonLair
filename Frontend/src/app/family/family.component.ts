@@ -1,10 +1,10 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http'; // Import HttpClient
 import { localIP } from '../config'; // Import the IP address
 
 interface Character {
   characterName: string;
-  age: number;
   race: string;
   photo: string; // This will now hold file paths
 }
@@ -18,55 +18,28 @@ interface Character {
 })
 export class FamilyComponent implements OnInit {
   Characters: Character[] = [];
-  familyMembers: number[] = [];
-  @Input() characterName: string | null = '';
+  @Input() characterID: string | null = null;
+
+  constructor(private http: HttpClient) {}
 
   ngOnInit() {
-    if (this.characterName) {
-      this.fetchFamilyMembers(this.characterName);
+    if (this.characterID) {
+      this.fetchFamilyMembers(this.characterID);
     }
   }
 
-  async fetchFamilyMembers(characterName: string) {
-    try {
-      const response = await fetch(`https://${localIP}:8080/character-info/${characterName}`);
-      if (!response.ok) throw new Error('Failed to fetch family members');
-      
-      const familyData = await response.json();
-      this.updateFamilyMembers(familyData);  // Update family members with the fetched data
-      await this.fetchFamilyById(); // Fetch family members' details after getting IDs
-    } catch (error) {
-      console.error('Error fetching family members:', error);
-    }
-  }
-
-  updateFamilyMembers(familyData: any) {
-    this.familyMembers = familyData.familyMembers; // Assuming familyMembers is an array of IDs
-  }
-
-  async fetchFamilyById() {
-    try {
-      const fetchPromises = this.familyMembers.map(async (familyMemberID) => {
-        const response = await fetch(`https://${localIP}:8080/family-member/${familyMemberID}`);
-        if (!response.ok) throw new Error(`Failed to fetch family member with ID ${familyMemberID}`);
-        
-        const character: Character = await response.json();
-        this.updateCharacters(character);
-      });
-      
-      // Wait for all fetch requests to complete
-      await Promise.all(fetchPromises);
-    } catch (error) {
-      console.error('Error fetching family member details:', error);
-    }
-  }
-
-  updateCharacters(character: Character) {
-    // Adjust the photo URL to be relative
-    character.photo = character.photo ? `https://${localIP}:8080${character.photo}` : '';
-    // Append the fetched character to the Characters array
-    this.Characters.push(character);
-    // Sort characters alphabetically by characterName
-    this.Characters.sort((a, b) => a.characterName.localeCompare(b.characterName));
+  fetchFamilyMembers(characterID: string) {
+    this.http.get<Character[]>(`https://${localIP}:8080/family-member/${characterID}`).subscribe(
+      (data) => {
+        this.Characters = data.map(member => ({
+          characterName: member.characterName,
+          race: member.race,
+          photo: member.photo ? `https://${localIP}:8080${member.photo}` : ''
+        }));
+      },
+      (error) => {
+        console.error('Error fetching family members:', error);
+      }
+    );
   }
 }

@@ -1,14 +1,16 @@
 <div [ngClass]="{'grid grid-cols-3 gap-6 p-6': !isMobile, 'flex flex-col gap-6 p-6': isMobile}">
     <!-- Column 2: Character Bio and Image -->
     <div class="order-1 md:order-2 flex flex-col items-center p-4 text-blue-800 h-full w-full bg-blue-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-blue-800">
-        <div class="bg-white w-full h-full mb-4">
-            <img *ngIf="photo" [src]="photo" alt="Character Photo" class="w-full h-full" />
+        <div class="bg-white w-full h-full mb-4 relative">
+            <img *ngIf="photo && !showMask" [src]="photo" alt="Character Photo" class="w-full h-full" />
+            <img *ngIf="maskPhoto && showMask" [src]="maskPhoto" alt="Mask Photo" class="w-full h-full" />
             <div *ngIf="!photo" class="flex items-center justify-center h-full">
                 <label class="cursor-pointer">
                     <span class="text-blue-800">Upload Image</span>
                     <input type="file" (change)="onImageUpload($event)" class="hidden" />
                 </label>
             </div>
+            <i *ngIf="maskPhoto" class="fa-solid fa-mask absolute top-2 right-2 text-white cursor-pointer" (click)="toggleMask()"></i>
         </div>
         <div class="text-center">
             <h2 class="text-3xl font-bold">{{ characterName }}</h2>
@@ -18,176 +20,196 @@
         </div>
     </div>
 
-    <!-- Column 1: Strength, Dexterity, Constitution -->
+    <!-- Column 1: Strength, Dexterity, Constitution or Mask Stats -->
     <div class="order-2 md:order-1 space-y-4 p-4 text-blue-800 h-full w-full bg-blue-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-blue-800">
-        <div>            
-            <div class="flex justify-between">
-                <h2 class="text-4xl font-bold">Strength</h2>
-                <p class="text-4xl font-bold">{{ strength }}</p>
+        <div *ngIf="!showMask">
+            <div>            
+                <div class="flex justify-between">
+                    <h2 class="text-4xl font-bold">Strength</h2>
+                    <p class="text-4xl font-bold">{{ strength }}</p>
+                </div>
+                <div class="flex justify-center">
+                    <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{strengthMod}})</p>
+                </div>            
+                <ul class="text-sm">
+                    <li class="flex justify-between">
+                        <span>Athletics</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ athletics }}</span>
+                    </li>
+                </ul>
             </div>
-            <div class="flex justify-center">
-                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{strengthMod}})</p>
-            </div>            
-            <ul class="text-sm">
-                <li class="flex justify-between">
-                    <span>Athletics</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ athletics }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Swordsmanship</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ swordsmanship }}</span>
-                </li>
-            </ul>
-        </div>
 
-        <div>            
-            <div class="flex justify-between">
-                <h2 class="text-4xl font-bold">Dexterity</h2>
-                <p class="text-4xl font-bold">{{ dexterity }}</p>
+            <div>            
+                <div class="flex justify-between">
+                    <h2 class="text-4xl font-bold">Dexterity</h2>
+                    <p class="text-4xl font-bold">{{ dexterity }}</p>
+                </div>
+                <div class="flex justify-center">
+                    <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{dexterityMod}})</p>
+                </div>            
+                <ul class="text-sm">
+                    <li class="flex justify-between">
+                        <span>Acrobatics</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ acrobatics }}</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Sleight of Hand</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ sleightOfHand }}</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Stealth</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ stealth }}</span>
+                    </li>
+                </ul>
             </div>
-            <div class="flex justify-center">
-                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{dexterityMod}})</p>
-            </div>            
-            <ul class="text-sm">
-                <li class="flex justify-between">
-                    <span>Acrobatics</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ acrobatics }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Sleight of Hand</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ sleightOfHand }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Stealth</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ stealth }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Marksmanship</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ marksmanship }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Pilot</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ pilot }}</span>
-                </li>
-            </ul>
+            <div>            
+                <div class="flex justify-between">
+                    <h2 class="text-4xl font-bold">Constitution</h2>
+                    <p class="text-4xl font-bold">{{ constitution }}</p>
+                </div>
+                <div class="flex justify-center">
+                    <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{constitutionMod}})</p>
+                </div>            
+                <ul class="text-sm">
+                    <li class="flex justify-between">
+                        <span>-</span>
+                        <span>-</span>
+                    </li>
+                </ul>
+            </div>
         </div>
-        <div>            
+        <div *ngIf="showMask" class="h-full flex flex-col justify-between">
             <div class="flex justify-between">
-                <h2 class="text-4xl font-bold">Constitution</h2>
-                <p class="text-4xl font-bold">{{ constitution }}</p>
+                <h2 class="text-4xl font-bold">Attack Damage</h2>
+                <p class="text-4xl font-bold">{{ maskStats.attackDamage }}</p>
             </div>
-            <div class="flex justify-center">
-                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{constitutionMod}})</p>
-            </div>            
-            <ul class="text-sm">
-                <li class="flex justify-between">
-                    <span>-</span>
-                    <span>-</span>
-                </li>
-            </ul>
+            <div class="flex justify-between">
+                <h2 class="text-4xl font-bold">Ability Damage</h2>
+                <p class="text-4xl font-bold">{{ maskStats.abilityDamage }}</p>
+            </div>
+            <div class="flex justify-between">
+                <h2 class="text-4xl font-bold">Magic Resistance</h2>
+                <p class="text-4xl font-bold">{{ maskStats.magicResist }}</p>
+            </div>
+            <div class="flex justify-between">
+                <h2 class="text-4xl font-bold">Protections</h2>
+                <p class="text-4xl font-bold">{{ maskStats.protections }}</p>
+            </div>
+            <div class="flex justify-between">
+                <h2 class="text-4xl font-bold">Health</h2>
+                <p class="text-4xl font-bold">{{ maskStats.health }}</p>
+            </div>
+            <div class="flex justify-between">
+                <h2 class="text-4xl font-bold">Speed</h2>
+                <p class="text-4xl font-bold">{{ maskStats.speed }}</p>
+            </div>
         </div>
     </div>
 
-    <!-- Column 3: Intelligence, Wisdom, Charisma -->
+    <!-- Column 3: Intelligence, Wisdom, Charisma or Mask Skills -->
     <div class="order-3 space-y-4 p-4 text-blue-800 h-full w-full bg-blue-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-blue-800">
-        <div>            
-            <div class="flex justify-between">
-                <h2 class="text-4xl font-bold">Intelligence</h2>
-                <p class="text-4xl font-bold">{{ intelligence }}</p>
+        <div *ngIf="!showMask">
+            <div>            
+                <div class="flex justify-between">
+                    <h2 class="text-4xl font-bold">Intelligence</h2>
+                    <p class="text-4xl font-bold">{{ intelligence }}</p>
+                </div>
+                <div class="flex justify-center">
+                    <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{intelligenceMod}})</p>
+                </div>            
+                <ul class="text-sm">
+                    <li class="flex justify-between">
+                        <span>History</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ history }}</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Investigation</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ investigation }}</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Nature</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ nature }}</span>
+                    </li>
+                </ul>
             </div>
-            <div class="flex justify-center">
-                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{intelligenceMod}})</p>
-            </div>            
-            <ul class="text-sm">
-                <li class="flex justify-between">
-                    <span>History</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ history }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Investigation</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ investigation }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Nature</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ nature }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Force Strength</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ forceStrength }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Splicing</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ splicing }}</span>
-                </li>
-            </ul>
-        </div>
 
-        <div>            
-            <div class="flex justify-between">
-                <h2 class="text-4xl font-bold">Wisdom</h2>
-                <p class="text-4xl font-bold">{{ wisdom }}</p>
+            <div>            
+                <div class="flex justify-between">
+                    <h2 class="text-4xl font-bold">Wisdom</h2>
+                    <p class="text-4xl font-bold">{{ wisdom }}</p>
+                </div>
+                <div class="flex justify-center">
+                    <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{wisdomMod}})</p>
+                </div>            
+                <ul class="text-sm">
+                    <li class="flex justify-between">
+                        <span>Animal handling</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ animalHandling }}</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Insight</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ insight }}</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Medicine</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ medicine }}</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Perception</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ perception }}</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Survival</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ survival }}</span>
+                    </li>
+                </ul>
             </div>
-            <div class="flex justify-center">
-                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{wisdomMod}})</p>
-            </div>            
-            <ul class="text-sm">
-                <li class="flex justify-between">
-                    <span>Animal handling</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ animalHandling }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Insight</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ insight }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Medicine</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ medicine }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Perception</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ perception }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Survival</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ survival }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Force Capacity</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ forceCapacity }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Mapping</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ mapping }}</span>
-                </li>
-            </ul>
-        </div>
 
-        <div>            
-            <div class="flex justify-between">
-                <h2 class="text-4xl font-bold">Charisma</h2>
-                <p class="text-4xl font-bold">{{ charisma }}</p>
+            <div>            
+                <div class="flex justify-between">
+                    <h2 class="text-4xl font-bold">Charisma</h2>
+                    <p class="text-4xl font-bold">{{ charisma }}</p>
+                </div>
+                <div class="flex justify-center">
+                    <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{charismaMod}})</p>
+                </div>            
+                <ul class="text-sm">
+                    <li class="flex justify-between">
+                        <span>Deception</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ deception }}</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Intimidation</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ intimidation }}</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Performance</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ performance }}</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Persuasion</span>
+                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ persuasion }}</span>
+                    </li>
+                </ul>
             </div>
-            <div class="flex justify-center">
-                <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{charismaMod}})</p>
-            </div>            
-            <ul class="text-sm">
-                <li class="flex justify-between">
-                    <span>Deception</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ deception }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Intimidation</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ intimidation }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Performance</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ performance }}</span>
-                </li>
-                <li class="flex justify-between">
-                    <span>Persuasion</span>
-                    <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ persuasion }}</span>
-                </li>
-            </ul>
+        </div>
+        <div *ngIf="showMask">
+            <div>
+                <h2 class="text-4xl font-bold underline">Passive Skill</h2>
+                <p class="text-2xl">{{ maskSkills.passiveSkill }}</p>
+            </div>
+            <div>
+                <h2 class="text-4xl font-bold underline">Active Skills</h2>
+                <ul class="text-sm">
+                    <li *ngFor="let skill of maskActiveSkillDetails" class="flex flex-col">
+                        <span class="text-2xl font-bold">{{ skill.skillName }}</span>
+                        <span><strong>Main Stat:</strong> {{ skill.mainStat }} ({{ skill.mainStatPercentage }}%)</span>
+                        
+                        <span><strong>Cooldown:</strong> {{ skill.cooldown }} seconds</span>
+                        <span><strong>Description:</strong> {{ skill.description }}</span>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>

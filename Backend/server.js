@@ -11,17 +11,16 @@ const sequelize = require('./db');
 const { Op } = require('sequelize'); // Import Op from Sequelize
 const CharacterInfo = require('./models/CharacterInfo'); // Import the CharacterInfo model
 const StatsSheet = require('./models/StatsSheet'); // Import the StatsSheet model
-const FamilyMembers = require('./models/FamilyMembers'); // Import the FamilyMembers model
-const FriendMembers = require('./models/FriendMembers'); // Import the FriendMembers model
 const ItemList = require('./models/ItemList'); // Import the ItemList model
 const SkillList = require('./models/SkillList'); // Import the SkillList model
 const ChatHistory = require('./models/ChatHistory'); // Import the ChatHistory model
 const DMChatHistory = require('./models/DMChatHistory'); // Import the DMChatHistory model
 const Images = require('./models/Images'); // Import the Images model
-const SpaceshipImages = require('./models/SpaceShipImages'); // Correct the import for SpaceShipImages
 const Note = require('./models/Note'); // Ensure the file name and path are correct
 const User = require('./models/User'); // Import the User model
 const Score = require('./models/Score'); // Import the Score model
+const MaskList = require('./models/MaskList'); // Import the MaskList model
+const MaskSkills = require('./models/MaskSkills'); // Import the MaskSkills model
 const { localIP, JWT_SECRET } = require('./config'); // Import the IP address and JWT secret
 const multer = require('multer');
 const path = require('path');
@@ -132,18 +131,8 @@ app.post('/register', async (req, res) => {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create the user in the database
-    const newUser = await User.create({
-      username,
-      email,
-      password: hashedPassword,
-      role,
-      characterName
-    });
-
     // Initialize CharacterInfo with provided values
-    await CharacterInfo.create({
-      characterName,
+    const characterInfo = await CharacterInfo.create({
       race,
       class: characterClass,
       level,
@@ -154,34 +143,35 @@ app.post('/register', async (req, res) => {
       skillList
     });
 
+    // Create the user in the database
+    const newUser = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+      role,
+      characterID: characterInfo.characterID // Set characterID from created CharacterInfo
+    });
+
     // Initialize StatsSheet with 0 values for each stat
     await StatsSheet.create({
-      characterName,
+      characterID: characterInfo.characterID, // Set characterID from created CharacterInfo
       strength: 0,
       athletics: 0,
-      swordsmanship: 0,
       dexterity: 0,
       acrobatics: 0,
       sleightOfHand: 0,
       stealth: 0,
-      marksmanship: 0,
-      pilot: 0,
       constitution: 0,
       intelligence: 0,
-      arcana: 0,
       history: 0,
       investigation: 0,
       nature: 0,
-      forceStrength: 0,
-      splicing: 0,
       wisdom: 0,
       animalHandling: 0,
       insight: 0,
       medicine: 0,
       perception: 0,
       survival: 0,
-      forceCapacity: 0,
-      mapping: 0,
       charisma: 0,
       deception: 0,
       intimidation: 0,
@@ -201,22 +191,30 @@ app.post('/register', async (req, res) => {
 
 // Endpoint for login (to generate JWT)
 app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-    const user = await User.findOne({ where: { email } });
+  const { email, password } = req.body;
+  const user = await User.findOne({ where: { email } });
 
-    if (!user) {
-        return res.status(401).send('Invalid credentials');
-    }
+  if (!user) {
+    return res.status(401).send('Invalid credentials');
+  }
 
-    // Compare hashed password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-        return res.status(401).send('Invalid credentials');
-    }
+  // Compare hashed password
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    return res.status(401).send('Invalid credentials');
+  }
 
-    // Generate JWT including characterName
-    const token = jwt.sign({ email: user.email, role: user.role, characterName: user.characterName, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
-    res.json({ token });
+  // Fetch character info to get characterID
+  const characterInfo = await CharacterInfo.findOne({ where: { characterID: user.characterID } });
+  const characterID = characterInfo ? characterInfo.characterID : null;
+
+  // Generate JWT including characterID
+  const token = jwt.sign(
+    { email: user.email, role: user.role, characterID, username: user.username },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+  res.json({ token, characterID, username: user.username, role: user.role });
 });
 
 // Define your other endpoints here...
@@ -325,10 +323,10 @@ app.get('/dm-chat-history/', verifyToken, async (req, res) => {
     }
 });
 
-app.get('/stats-sheet/:characterName', async (req, res) => {
-    const { characterName } = req.params;
+app.get('/stats-sheet/:characterID', async (req, res) => {
+    const { characterID } = req.params;
     try {
-        const statsSheet = await StatsSheet.findOne({ where: { characterName } });
+        const statsSheet = await StatsSheet.findOne({ where: { characterID } });
         if (!statsSheet) {
             return res.status(404).send('Stats sheet not found');
         }
@@ -339,12 +337,12 @@ app.get('/stats-sheet/:characterName', async (req, res) => {
     }
 });
 
-app.put('/stats-sheet/:characterName', async (req, res) => {
-  const { characterName } = req.params;
+app.put('/stats-sheet/:characterID', async (req, res) => {
+  const { characterID } = req.params;
   const updatedStats = req.body;
 
   try {
-    const result = await StatsSheet.update(updatedStats, { where: { characterName } });
+    const result = await StatsSheet.update(updatedStats, { where: { characterID } });
     if (result[0] === 0) {
       return res.status(404).json({ message: 'Stats sheet not found' });
     }
@@ -355,10 +353,10 @@ app.put('/stats-sheet/:characterName', async (req, res) => {
   }
 });
 
-app.get('/character-info/:characterName', async (req, res) => {
-    const { characterName } = req.params;
+app.get('/character-info/:characterID', async (req, res) => {
+    const { characterID } = req.params;
     try {
-        const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+        const characterInfo = await CharacterInfo.findOne({ where: { characterID } });
         if (!characterInfo) {
             return res.status(404).send('Character info not found');
         }
@@ -369,60 +367,132 @@ app.get('/character-info/:characterName', async (req, res) => {
     }
 });
 
-app.get('/family-member/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const familyMember = await FamilyMembers.findOne({ where: { id } });
-        if (!familyMember) {
-            return res.status(404).send('Family member not found');
-        }
-        res.json(familyMember);
-    } catch (error) {
-        console.error('Error fetching family member:', error);
-        res.status(500).send('Failed to fetch family member');
+app.get('/family-member/:characterID', async (req, res) => {
+  const { characterID } = req.params;
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterID: characterID } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
     }
+
+    const familyMembers = await CharacterInfo.findAll({
+      where: {
+        characterID: {
+          [Op.in]: characterInfo.familyMembers
+        }
+      }
+    });
+
+    const familyDetails = await Promise.all(
+      familyMembers.map(async (family) => {
+        const familyInfo = await CharacterInfo.findOne({ where: { characterID: family.characterID } });
+        return familyInfo;
+      })
+    );
+
+    res.json(familyDetails);
+  } catch (error) {
+      console.error('Error fetching family member:', error);
+      res.status(500).send('Failed to fetch family member');
+  }
 });
 
-app.get('/friend-member/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const friendMember = await FriendMembers.findOne({ where: { id } });
-        if (!friendMember) {
-            return res.status(404).send('Friend member not found');
-        }
-        res.json(friendMember);
-    } catch (error) {
-        console.error('Error fetching friend member:', error);
-        res.status(500).send('Failed to fetch friend member');
+app.get('/friend-member/:characterID', async (req, res) => {
+  const { characterID } = req.params;
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterID: characterID } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
     }
+
+    const friendMembers = await CharacterInfo.findAll({
+      where: {
+        characterID: {
+          [Op.in]: characterInfo.friendMembers
+        }
+      }
+    });
+
+    const friendDetails = await Promise.all(
+      friendMembers.map(async (friend) => {
+        const friendInfo = await CharacterInfo.findOne({ where: { characterID: friend.characterID } });
+        return friendInfo;
+      })
+    );
+
+    res.json(friendDetails);
+  } catch (error) {
+      console.error('Error fetching friend member:', error);
+      res.status(500).send('Failed to fetch friend member');
+  }
 });
 
-app.get('/item-list/:itemID', async (req, res) => {
-    const { itemID } = req.params;
-    try {
-        const item = await ItemList.findOne({ where: { itemID } });
-        if (!item) {
-            return res.status(404).send('Item not found');
-        }
-        res.json(item);
-    } catch (error) {
-        console.error('Error fetching item:', error);
-        res.status(500).send('Failed to fetch item');
+app.get('/inventory-item/:characterID', async (req, res) => {
+  const { characterID } = req.params;
+  try {
+    const characterInfo = await CharacterInfo.findOne({ 
+      where: { 
+        characterID: characterID 
+      } 
+    });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
     }
+
+    const inventoryItem = await ItemList.findAll({
+      where: {
+        itemID: {
+          [Op.in]: characterInfo.itemInventory
+        }
+      }
+    });
+
+    const itemDetails = await Promise.all(
+      inventoryItem.map(async (item) => {
+        const itemInfo = await ItemList.findOne({ where: { itemID: item.itemID } });
+        return itemInfo;
+      })
+    );
+
+    res.json(itemDetails);
+  } catch (error) {
+      console.error('Error fetching item member:', error);
+      res.status(500).send('Failed to fetch item member');
+  }
 });
 
-app.get('/skill-list/:skillID', async (req, res) => {
-    const { skillID } = req.params;
-    try {
-        const skill = await SkillList.findOne({ where: { skillID } });
-        if (!skill) {
-            return res.status(404).send('Skill not found');
-        }
-        res.json(skill);
-    } catch (error) {
-        console.error('Error fetching skill:', error);
-        res.status(500).send('Failed to fetch skill');
+app.get('/skill-list/:characterID', async (req, res) => {
+  const { characterID } = req.params;
+  try {
+    const characterInfo = await CharacterInfo.findOne({ 
+      where: { 
+        characterID: characterID 
+      } 
+    });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
     }
+
+    const skills = await SkillList.findAll({
+      where: {
+        skillID: {
+          [Op.in]: characterInfo.skillList
+        }
+      }
+    });
+
+    const skillDetails = await Promise.all(
+      skills.map(async (skill) => {
+        const skillInfo = await SkillList.findOne({ where: { skillID: skill.skillID } });
+        return skillInfo;
+      })
+    );
+
+    res.json(skillDetails);
+  } catch (error) {
+      console.error('Error fetching skill member:', error);
+      res.status(500).send('Failed to fetch skill member');
+  }
 });
 
 app.get('/character-names', async (req, res) => {
@@ -483,12 +553,12 @@ app.post('/save-image-board', upload.single('image'), async (req, res) => {
     return res.status(400).send('No file uploaded.');
   }
   const filePath = `/assets/images/${req.file.filename}`; // Adjusted file path
-  const { characterName } = req.body;
+  const { characterID } = req.body;
 
   try {
-    if (characterName) {
+    if (characterID) {
       // Update the CharacterInfo table with the new image path
-      await CharacterInfo.update({ photo: filePath }, { where: { characterName } });
+      await CharacterInfo.update({ photo: filePath }, { where: { characterID } });
     }
     res.json({ filePath }); // Return relative path
   } catch (error) {
@@ -497,12 +567,12 @@ app.post('/save-image-board', upload.single('image'), async (req, res) => {
   }
 });
 
-app.put('/character-info-board/:characterName/photo', async (req, res) => {
-  const { characterName } = req.params;
+app.put('/character-info-board/:characterID/photo', async (req, res) => {
+  const { characterID } = req.params;
   const { photo } = req.body;
 
   try {
-    const result = await CharacterInfo.update({ photo }, { where: { characterName } });
+    const result = await CharacterInfo.update({ photo }, { where: { characterID } });
     if (result[0] === 0) {
       return res.status(404).json({ message: 'Character info not found' });
     }
@@ -529,473 +599,6 @@ app.post('/upload-gallery-image', upload.single('image'), async (req, res) => {
   } catch (error) {
     console.error('Error saving image:', error);
     res.status(500).send('Failed to save image');
-  }
-});
-
-// Endpoint to handle spaceship image upload
-app.post('/upload-spaceshipGallery-spaceshipImage', upload.single('spaceshipImage'), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).send('No file uploaded.');
-  }
-  const filePath = `/assets/images/${req.file.filename}`;
-  const { spaceshipImageName, shipClass, shipSize, atmosphereSpeed, spaceSpeed, description } = req.body;
-
-  try {
-    await SpaceshipImages.create({ photo: filePath, spaceshipImageName, shipClass, shipSize, atmosphereSpeed, spaceSpeed, description });
-    res.json({ filePath });
-  } catch (error) {
-    console.error('Error saving spaceship image:', error);
-    res.status(500).send('Failed to save spaceship image');
-  }
-});
-
-// Endpoint to fetch spaceship images
-app.get('/spaceshipImages', async (req, res) => {
-  try {
-    const spaceshipImages = await SpaceshipImages.findAll();
-    res.json(spaceshipImages);
-  } catch (error) {
-    console.error('Error fetching spaceship images:', error);
-    res.status(500).send('Failed to fetch spaceship images');
-  }
-});
-
-app.post('/character-info/:characterName/family-member', async (req, res) => {
-  const { characterName } = req.params;
-  const { characterName: newFamilyMemberName, age, race, photo } = req.body;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).send('Character info not found');
-    }
-
-    const newFamilyMember = await FamilyMembers.create({
-      characterID: characterInfo.id,
-      characterName: newFamilyMemberName, // Use the provided character name for the new family member
-      age,
-      race,
-      photo
-    });
-    res.status(201).json(newFamilyMember);
-  } catch (error) {
-    console.error('Error saving family member:', error);
-    res.status(500).send('Failed to save family member');
-  }
-});
-
-app.put('/character-info/:characterName/family-members', async (req, res) => {
-  const { characterName } = req.params;
-  const { familyMemberId } = req.body;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).json({ message: 'Character info not found' });
-    }
-
-    const updatedFamilyMembers = [...characterInfo.familyMembers, familyMemberId];
-    await CharacterInfo.update({ familyMembers: updatedFamilyMembers }, { where: { characterName } });
-
-    res.json({ message: 'Character family members updated successfully' }); // Return valid JSON
-  } catch (error) {
-    console.error('Error updating character family members:', error);
-    res.status(500).json({ message: 'Failed to update character family members' });
-  }
-});
-
-app.get('/character-info/:characterName/family-members', async (req, res) => {
-  const { characterName } = req.params;
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).send('Character info not found');
-    }
-
-    const familyMembers = await FamilyMembers.findAll({ where: { characterID: characterInfo.id } });
-    res.json(familyMembers);
-  } catch (error) {
-    console.error('Error fetching family members:', error);
-    res.status(500).send('Failed to fetch family members');
-  }
-});
-
-app.post('/character-info/:characterName/friend-member', async (req, res) => {
-  const { characterName } = req.params;
-  const { characterName: newFriendMemberName, age, race, photo } = req.body;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).send('Character info not found');
-    }
-
-    const newFriendMember = await FriendMembers.create({
-      characterID: characterInfo.id,
-      characterName: newFriendMemberName, // Use the provided character name for the new friend member
-      age,
-      race,
-      photo // Ensure the photo path is saved
-    });
-    res.status(201).json(newFriendMember);
-  } catch (error) {
-    console.error('Error saving friend member:', error);
-    res.status(500).send('Failed to save friend member');
-  }
-});
-
-app.put('/character-info/:characterName/friend-members', async (req, res) => {
-  const { characterName } = req.params;
-  const { friendMemberId } = req.body;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).json({ message: 'Character info not found' });
-    }
-
-    const updatedFriendMembers = [...characterInfo.friendMembers, friendMemberId];
-    await CharacterInfo.update({ friendMembers: updatedFriendMembers }, { where: { characterName } });
-
-    res.json({ message: 'Character friend members updated successfully' }); // Return valid JSON
-  } catch (error) {
-    console.error('Error updating character friend members:', error);
-    res.status(500).json({ message: 'Failed to update character friend members' });
-  }
-});
-
-app.get('/character-info/:characterName/friend-members', async (req, res) => {
-  const { characterName } = req.params;
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).send('Character info not found');
-    }
-
-    const friendMembers = await FriendMembers.findAll({ where: { characterID: characterInfo.id } });
-    res.json(friendMembers);
-  } catch (error) {
-    console.error('Error fetching friend members:', error);
-    res.status(500).send('Failed to fetch friend members');
-  }
-});
-
-app.get('/character-info/:characterName/inventory-items', async (req, res) => {
-  const { characterName } = req.params;
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).send('Character info not found');
-    }
-
-    const inventoryItems = await ItemList.findAll({
-      where: {
-        itemID: {
-          [Op.in]: characterInfo.itemInventory
-        }
-      }
-    });
-    res.json(inventoryItems);
-  } catch (error) {
-    console.error('Error fetching inventory items:', error);
-    res.status(500).send('Failed to fetch inventory items');
-  }
-});
-
-app.post('/character-info/:characterName/inventory-item', async (req, res) => {
-  const { characterName } = req.params;
-  const { itemName, type, mainStat, description, damage, photo } = req.body;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).send('Character info not found');
-    }
-
-    const newItem = await ItemList.create({
-      itemName,
-      type,
-      mainStat,
-      description,
-      damage,
-      photo
-    });
-
-    const updatedInventoryItems = [...characterInfo.itemInventory, newItem.itemID];
-    await CharacterInfo.update({ itemInventory: updatedInventoryItems }, { where: { characterName } });
-
-    res.status(201).json(newItem);
-  } catch (error) {
-    console.error('Error saving inventory item:', error);
-    res.status(500).send('Failed to save inventory item');
-  }
-});
-
-app.put('/character-info/:characterName/inventory-items', async (req, res) => {
-  const { characterName } = req.params;
-  const { itemId } = req.body;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).json({ message: 'Character info not found' });
-    }
-
-    const updatedInventoryItems = [...characterInfo.itemInventory, itemId];
-    await CharacterInfo.update({ itemInventory: updatedInventoryItems }, { where: { characterName } });
-
-    res.json({ message: 'Character inventory items updated successfully' }); // Return valid JSON
-  } catch (error) {
-    console.error('Error updating character inventory items:', error);
-    res.status(500).json({ message: 'Failed to update character inventory items' });
-  }
-});
-
-app.get('/character-info/:characterName/skills', async (req, res) => {
-  const { characterName } = req.params;
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).send('Character info not found');
-    }
-
-    const skills = await SkillList.findAll({
-      where: {
-        skillID: {
-          [Op.in]: characterInfo.skillList
-        }
-      }
-    });
-    res.json(skills);
-  } catch (error) {
-    console.error('Error fetching skills:', error);
-    res.status(500).send('Failed to fetch skills');
-  }
-});
-
-app.post('/character-info/:characterName/skill', async (req, res) => {
-  const { characterName } = req.params;
-  const { skillName, mainStat, description, diceRoll } = req.body;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).send('Character info not found');
-    }
-
-    const newSkill = await SkillList.create({
-      skillName,
-      mainStat,
-      description,
-      diceRoll
-    });
-
-    const updatedSkillList = [...characterInfo.skillList, newSkill.skillID];
-    await CharacterInfo.update({ skillList: updatedSkillList }, { where: { characterName } });
-
-    res.status(201).json(newSkill);
-  } catch (error) {
-    console.error('Error saving skill:', error);
-    res.status(500).send('Failed to save skill');
-  }
-});
-
-app.put('/character-info/:characterName/skills', async (req, res) => {
-  const { characterName } = req.params;
-  const { skillId } = req.body;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).json({ message: 'Character info not found' });
-    }
-
-    const updatedSkillList = [...characterInfo.skillList, skillId];
-    await CharacterInfo.update({ skillList: updatedSkillList }, { where: { characterName } });
-
-    res.json({ message: 'Character skills updated successfully' }); // Return valid JSON
-  } catch (error) {
-    console.error('Error updating character skills:', error);
-    res.status(500).json({ message: 'Failed to update character skills' });
-  }
-});
-
-app.delete('/character-info/:characterName/skill/:skillID', async (req, res) => {
-  const { characterName, skillID } = req.params;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).send('Character info not found');
-    }
-
-    await SkillList.destroy({ where: { skillID } });
-
-    const updatedSkillList = characterInfo.skillList.filter(id => id !== parseInt(skillID));
-    await CharacterInfo.update({ skillList: updatedSkillList }, { where: { characterName } });
-
-    res.status(200).json({ message: 'Skill deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting skill:', error);
-    res.status(500).send('Failed to delete skill');
-  }
-});
-
-app.delete('/character-info/:characterName/inventory-item/:itemID', async (req, res) => {
-  const { characterName, itemID } = req.params;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).send('Character info not found');
-    }
-
-    await ItemList.destroy({ where: { itemID } });
-
-    const updatedInventoryItems = characterInfo.itemInventory.filter(id => id !== parseInt(itemID));
-    await CharacterInfo.update({ itemInventory: updatedInventoryItems }, { where: { characterName } });
-
-    res.status(200).json({ message: 'Inventory item deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting inventory item:', error);
-    res.status(500).send('Failed to delete inventory item');
-  }
-});
-
-// Endpoint to add a new note
-app.post('/character-info/:characterName/note', async (req, res) => {
-  const { characterName } = req.params;
-  const { title, description } = req.body;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).send('Character info not found');
-    }
-
-    const newNote = await Note.create({
-      title,
-      description,
-    });
-
-    const updatedNoteList = [...characterInfo.noteList, newNote.id];
-    await CharacterInfo.update({ noteList: updatedNoteList }, { where: { characterName } });
-
-    res.status(201).json(newNote);
-  } catch (error) {
-    console.error('Error saving note:', error);
-    res.status(500).send(`Failed to save note: ${error.message}`);
-  }
-});
-
-// Endpoint to delete a note
-app.delete('/character-info/:characterName/note/:noteId', async (req, res) => {
-  const { characterName, noteId } = req.params;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-    if (!characterInfo) {
-      return res.status(404).send('Character info not found');
-    }
-
-    // Remove the note ID from the noteList array
-    const updatedNoteList = characterInfo.noteList.filter(id => id !== parseInt(noteId));
-    await CharacterInfo.update({ noteList: updatedNoteList }, { where: { characterName } });
-
-    // Delete the note from the Note table
-    await Note.destroy({ where: { id: noteId } });
-
-    res.status(200).json({ message: 'Note deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting note:', error);
-    res.status(500).send('Failed to delete note');
-  }
-});
-
-// Endpoint to fetch notes for a user
-app.get('/character-info/:username/notes', async (req, res) => {
-  const { username } = req.params;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName: username } });
-    if (!characterInfo) {
-      return res.status(404).send('Character info not found');
-    }
-
-    const notes = await Note.findAll({ where: { id: characterInfo.noteList } });
-    res.json(notes);
-  } catch (error) {
-    console.error('Error fetching notes:', error);
-    res.status(500).send('Failed to fetch notes');
-  }
-});
-
-// Endpoint to add a new note
-app.post('/character-info/:username/note', async (req, res) => {
-  const { username } = req.params;
-  const { title, description } = req.body;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName: username } });
-    if (!characterInfo) {
-      console.log(`Character info not found for username: ${username}`); // Log if character info is not found
-      return res.status(404).send('Character info not found');
-    }
-
-    const newNote = await Note.create({
-      title,
-      description,
-    });
-
-    const updatedNoteList = [...characterInfo.noteList, newNote.id];
-    await CharacterInfo.update({ noteList: updatedNoteList }, { where: { characterName: username } });
-
-    res.status(201).json(newNote);
-  } catch (error) {
-    console.error('Error saving note:', error);
-    res.status(500).send(`Failed to save note: ${error.message}`);
-  }
-});
-
-// Endpoint to delete a note
-app.delete('/character-info/:username/note/:noteId', async (req, res) => {
-  const { username, noteId } = req.params;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName: username } });
-    if (!characterInfo) {
-      return res.status(404).send('Character info not found');
-    }
-
-    await Note.destroy({ where: { id: noteId } });
-
-    const updatedNoteList = characterInfo.noteList.filter(id => id !== parseInt(noteId));
-    await CharacterInfo.update({ noteList: updatedNoteList }, { where: { characterName: username } });
-
-    res.status(200).json({ message: 'Note deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting note:', error);
-    res.status(500).send('Failed to delete note');
-  }
-});
-
-// Endpoint to update a note
-app.put('/character-info/:username/note/:noteId', async (req, res) => {
-  const { username, noteId } = req.params;
-  const { title, description } = req.body;
-
-  try {
-    const characterInfo = await CharacterInfo.findOne({ where: { characterName: username } });
-    if (!characterInfo) {
-      return res.status(404).send('Character info not found');
-    }
-
-    await Note.update({ title, description }, { where: { id: noteId } });
-
-    res.status(200).json({ message: 'Note updated successfully' });
-  } catch (error) {
-    console.error('Error updating note:', error);
-    res.status(500).send('Failed to update note');
   }
 });
 
@@ -1274,5 +877,485 @@ app.get('/images', async (req, res) => {
   } catch (error) {
     console.error('Error fetching images:', error);
     res.status(500).send('Failed to fetch images');
+  }
+});
+
+// app.get('/stats-sheet/:characterName', async (req, res) => {
+//   const { characterName } = req.params;
+//   console.loge(characterName)
+//   try {
+//     const characterInfo = await CharacterInfo.findOne({ where: { characterName} });
+//     if (!characterInfo) {
+//       return res.status(404).send('Character info not found');
+//     }
+//     const statsSheet = await StatsSheet.findOne({ where: { characterName: characterInfo.characterName } });
+//     if (!statsSheet) {
+//       return res.status(404).send('Stats sheet not found');
+//     }
+//     res.json(statsSheet);
+//   } catch (error) {
+//     console.error('Error fetching stats sheet:', error);
+//     res.status(500).send('Failed to fetch stats sheet');
+//   }
+// });
+
+// Endpoint to fetch character ID by character name
+app.get('/character-id/:characterName', async (req, res) => {
+  const { characterName } = req.params;
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+    res.json({ characterID: characterInfo.characterID, maskID: characterInfo.maskID });
+  } catch (error) {
+    console.error('Error fetching character ID:', error);
+    res.status(500).send('Failed to fetch character ID');
+  }
+});
+
+app.get('/all-characters', async (req, res) => {
+  try {
+    const characters = await CharacterInfo.findAll({ attributes: ['characterName', 'characterID', 'photo'] }); // Include 'photo' attribute
+    res.json(characters);
+  } catch (error) {
+    console.error('Error fetching characters:', error);
+    res.status(500).send('Failed to fetch characters');
+  }
+});
+
+app.post('/create-character', upload.single('image'), async (req, res) => {
+  const { characterName, race, class: characterClass, level, familyMembers, friendMembers, itemInventory, skillList } = req.body;
+  const photo = `/assets/images/${req.file.filename}`; // Ensure correct photo path
+
+  try {
+    const newCharacter = await CharacterInfo.create({
+      characterName,
+      race,
+      class: characterClass,
+      level: parseInt(level, 10),
+      photo,
+      familyMembers: JSON.parse(familyMembers),
+      friendMembers: JSON.parse(friendMembers),
+      itemInventory: JSON.parse(itemInventory),
+      skillList: JSON.parse(skillList)
+    });
+
+    // Initialize StatsSheet with 0 values for each stat
+    await StatsSheet.create({
+      characterID: newCharacter.characterID,
+      strength: 0,
+      athletics: 0,
+      dexterity: 0,
+      acrobatics: 0,
+      sleightOfHand: 0,
+      stealth: 0,
+      constitution: 0,
+      intelligence: 0,
+      history: 0,
+      investigation: 0,
+      nature: 0,
+      wisdom: 0,
+      animalHandling: 0,
+      insight: 0,
+      medicine: 0,
+      perception: 0,
+      survival: 0,
+      charisma: 0,
+      deception: 0,
+      intimidation: 0,
+      performance: 0,
+      persuasion: 0,
+    });
+
+    res.status(201).json({ message: 'Character created successfully', character: newCharacter });
+  } catch (error) {
+    console.error('Error creating character:', error);
+    res.status(500).send('Failed to create character');
+  }
+});
+
+app.put('/character-info/:characterName/family-members', async (req, res) => {
+  const { characterName } = req.params;
+  const { familyMemberId } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const updatedFamilyMembers = [...characterInfo.familyMembers, familyMemberId];
+    await CharacterInfo.update({ familyMembers: updatedFamilyMembers }, { where: { characterName } });
+
+    res.status(200).json({ message: 'Family member added successfully' });
+  } catch (error) {
+    console.error('Error adding family member:', error);
+    res.status(500).send('Failed to add family member');
+  }
+});
+
+app.put('/character-info/:characterName/friend-members', async (req, res) => {
+  const { characterName } = req.params;
+  const { friendMemberId } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const updatedFriendMembers = [...characterInfo.friendMembers, friendMemberId];
+    await CharacterInfo.update({ friendMembers: updatedFriendMembers }, { where: { characterName } });
+
+    res.status(200).json({ message: 'Friend member added successfully' });
+  } catch (error) {
+    console.error('Error adding friend member:', error);
+    res.status(500).send('Failed to add friend member');
+  }
+});
+
+app.put('/character-info/:characterName/inventory-items', async (req, res) => {
+  const { characterName } = req.params;
+  const { itemId } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const updatedInventoryItems = [...characterInfo.itemInventory, itemId];
+    await CharacterInfo.update({ itemInventory: updatedInventoryItems }, { where: { characterName } });
+
+    res.status(200).json({ message: 'Inventory item added successfully' });
+  } catch (error) {
+    console.error('Error adding inventory item:', error);
+    res.status(500).send('Failed to add inventory item');
+  }
+});
+
+app.post('/character-info/:characterID/inventory-item', async (req, res) => {
+  const { characterID } = req.params;
+  const { itemName, type, mainStat, description, damage, photo } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterID } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const newItem = await ItemList.create({
+      itemName,
+      type,
+      mainStat,
+      description,
+      damage,
+      photo
+    });
+
+    const updatedInventoryItems = [...characterInfo.itemInventory, newItem.itemID];
+    await CharacterInfo.update({ itemInventory: updatedInventoryItems }, { where: { characterID } });
+
+    res.status(201).json(newItem);
+  } catch (error) {
+    console.error('Error adding inventory item:', error);
+    res.status(500).send('Failed to add inventory item');
+  }
+});
+
+app.delete('/character-info/:characterID/inventory-item/:itemID', async (req, res) => {
+  const { characterID, itemID } = req.params;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterID } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const updatedInventoryItems = characterInfo.itemInventory.filter(id => id !== parseInt(itemID));
+    await CharacterInfo.update({ itemInventory: updatedInventoryItems }, { where: { characterID } });
+
+    await ItemList.destroy({ where: { itemID } });
+
+    res.status(200).json({ message: 'Inventory item deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting inventory item:', error);
+    res.status(500).send('Failed to delete inventory item');
+  }
+});
+
+app.post('/character-info/:characterID/skill', async (req, res) => {
+  const { characterID } = req.params;
+  const { skillName, mainStat, description, diceRoll } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterID } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const newSkill = await SkillList.create({
+      skillName,
+      mainStat,
+      description,
+      diceRoll
+    });
+
+    const updatedSkillList = [...characterInfo.skillList, newSkill.skillID];
+    await CharacterInfo.update({ skillList: updatedSkillList }, { where: { characterID } });
+
+    res.status(201).json(newSkill);
+  } catch (error) {
+    console.error('Error adding skill:', error);
+    res.status(500).send('Failed to add skill');
+  }
+});
+
+app.delete('/character-info/:characterID/skill/:skillID', async (req, res) => {
+  const { characterID, skillID } = req.params;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterID } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const updatedSkillList = characterInfo.skillList.filter(id => id !== parseInt(skillID));
+    await CharacterInfo.update({ skillList: updatedSkillList }, { where: { characterID } });
+
+    await SkillList.destroy({ where: { skillID } });
+
+    res.status(200).json({ message: 'Skill deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting skill:', error);
+    res.status(500).send('Failed to delete skill');
+  }
+});
+
+app.get('/get-notes/:username', async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const userInfo = await User.findOne({ where: { username: username } });
+    if (!userInfo) {
+      return res.status(404).send('User info not found');
+    }
+
+    const notes = await Note.findAll({ where: { noteID: userInfo.noteList } });
+    res.json(notes);
+  } catch (error) {
+    console.error('Error fetching notes:', error);
+    res.status(500).send('Failed to fetch notes');
+  }
+});
+
+// Endpoint to add a new note
+app.post('/add-note/:username', async (req, res) => {
+  const { username } = req.params;
+  const { title, description } = req.body;
+
+  try {
+    const userInfo = await User.findOne({ where: { username: username } });
+    if (!userInfo) {
+      console.log(`User info not found for username: ${username}`); // Log if character info is not found
+      return res.status(404).send('User info not found');
+    }
+
+    const newNote = await Note.create({
+      title,
+      description,
+    });
+
+    const updatedNoteList = [...userInfo.noteList, newNote.noteID];
+    await User.update({ noteList: updatedNoteList }, { where: { username: username } });
+
+    res.status(201).json(newNote);
+  } catch (error) {
+    console.error('Error saving note:', error);
+    res.status(500).send(`Failed to save note: ${error.message}`);
+  }
+});
+
+app.put('/update-note/:username/:noteId', async (req, res) => {
+  const { username, noteId } = req.params;
+  const { title, description } = req.body;
+
+  try {
+    const userInfo = await User.findOne({ where: { username: username } });
+    if (!userInfo) {
+      return res.status(404).send('User info not found');
+    }
+
+    await Note.update({ title, description }, { where: { noteID: noteId } });
+
+    res.status(200).json({ message: 'Note updated successfully' });
+  } catch (error) {
+    console.error('Error updating note:', error);
+    res.status(500).send('Failed to update note');
+  }
+});
+
+app.delete('/delete-note/:username/:noteId', async (req, res) => {
+  const { username, noteId } = req.params;
+
+  try {
+    const userInfo = await User.findOne({ where: { username: username } });
+    if (!userInfo) {
+      return res.status(404).send('User info not found');
+    }
+
+    await Note.destroy({ where: { noteID: noteId } });
+
+    const updatedNoteList = userInfo.noteList.filter(noteID => noteID !== parseInt(noteId));
+    await User.update({ noteList: updatedNoteList }, { where: { username: username } });
+
+    res.status(200).json({ message: 'Note deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    res.status(500).send('Failed to delete note');
+  }
+});
+
+app.post('/update-character-name', async (req, res) => {
+  const { characterName, email } = req.body;
+
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    await CharacterInfo.update({ characterName }, { where: { characterID: user.characterID } });
+    await StatsSheet.update({ characterName }, { where: { characterID: user.characterID } });
+
+    res.status(200).json({ message: 'Character name updated successfully' });
+  } catch (error) {
+    console.error('Error updating character name:', error);
+    res.status(500).json({ message: 'Failed to update character name' });
+  }
+});
+
+app.get('/mask-details/:maskID', async (req, res) => {
+  const { maskID } = req.params;
+  try {
+    const maskDetails = await MaskList.findOne({ where: { maskID } });
+    if (!maskDetails) {
+      return res.status(200).json({}); // Return an empty object if no mask is found
+    }
+    res.json(maskDetails);
+  } catch (error) {
+    console.error('Error fetching mask details:', error);
+    res.status(500).send('Failed to fetch mask details');
+  }
+});
+
+app.post('/character-info/:characterID/mask', async (req, res) => {
+  const { characterID } = req.params;
+  const { photo, passiveSkill, activeSkills, attackDamage, abilityDamage, magicResist, protections, health, speed } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterID } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    const relativePhotoPath = photo.replace(`https://${localIP}:8080`, '');
+
+    if (characterInfo.maskID) {
+      // Update existing mask
+      await MaskList.update(
+        { photo: relativePhotoPath, passiveSkill, activeSkills, attackDamage, abilityDamage, magicResist, protections, health, speed },
+        { where: { maskID: characterInfo.maskID } }
+      );
+      const updatedMask = await MaskList.findOne({ where: { maskID: characterInfo.maskID } });
+      res.status(200).json(updatedMask);
+    } else {
+      // Create new mask
+      const newMask = await MaskList.create({
+        photo: relativePhotoPath,
+        passiveSkill,
+        activeSkills,
+        attackDamage,
+        abilityDamage,
+        magicResist,
+        protections,
+        health,
+        speed
+      });
+      await CharacterInfo.update({ maskID: newMask.maskID }, { where: { characterID } });
+      res.status(201).json(newMask);
+    }
+  } catch (error) {
+    console.error('Error adding/updating mask:', error);
+    res.status(500).send('Failed to add/update mask');
+  }
+});
+
+app.get('/mask-skill-details/:skillID', async (req, res) => {
+  const { skillID } = req.params;
+  try {
+    const skillDetails = await MaskSkills.findOne({ where: { skillID } });
+    if (!skillDetails) {
+      return res.status(404).send('Skill details not found');
+    }
+    res.json(skillDetails);
+  } catch (error) {
+    console.error('Error fetching skill details:', error);
+    res.status(500).send('Failed to fetch skill details');
+  }
+});
+
+app.post('/populate-mask-skills', async (req, res) => {
+  const skills = [
+    { skillName: 'Skill 1', description: 'Description for Skill 1', mainStat: 'Strength', mainStatPercentage: 0.5, cooldown: 10 },
+    { skillName: 'Skill 2', description: 'Description for Skill 2', mainStat: 'Dexterity', mainStatPercentage: 0.7, cooldown: 8 },
+    // Add more skills as needed
+  ];
+
+  try {
+    await MaskSkills.bulkCreate(skills);
+    res.status(201).json({ message: 'Mask skills populated successfully' });
+  } catch (error) {
+    console.error('Error populating mask skills:', error);
+    res.status(500).send('Failed to populate mask skills');
+  }
+});
+
+app.get('/masks', async (req, res) => {
+  try {
+    const masks = await MaskList.findAll();
+    res.json(masks);
+  } catch (error) {
+    console.error('Error fetching masks:', error);
+    res.status(500).send('Failed to fetch masks');
+  }
+});
+
+app.post('/mask-skills', async (req, res) => {
+  const { skillName, description, mainStat, mainStatPercentage, cooldown } = req.body;
+  try {
+    const newSkill = await MaskSkills.create({ skillName, description, mainStat, mainStatPercentage, cooldown });
+    res.status(201).json(newSkill);
+  } catch (error) {
+    console.error('Error creating mask skill:', error);
+    res.status(500).send('Failed to create mask skill');
+  }
+});
+
+app.put('/masks/:maskID/add-skill', async (req, res) => {
+  const { maskID } = req.params;
+  const { skillID } = req.body;
+  try {
+    const mask = await MaskList.findOne({ where: { maskID } });
+    if (!mask) {
+      return res.status(404).send('Mask not found');
+    }
+    const updatedActiveSkills = [...mask.activeSkills, skillID];
+    await MaskList.update({ activeSkills: updatedActiveSkills }, { where: { maskID } });
+    res.status(200).json({ message: 'Skill added to mask successfully' });
+  } catch (error) {
+    console.error('Error adding skill to mask:', error);
+    res.status(500).send('Failed to add skill to mask');
   }
 });

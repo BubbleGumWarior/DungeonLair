@@ -54,6 +54,7 @@ export class LoginComponent {
       localStorage.setItem('token', data.token);
       localStorage.setItem('username', data.username); // Store username in localStorage
       localStorage.setItem('role', data.role); // Store role in localStorage
+      localStorage.setItem('characterID', data.characterID); // Store characterID in localStorage
       this.navigateTo('/'); // Redirect to home or desired route
     })
     .catch(error => {

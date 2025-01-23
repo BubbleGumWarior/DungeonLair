@@ -26,10 +26,17 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  characterName: {
-    type: DataTypes.STRING,
+  characterID: {
+    type: DataTypes.INTEGER,
     allowNull: false,
     unique: true,
+    references: {
+      model: 'character_infos', // Ensure the table name matches the CharacterInfo table
+      key: 'characterID'
+    }
+  },
+  noteList: {
+    type: DataTypes.ARRAY(DataTypes.INTEGER), // Add array field for note IDs
   },
 }, {
   tableName: 'users', // Explicitly define table name in lowercase

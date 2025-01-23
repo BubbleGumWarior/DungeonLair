@@ -1,12 +1,12 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http'; // Import HttpClient
 import { localIP } from '../config'; // Import the IP address
 
 interface Character {
   characterName: string;
-  age: number;
   race: string;
-  photo: string; // This will now hold Base64 strings
+  photo: string; // This will now hold file paths
 }
 
 @Component({
@@ -17,56 +17,29 @@ interface Character {
   styleUrls: ['./friends.component.css'] // Fixed typo: should be styleUrls instead of styleUrl
 })
 export class FriendsComponent implements OnInit {
-  Characters: Character[] = [];  
-  friendMembers: number[] = [];
-  @Input() characterName: string | null = '';
+  Characters: Character[] = [];
+  @Input() characterID: string | null = null;
+
+  constructor(private http: HttpClient) {}
 
   ngOnInit() {
-    if (this.characterName) {
-      this.fetchFriendMembers(this.characterName);
+    if (this.characterID) {
+      this.fetchFriendMembers(this.characterID);
     }
   }
 
-  async fetchFriendMembers(characterName: string) {
-    try {
-      const response = await fetch(`https://${localIP}:8080/character-info/${characterName}`);
-      if (!response.ok) throw new Error('Failed to fetch friend members');
-      
-      const friendData = await response.json();
-      this.updateFriendMembers(friendData);  // Update friend members with the fetched data
-      await this.fetchFriendById(); // Fetch friend members' details after getting IDs
-    } catch (error) {
-      console.error('Error fetching friend members:', error);
-    }
-  }
-
-  updateFriendMembers(friendData: any) {
-    this.friendMembers = friendData.friendMembers; // Assuming friendMembers is an array of IDs
-  }
-
-  async fetchFriendById() {
-    try {
-      const fetchPromises = this.friendMembers.map(async (friendMemberID) => {
-        const response = await fetch(`https://${localIP}:8080/friend-member/${friendMemberID}`);
-        if (!response.ok) throw new Error(`Failed to fetch friend member with ID ${friendMemberID}`);
-        
-        const character: Character = await response.json();
-        this.updateCharacters(character);
-      });
-      
-      // Wait for all fetch requests to complete
-      await Promise.all(fetchPromises);
-    } catch (error) {
-      console.error('Error fetching friend member details:', error);
-    }
-  }
-
-  updateCharacters(character: Character) {
-    // Adjust the photo URL to be relative
-    character.photo = character.photo ? `https://${localIP}:8080${character.photo}` : '';
-    // Append the fetched character to the Characters array
-    this.Characters.push(character);
-    // Sort characters alphabetically by characterName
-    this.Characters.sort((a, b) => a.characterName.localeCompare(b.characterName));
+  fetchFriendMembers(characterID: string) {
+    this.http.get<Character[]>(`https://${localIP}:8080/friend-member/${characterID}`).subscribe(
+      (data) => {
+        this.Characters = data.map(member => ({
+          characterName: member.characterName,
+          race: member.race,
+          photo: member.photo ? `https://${localIP}:8080${member.photo}` : ''
+        }));
+      },
+      (error) => {
+        console.error('Error fetching friend members:', error);
+      }
+    );
   }
 }

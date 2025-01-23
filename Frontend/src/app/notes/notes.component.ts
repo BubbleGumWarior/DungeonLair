@@ -18,8 +18,8 @@ interface Note {
   styleUrls: ['./notes.component.css']
 })
 export class NotesComponent implements OnInit {
-  @Input() characterName: string | null = null; // Change Input property to characterName
-  items: Note[] = [];
+  @Input() username: string | null = null; // Change Input property to username
+  notes: Note[] = [];
   nextId: number = 1;
   showAddNoteModal: boolean = false;
   showNoteModal: boolean = false; // Add property to track note modal visibility
@@ -29,31 +29,31 @@ export class NotesComponent implements OnInit {
   constructor() {}
 
   ngOnInit() {
-    if (this.characterName) {
+    if (this.username) {
       this.loadNotes();
     }
   }
 
   async loadNotes() {
     try {
-      const response = await fetch(`https://${localIP}:8080/character-info/${this.characterName}/notes`);
+      const response = await fetch(`https://${localIP}:8080/get-notes/${this.username}`);
       const notes = await response.json();
-      this.items = notes.map((note: { id: number; title: string; description: string }) => ({
-        id: note.id,
+      this.notes = notes.map((note: { noteID: number; title: string; description: string }) => ({
+        id: note.noteID,
         name: DOMPurify.sanitize(note.title),
         description: DOMPurify.sanitize(note.description)
       }));
-      this.nextId = this.items.length > 0 ? Math.max(...this.items.map(item => item.id)) + 1 : 1;
+      this.nextId = this.notes.length > 0 ? Math.max(...this.notes.map(note => note.id)) + 1 : 1;
     } catch (error) {
       console.error('Error loading notes:', error);
     }
   }
 
-  async addItem() {
-    if (this.characterName) {
+  async addNote() {
+    if (this.username) {
       const newNote = { title: DOMPurify.sanitize(this.newNoteName), description: '' };
       try {
-        const response = await fetch(`https://${localIP}:8080/character-info/${this.characterName}/note`, {
+        const response = await fetch(`https://${localIP}:8080/add-note/${this.username}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -65,7 +65,7 @@ export class NotesComponent implements OnInit {
           throw new Error(errorText);
         }
         const note = await response.json();
-        this.items.push({ id: note.id, name: DOMPurify.sanitize(note.title), description: DOMPurify.sanitize(note.description) });
+        this.notes.push({ id: note.id, name: DOMPurify.sanitize(note.title), description: DOMPurify.sanitize(note.description) });
         this.newNoteName = '';
         this.showAddNoteModal = false;
       } catch (error) {
@@ -80,10 +80,10 @@ export class NotesComponent implements OnInit {
   }
 
   async closeNoteModal() {
-    if (this.selectedNote && this.characterName) {
+    if (this.selectedNote && this.username) {
       const updatedNote = { title: DOMPurify.sanitize(this.selectedNote.name), description: DOMPurify.sanitize(this.selectedNote.description) };
       try {
-        const response = await fetch(`https://${localIP}:8080/character-info/${this.characterName}/note/${this.selectedNote.id}`, {
+        const response = await fetch(`https://${localIP}:8080/update-note/${this.username}/${this.selectedNote.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
@@ -106,16 +106,16 @@ export class NotesComponent implements OnInit {
   }
 
   async deleteNote() {
-    if (this.selectedNote && this.characterName) {
+    if (this.selectedNote && this.username) {
       try {
-        const response = await fetch(`https://${localIP}:8080/character-info/${this.characterName}/note/${this.selectedNote.id}`, {
+        const response = await fetch(`https://${localIP}:8080/delete-note/${this.username}/${this.selectedNote.id}`, {
           method: 'DELETE'
         });
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(errorText);
         }
-        this.items = this.items.filter(item => item.id !== this.selectedNote!.id);
+        this.notes = this.notes.filter(note => note.id !== this.selectedNote!.id);
         this.closeNoteModal();
       } catch (error) {
         console.error('Error deleting note:', error);

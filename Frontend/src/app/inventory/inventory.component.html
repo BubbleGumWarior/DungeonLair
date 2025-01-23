@@ -8,7 +8,7 @@
   </div>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
-    <div *ngFor="let item of filteredItems" class="flex flex-col justify-between p-4 text-blue-800 h-full w-full bg-blue-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-blue-800 mb-4">
+    <div *ngFor="let item of Item" class="flex flex-col justify-between p-4 text-blue-800 h-full w-full bg-blue-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-blue-800 mb-4">
         <div class="flex-grow flex flex-col">
             <div class="flex-grow flex items-center justify-center mb-4">
                 <img 
@@ -28,7 +28,7 @@
             <p class="text-xl">Damage</p>
             <div class="flex justify-around hover:text-white cursor-pointer" (click)="rollDice($event)">
                 <p class="text-3xl">d{{ item.damage }}</p>
-                <p class="text-3xl">{{ item.modifier }}</p>
+                <p class="text-3xl">{{ +item.modifier >= 0 ? '+' + item.modifier : item.modifier }}</p>
             </div>
         </div>
     </div>    

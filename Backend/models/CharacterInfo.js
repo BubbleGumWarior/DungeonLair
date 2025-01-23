@@ -3,6 +3,13 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
 
 const CharacterInfo = sequelize.define('CharacterInfo', {
+  characterID: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+    allowNull: false,
+    unique: true,
+  },
   characterName: DataTypes.STRING,
   race: DataTypes.STRING,
   class: DataTypes.STRING,
@@ -20,11 +27,12 @@ const CharacterInfo = sequelize.define('CharacterInfo', {
   skillList: {
     type: DataTypes.ARRAY(DataTypes.INTEGER),
   },
-  noteList: {
-    type: DataTypes.ARRAY(DataTypes.INTEGER), // Add array field for note IDs
+  maskID: {
+    type: DataTypes.INTEGER,
+    allowNull: true, // Allow null if a character doesn't have a mask
   },
 }, {
-  tableName: 'character_infos', // Explicitly define table name in lowercase
+  tableName: 'character_infos', // Ensure the table name matches the reference in User model
 });
 
 module.exports = CharacterInfo;

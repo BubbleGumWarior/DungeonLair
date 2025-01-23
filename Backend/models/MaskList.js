@@ -1,0 +1,50 @@
+const { DataTypes } = require('sequelize');
+const sequelize = require('../db');
+
+const MaskList = sequelize.define('MaskList', {
+  maskID: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  photo: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+  },
+  passiveSkill: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  activeSkills: {
+    type: DataTypes.ARRAY(DataTypes.INTEGER),
+    allowNull: false,
+  },
+  attackDamage: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  abilityDamage: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  magicResist: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  protections: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  health: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  speed: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+}, {
+  tableName: 'masks_list',
+});
+
+module.exports = MaskList;

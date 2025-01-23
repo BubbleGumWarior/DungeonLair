@@ -1,4 +1,4 @@
-import { Component, Input, EventEmitter, Output, OnInit } from '@angular/core';
+import { Component, Input, EventEmitter, Output, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { localIP } from '../config'; // Import the IP address
@@ -12,7 +12,7 @@ import { DomSanitizer } from '@angular/platform-browser';
   styleUrl: './board.component.css'
 })
 export class BoardComponent implements OnInit {
-  @Input() characterName: string | null = '';
+  @Input() characterID: string | null = '';
   @Output() resultRolled = new EventEmitter<string>();
 
   showPopup: boolean = false;
@@ -21,15 +21,12 @@ export class BoardComponent implements OnInit {
   strength: number = 0;
   strengthMod: string = "";
   athletics: number = 0;
-  swordsmanship: number = 0;
 
   dexterity: number = 0;
   dexterityMod: string = "";
   acrobatics: number = 0;
   sleightOfHand: number = 0;
   stealth: number = 0;
-  marksmanship: number = 0;
-  pilot: number = 0;
 
   constitution: number = 0;
   constitutionMod: string = "";
@@ -39,8 +36,6 @@ export class BoardComponent implements OnInit {
   history: number = 0;
   investigation: number = 0;
   nature: number = 0;
-  forceStrength: number = 0;
-  splicing: number = 0;
 
   wisdom: number = 0;
   wisdomMod: string = "";
@@ -49,8 +44,6 @@ export class BoardComponent implements OnInit {
   medicine: number = 0;
   perception: number = 0;
   survival: number = 0;
-  forceCapacity: number = 0;
-  mapping: number = 0;
 
   charisma: number = 0;
   charismaMod: string = "";
@@ -67,15 +60,23 @@ export class BoardComponent implements OnInit {
   level: number = 0;
 
   statsSheet: any;
+  characterName: string = '';
   isMobile: boolean = false;
+  maskPhoto: string = '';
+  showMask: boolean = false;
+  maskStats: any = {};
+  maskSkills: any = {};
+  maskActiveSkillDetails: any[] = [];
 
-  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
+  constructor(private http: HttpClient, private sanitizer: DomSanitizer, private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
 
   ngOnInit() {
     this.isMobile = this.detectMobileDevice();
-    if (this.characterName) {
-      this.fetchStatsSheet(this.characterName);
-      this.fetchCharacterInfo(this.characterName);
+    if (this.characterID) {
+      this.fetchStatsSheet(this.characterID);
+      this.fetchCharacterInfo(this.characterID);
+    } else {
+      console.log('No character name provided');
     }
   }
 
@@ -84,9 +85,11 @@ export class BoardComponent implements OnInit {
   }
 
   fetchStatsSheet(characterName: string) {
+    console.log('Fetching stats sheet for character:', characterName);
     this.http.get(`https://${localIP}:8080/stats-sheet/${characterName}`)
       .subscribe(
         (data: any) => {
+          console.log('Stats sheet data:', data);
           this.statsSheet = data;
           this.updateStats(data);  // Update stats with the fetched data
         },
@@ -97,47 +100,113 @@ export class BoardComponent implements OnInit {
   }
 
   async fetchCharacterInfo(characterName: string) {
+    console.log('Fetching character info for character:', characterName);
     try {
       const response = await fetch(`https://${localIP}:8080/character-info/${characterName}`);
       if (!response.ok) throw new Error('Failed to fetch info');
       
       const characterInfo = await response.json();
+      console.log('Character info data:', characterInfo);
+      this.characterName = characterInfo.characterName; // Set the characterName
       this.updateCharacterInfo(characterInfo);  // Update stats with the fetched data
+      if (characterInfo.maskID) {
+        this.fetchMaskDetails(characterInfo.maskID);
+      }
     } catch (error) {
       console.error('Error fetching character info:', error);
     }
   }
 
+  fetchMaskDetails(maskID: number) {
+    this.http.get(`https://${localIP}:8080/mask-details/${maskID}`)
+      .subscribe(
+        (data: any) => {
+          console.log('Mask details received from server:', data); // Log the mask object
+          this.maskPhoto = `https://${localIP}:8080${data.photo}`;
+          this.maskStats = {
+            attackDamage: data.attackDamage,
+            abilityDamage: data.abilityDamage,
+            magicResist: data.magicResist,
+            protections: data.protections,
+            health: data.health,
+            speed: data.speed
+          };
+          this.maskSkills = {
+            passiveSkill: data.passiveSkill,
+            activeSkills: data.activeSkills
+          };
+          console.log("Fetching")
+          this.fetchActiveSkillDetails(data.activeSkills);
+        },
+        (error) => {
+          console.error('Error fetching mask details:', error);
+        }
+      );
+  }
+
+  fetchActiveSkillDetails(skillIDs: number[]) {
+    this.maskActiveSkillDetails = [];
+    skillIDs.forEach(skillID => {
+      this.http.get(`https://${localIP}:8080/mask-skill-details/${skillID}`)
+        .subscribe(
+          (data: any) => {
+            console.log('Fetched skill details:', data); // Log the fetched skill details
+            this.ngZone.run(() => {
+              if (Array.isArray(data)) {
+                data.forEach(skill => {
+                  this.maskActiveSkillDetails.push(skill);
+                  console.log('Skill Name:', skill.skillName);
+                  console.log('Main Stat:', skill.mainStat);
+                  console.log('Description:', skill.description);
+                  console.log('Main Stat Percentage:', skill.mainStatPercentage);
+                  console.log('Cooldown:', skill.cooldown);
+                });
+              } else {
+                this.maskActiveSkillDetails.push(data);
+                console.log('Skill Name:', data.skillName);
+                console.log('Main Stat:', data.mainStat);
+                console.log('Description:', data.description);
+                console.log('Main Stat Percentage:', data.mainStatPercentage);
+                console.log('Cooldown:', data.cooldown);
+              }
+              this.cdr.detectChanges(); // Trigger change detection
+            });
+          },
+          (error) => {
+            console.error(`Error fetching skill details for skill ID ${skillID}:`, error);
+          }
+        );
+    });
+    console.log(this.maskActiveSkillDetails);
+  }
+
+  toggleMask() {
+    this.showMask = !this.showMask;
+  }
+
   updateStats(stats: any) {
-    this.strength = stats.strength;
-    this.athletics = stats.athletics;
-    this.swordsmanship = stats.swordsmanship;
-    this.dexterity = stats.dexterity;
-    this.acrobatics = stats.acrobatics;
-    this.sleightOfHand = stats.sleightOfHand;
-    this.stealth = stats.stealth;
-    this.marksmanship = stats.marksmanship;
-    this.pilot = stats.pilot;
-    this.constitution = stats.constitution;
-    this.intelligence = stats.intelligence;
-    this.history = stats.history;
-    this.investigation = stats.investigation;
-    this.nature = stats.nature;
-    this.forceStrength = stats.forceStrength;
-    this.splicing = stats.splicing;
-    this.wisdom = stats.wisdom;
-    this.animalHandling = stats.animalHandling;
-    this.insight = stats.insight;
-    this.medicine = stats.medicine;
-    this.perception = stats.perception;
-    this.survival = stats.survival;
-    this.forceCapacity = stats.forceCapacity;
-    this.mapping = stats.mapping;
-    this.charisma = stats.charisma;
-    this.deception = stats.deception;
-    this.intimidation = stats.intimidation;
-    this.performance = stats.performance;
-    this.persuasion = stats.persuasion;
+    this.strength = Number(stats.strength);
+    this.athletics = Number(stats.athletics);
+    this.dexterity = Number(stats.dexterity);
+    this.acrobatics = Number(stats.acrobatics);
+    this.sleightOfHand = Number(stats.sleightOfHand);
+    this.stealth = Number(stats.stealth);
+    this.constitution = Number(stats.constitution);
+    this.intelligence = Number(stats.intelligence);
+    this.history = Number(stats.history);
+    this.investigation = Number(stats.investigation);
+    this.nature = Number(stats.nature);
+    this.wisdom = Number(stats.wisdom);
+    this.animalHandling = Number(stats.animalHandling);
+    this.insight = Number(stats.insight);
+    this.medicine = Number(stats.medicine);
+    this.perception = Number(stats.perception);
+    this.survival = Number(stats.survival);
+    this.charisma = Number(stats.charisma);
+    this.deception = Number(stats.deception);
+    this.intimidation = Number(stats.intimidation);
+    this.performance = Number(stats.performance);
+    this.persuasion = Number(stats.persuasion);
     this.createdAt = new Date(stats.createdAt);
     this.updatedAt = new Date(stats.updatedAt);
 
@@ -184,8 +253,7 @@ export class BoardComponent implements OnInit {
   updateCharacterInfo(stats: any) {
     this.class = stats.class;
     this.race = stats.race;
-    this.photo = stats.photo ? `https://${localIP}:8080${stats.photo}` : ''; // Adjusted photo URL
-    console.log(this.photo);
+    this.photo = stats.photo ? `https://${localIP}:8080${stats.photo}` : '';
     this.level = stats.level;
   }
   
@@ -217,40 +285,41 @@ export class BoardComponent implements OnInit {
 
   onImageUpload(event: any) {
     const file = event.target.files[0];
-    if (file) {
+    if (file && this.characterID) {
       const formData = new FormData();
       formData.append('image', file);
-      formData.append('characterName', this.characterName || '');
-      this.saveImage(formData);
-    }
-  }
-
-  saveImage(formData: FormData) {
-    this.http.post(`https://${localIP}:8080/save-image-board`, formData)
-      .subscribe(
-        (response: any) => {
-          this.photo = response.filePath; // Assuming the server returns the relative path
-          this.updateCharacterPhoto(this.characterName, this.photo); // Save the image path to the database
-          console.log('Image saved successfully');
-        },
-        (error) => {
-          console.error('Error saving image:', error);
-        }
-      );
-  }
-
-  updateCharacterPhoto(characterName: string | null, photoPath: string) {
-    if (characterName) {
-      this.http.put(`https://${localIP}:8080/character-info-board/${characterName}/photo`, { photo: photoPath })
+      formData.append('characterID', this.characterID);
+  
+      this.http.post(`https://${localIP}:8080/save-image-board`, formData)
         .subscribe(
-          () => {
-            console.log('Character photo updated successfully');
+          (response: any) => {
+            this.photo = `https://${localIP}:8080${response.filePath}`;
+            this.updateCharacterPhoto(response.filePath); // Use relative path
           },
           (error) => {
-            console.error('Error updating character photo:', error);
+            console.error('Error uploading image:', error);
           }
         );
+    } else {
+      console.error('File or characterID is not set');
     }
+  }
+  
+  updateCharacterPhoto(photoUrl: string) {
+    if (!this.characterID) {
+      console.error('Character ID is not set');
+      return;
+    }
+    console.log('Updating character photo:', photoUrl);
+    this.http.put(`https://${localIP}:8080/character-info-board/${this.characterID}/photo`, { photo: photoUrl })
+      .subscribe(
+        () => {
+          console.log('Character photo updated successfully');
+        },
+        (error) => {
+          console.error('Error updating character photo:', error);
+        }
+      );
   }
 }
 

@@ -14,6 +14,7 @@ import { localIP } from '../config'; // Import localIP from config
 export class DMScreenComponent implements OnInit {
   characters: { name: string, photo: string }[] = [];
   currentlySelectedCharacter: string | null = null; // Add this variable
+  currentlySelectedCharacterID: string | null = null; // Add this variable
   statsSheet: any = {}; // Add this variable to store stats sheet
   selectedView: string = 'Edit Stats'; // Add this variable to store the selected view
   newFamilyMember: any = null; // Initialize as null
@@ -27,11 +28,21 @@ export class DMScreenComponent implements OnInit {
   hoveredItem: any = null; // Add this variable to store the hovered item
   selectedSkill: any = null; // Add this variable to store the selected skill
   selectedInventoryItem: any = null; // Add this variable to store the selected inventory item
+  allCharacters: { name: string, id: string }[] = []; // Add this variable to store all characters
+  selectedFamilyMember: string | null = null; // Add this variable to store the selected family member
+  selectedFriendMember: string | null = null; // Add this variable to store the selected friend member
+  newMask: any = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magiResist: 0, protections: 0, health: 0, speed: 0 }; // Initialize with new fields
+  maskDetails: any = {}; // Add this variable to store mask details
+  maskList: any[] = []; // Add this variable to store masks
+  selectedMaskID: number | null = null; // Add this variable to store the selected mask ID
+  newMaskSkill: any = { skillName: '', description: '', mainStat: '', mainStatPercentage: 0, cooldown: 0 }; // Initialize new mask skill
 
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
     this.fetchCharacterNames();
+    this.fetchAllCharacters(); // Fetch all characters on initialization
+    this.fetchMasks(); // Fetch all masks on initialization
   }
 
   fetchCharacterNames() {
@@ -50,18 +61,58 @@ export class DMScreenComponent implements OnInit {
     );
   }
 
-  selectCharacter(name: string) {
-    this.currentlySelectedCharacter = name;
-    console.log('Currently selected character:', this.currentlySelectedCharacter);
-    this.fetchStatsSheet(name);
-    this.fetchFamilyMembers(name); // Fetch family members for the selected character
-    this.fetchFriendMembers(name); // Fetch family members for the selected character
-    this.fetchInventoryItems(name); // Fetch inventory items for the selected character
-    this.fetchSkills(name); // Fetch skills for the selected character
+  fetchAllCharacters() {
+    this.http.get<{ characterName: string, characterID: string }[]>(`https://${localIP}:8080/all-characters`).subscribe(
+      (data) => {
+        this.allCharacters = data
+          .map(character => ({
+            name: character.characterName,
+            id: character.characterID
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name)); // Sort characters alphabetically by name
+      },
+      (error) => {
+        console.error('Error fetching all characters:', error);
+      }
+    );
   }
 
-  fetchStatsSheet(characterName: string) {
-    this.http.get<any>(`https://${localIP}:8080/stats-sheet/${characterName}`).subscribe(
+  fetchMasks() {
+    this.http.get<any[]>(`https://${localIP}:8080/masks`).subscribe(
+      (data) => {
+        this.maskList = data;
+      },
+      (error) => {
+        console.error('Error fetching masks:', error);
+      }
+    );
+  }
+
+  selectCharacter(name: string) {
+    this.currentlySelectedCharacter = name;
+    this.http.get<{ characterID: string, maskID: string | null }>(`https://${localIP}:8080/character-id/${name}`).subscribe(
+      (data) => {
+        this.currentlySelectedCharacterID = data.characterID;
+        this.fetchStatsSheet(this.currentlySelectedCharacterID);
+        this.fetchFamilyMembers(this.currentlySelectedCharacterID);
+        this.fetchFriendMembers(this.currentlySelectedCharacterID);
+        this.fetchInventoryItems(this.currentlySelectedCharacterID);
+        this.fetchSkills(this.currentlySelectedCharacterID);
+        if (data.maskID) {
+          this.fetchMaskDetails(data.maskID); // Fetch mask details if maskID is not null
+        } else {
+          this.newMask = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magiResist: 0, protections: 0, health: 0, speed: 0 }; // Initialize newMask with default values
+          this.maskDetails = {}; // Reset maskDetails
+        }
+      },
+      (error) => {
+        console.error('Error fetching character ID:', error);
+      }
+    );
+  }
+
+  fetchStatsSheet(characterID: string) {
+    this.http.get<any>(`https://${localIP}:8080/stats-sheet/${characterID}`).subscribe(
       (data) => {
         this.statsSheet = data;
       },
@@ -71,14 +122,13 @@ export class DMScreenComponent implements OnInit {
     );
   }
 
-  fetchFamilyMembers(characterName: string) {
-    this.http.get<any[]>(`https://${localIP}:8080/character-info/${characterName}/family-members`).subscribe(
+  fetchFamilyMembers(characterID: string) {
+    this.http.get<any[]>(`https://${localIP}:8080/family-member/${characterID}`).subscribe(
       (data) => {
         this.familyMembers = data.map(member => ({
-          ...member,
+          characterName: member.characterName,
           photo: member.photo ? `https://${localIP}:8080${member.photo}` : ''
         }));
-        console.log('Family members:', this.familyMembers); // Log the family members array
       },
       (error) => {
         console.error('Error fetching family members:', error);
@@ -86,14 +136,13 @@ export class DMScreenComponent implements OnInit {
     );
   }
 
-  fetchFriendMembers(characterName: string) {
-    this.http.get<any[]>(`https://${localIP}:8080/character-info/${characterName}/friend-members`).subscribe(
+  fetchFriendMembers(characterID: string) {
+    this.http.get<any[]>(`https://${localIP}:8080/friend-member/${characterID}`).subscribe(
       (data) => {
         this.friendMembers = data.map(member => ({
-          ...member,
+          characterName: member.characterName,
           photo: member.photo ? `https://${localIP}:8080${member.photo}` : ''
         }));
-        console.log('Friend members:', this.friendMembers); // Log the friend members array
       },
       (error) => {
         console.error('Error fetching friend members:', error);
@@ -101,14 +150,13 @@ export class DMScreenComponent implements OnInit {
     );
   }
 
-  fetchInventoryItems(characterName: string) {
-    this.http.get<any[]>(`https://${localIP}:8080/character-info/${characterName}/inventory-items`).subscribe(
+  fetchInventoryItems(characterID: string) {
+    this.http.get<any[]>(`https://${localIP}:8080/inventory-item/${characterID}`).subscribe(
       (data) => {
         this.inventoryItems = data.map(item => ({
           ...item,
           photo: item.photo ? `https://${localIP}:8080${item.photo}` : ''
         })).sort((a, b) => a.itemName.localeCompare(b.itemName)); // Sort items alphabetically by name
-        console.log('Inventory items:', this.inventoryItems); // Log the inventory items array
       },
       (error) => {
         console.error('Error fetching inventory items:', error);
@@ -116,11 +164,10 @@ export class DMScreenComponent implements OnInit {
     );
   }
 
-  fetchSkills(characterName: string) {
-    this.http.get<any[]>(`https://${localIP}:8080/character-info/${characterName}/skills`).subscribe(
+  fetchSkills(characterID: string) {
+    this.http.get<any[]>(`https://${localIP}:8080/skill-list/${characterID}`).subscribe(
       (data) => {
         this.skillList = data.sort((a, b) => a.skillName.localeCompare(b.skillName)); // Sort skills alphabetically by name
-        console.log('Skills:', this.skillList); // Log the skills array
       },
       (error) => {
         console.error('Error fetching skills:', error);
@@ -128,15 +175,84 @@ export class DMScreenComponent implements OnInit {
     );
   }
 
+  fetchMaskDetails(maskID: string) {
+    this.http.get<any>(`https://${localIP}:8080/mask-details/${maskID}`).subscribe(
+      (data) => {
+        if (data && Object.keys(data).length > 0) {
+          this.maskDetails = data;
+          this.newMask = { 
+            ...data, 
+            photo: `https://${localIP}:8080${data.photo}`,
+            activeSkills: data.activeSkills.join(', '), // Convert array to comma-separated string
+          }; // Initialize newMask with the received data and format photo URL
+          this.fetchMaskSkillDetails(data.activeSkills); // Fetch mask skill details
+        } else {
+          this.newMask = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magicResist: 0, protections: 0, health: 0, speed: 0 }; // Initialize newMask if no mask is found
+          this.maskDetails = {}; // Reset maskDetails
+        }
+      },
+      (error) => {
+        if (error.status === 404) {
+          this.newMask = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magicResist: 0, protections: 0, health: 0, speed: 0 }; // Initialize newMask if no mask is found
+          this.maskDetails = {}; // Reset maskDetails
+        } else {
+          console.error('Error fetching mask details:', error);
+        }
+      }
+    );
+  }
+
+  fetchMaskSkillDetails(skillIDs: number[]) {
+    skillIDs.forEach(skillID => {
+      this.http.get<any>(`https://${localIP}:8080/mask-skill-details/${skillID}`).subscribe(
+        (data) => {
+          this.maskDetails.activeSkills.push(data); // Add skill details to maskDetails
+        },
+        (error) => {
+          console.error(`Error fetching mask skill details for skill ID ${skillID}:`, error);
+        }
+      );
+    });
+  }
+
   saveStatsSheet() {
-    this.http.put(`https://${localIP}:8080/stats-sheet/${this.currentlySelectedCharacter}`, this.statsSheet).subscribe(
+    this.http.put(`https://${localIP}:8080/stats-sheet/${this.currentlySelectedCharacterID}`, this.statsSheet).subscribe(
       () => {
-        console.log('Stats sheet saved successfully');
       },
       (error) => {
         console.error('Error saving stats sheet:', error);
       }
     );
+  }
+
+  saveMaskSkill() {
+    const maskSkillData = { 
+      ...this.newMaskSkill,
+      mainStatPercentage: parseFloat(this.newMaskSkill.mainStatPercentage),
+      cooldown: parseInt(this.newMaskSkill.cooldown, 10)
+    };
+    this.http.post(`https://${localIP}:8080/mask-skills`, maskSkillData).subscribe(
+      (data: any) => {
+        this.updateMaskActiveSkills(data.skillID);
+        this.newMaskSkill = { skillName: '', description: '', mainStat: '', mainStatPercentage: 0, cooldown: 0 }; // Reset the newMaskSkill
+      },
+      (error) => {
+        console.error('Error saving mask skill:', error);
+      }
+    );
+  }
+
+  updateMaskActiveSkills(skillID: number) {
+    if (this.selectedMaskID !== null) {
+      this.http.put(`https://${localIP}:8080/masks/${this.selectedMaskID}/add-skill`, { skillID }).subscribe(
+        () => {
+          console.log('Skill added to mask successfully');
+        },
+        (error) => {
+          console.error('Error adding skill to mask:', error);
+        }
+      );
+    }
   }
 
   objectKeys(obj: any): string[] {
@@ -163,33 +279,8 @@ export class DMScreenComponent implements OnInit {
     this.newSkill = { skillName: '', mainStat: '', description: '', diceRoll: '' };
   }
 
-  saveFamilyMember() {
-    const familyMemberData = { ...this.newFamilyMember, characterName: this.newFamilyMember.characterName };
-    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/family-member`, familyMemberData).subscribe(
-      (data: any) => {
-        console.log('Family member saved successfully');
-        this.updateCharacterFamilyMembers(data.id);
-      },
-      (error) => {
-        console.error('Error saving family member:', error);
-      }
-    );
-  }
-
-  saveFriendMember() {
-    const friendMemberData = { ...this.newFriendMember, characterName: this.newFriendMember.characterName };
-    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/friend-member`, friendMemberData).subscribe(
-      (data: any) => {
-        console.log('Friend member saved successfully');
-        this.updateCharacterFriendMembers(data.id);
-      },
-      (error) => {
-        console.error('Error saving friend member:', error);
-        if (error.status === 500) {
-          console.error('Internal Server Error: Failed to save friend member');
-        }
-      }
-    );
+  addMask() {
+    this.newMask = { photo: '', passiveSkill: '', activeSkills: [] };
   }
 
   saveInventoryItem() {
@@ -198,9 +289,8 @@ export class DMScreenComponent implements OnInit {
       itemName: this.newInventoryItem.itemName,
       description: this.newInventoryItem.description.replace(/\n/g, '\\n') // Replace new lines with \n
     };
-    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/inventory-item`, inventoryItemData).subscribe(
+    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacterID}/inventory-item`, inventoryItemData).subscribe(
       (data: any) => {
-        console.log('Inventory item saved successfully');
         this.inventoryItems.push(data); // Add the new item to the inventoryItems array
         this.newInventoryItem = null; // Reset the newInventoryItem
       },
@@ -211,10 +301,13 @@ export class DMScreenComponent implements OnInit {
   }
 
   saveSkill() {
-    const skillData = { ...this.newSkill, skillName: this.newSkill.skillName };
-    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/skill`, skillData).subscribe(
+    const skillData = { 
+      ...this.newSkill, 
+      skillName: this.newSkill.skillName,
+      description: this.newSkill.description.replace(/\n/g, '\\n') // Replace new lines with \n
+    };
+    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacterID}/skill`, skillData).subscribe(
       (data: any) => {
-        console.log('Skill saved successfully');
         this.skillList.push(data); // Add the new skill to the skillList array
         this.newSkill = null; // Reset the newSkill
       },
@@ -224,10 +317,69 @@ export class DMScreenComponent implements OnInit {
     );
   }
 
+  saveMask() {
+    const maskData = { 
+      ...this.newMask, 
+      activeSkills: this.newMask.activeSkills.split(',').map((skill: string) => parseInt(skill.trim(), 10)), // Convert activeSkills to array of integers
+      attackDamage: this.newMask.attackDamage,
+      abilityDamage: this.newMask.abilityDamage,
+      magicResist: this.newMask.magiResist, // Corrected typo
+      protections: this.newMask.protections,
+      health: this.newMask.health,
+      speed: this.newMask.speed
+    };
+    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacterID}/mask`, maskData).subscribe(
+      (data: any) => {
+        this.maskDetails = data; // Update mask details
+        this.newMask = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magiResist: 0, protections: 0, health: 0, speed: 0 }; // Reset the newMask with default values
+      },
+      (error) => {
+        console.error('Error saving mask:', error);
+      }
+    );
+  }
+
+  saveFamilyMember() {
+    if (this.selectedFamilyMember) {
+      const selectedCharacter = this.allCharacters.find(character => character.name === this.selectedFamilyMember);
+      if (selectedCharacter) {
+        const familyMemberId = selectedCharacter.id;
+        this.http.put(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/family-members`, { familyMemberId }).subscribe(
+          () => {
+            this.fetchFamilyMembers(this.currentlySelectedCharacterID!); // Refresh family members list
+            this.newFamilyMember = null; // Reset the newFamilyMember
+            this.selectedFamilyMember = null; // Reset the selectedFamilyMember
+          },
+          (error) => {
+            console.error('Error adding family member:', error);
+          }
+        );
+      }
+    }
+  }
+
+  saveFriendMember() {
+    if (this.selectedFriendMember) {
+      const selectedCharacter = this.allCharacters.find(character => character.name === this.selectedFriendMember);
+      if (selectedCharacter) {
+        const friendMemberId = selectedCharacter.id;
+        this.http.put(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/friend-members`, { friendMemberId }).subscribe(
+          () => {
+            this.fetchFriendMembers(this.currentlySelectedCharacterID!); // Refresh friend members list
+            this.newFriendMember = null; // Reset the newFriendMember
+            this.selectedFriendMember = null; // Reset the selectedFriendMember
+          },
+          (error) => {
+            console.error('Error adding friend member:', error);
+          }
+        );
+      }
+    }
+  }
+
   updateCharacterFamilyMembers(familyMemberId: number) {
     this.http.put(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/family-members`, { familyMemberId }).subscribe(
       () => {
-        console.log('Character family members updated successfully');
       },
       (error) => {
         console.error('Error updating character family members:', error);
@@ -238,7 +390,6 @@ export class DMScreenComponent implements OnInit {
   updateCharacterFriendMembers(friendMemberId: number) {
     this.http.put(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/friend-members`, { friendMemberId }).subscribe(
       () => {
-        console.log('Character friend members updated successfully');
       },
       (error) => {
         console.error('Error updating character friend members:', error);
@@ -249,7 +400,6 @@ export class DMScreenComponent implements OnInit {
   updateCharacterInventoryItems(itemId: number) {
     this.http.put(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/inventory-items`, { itemId }).subscribe(
       () => {
-        console.log('Character inventory items updated successfully');
       },
       (error) => {
         console.error('Error updating character inventory items:', error);
@@ -266,8 +416,9 @@ export class DMScreenComponent implements OnInit {
           this.newFriendMember.photo = response.filePath; // Save as relative URL
         } else if (this.newInventoryItem) {
           this.newInventoryItem.photo = response.filePath; // Save as relative URL
+        } else if (this.newMask) {
+          this.newMask.photo = response.filePath; // Save as relative URL
         }
-        console.log('Image saved successfully');
       },
       (error) => {
         console.error('Error saving image:', error);
@@ -305,6 +456,16 @@ export class DMScreenComponent implements OnInit {
     }
   }
 
+  onImageUploadMask(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('maskID', this.maskDetails.maskID || ''); // Use mask ID if available
+      this.saveImage(formData);
+    }
+  }
+
   showItemModal(item: any) {
     this.hoveredItem = item;
   }
@@ -327,9 +488,8 @@ export class DMScreenComponent implements OnInit {
 
   deleteSkill() {
     if (this.selectedSkill) {
-      this.http.delete(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/skill/${this.selectedSkill.skillID}`).subscribe(
+      this.http.delete(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacterID}/skill/${this.selectedSkill.skillID}`).subscribe(
         () => {
-          console.log('Skill deleted successfully');
           this.skillList = this.skillList.filter(skill => skill !== this.selectedSkill);
           this.selectedSkill = null;
         },
@@ -342,9 +502,8 @@ export class DMScreenComponent implements OnInit {
 
   deleteInventoryItem() {
     if (this.selectedInventoryItem) {
-      this.http.delete(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/inventory-item/${this.selectedInventoryItem.itemID}`).subscribe(
+      this.http.delete(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacterID}/inventory-item/${this.selectedInventoryItem.itemID}`).subscribe(
         () => {
-          console.log('Inventory item deleted successfully');
           this.inventoryItems = this.inventoryItems.filter(item => item !== this.selectedInventoryItem);
           this.selectedInventoryItem = null;
         },

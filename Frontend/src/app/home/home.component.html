@@ -51,20 +51,20 @@
 
   <div class="container mx-auto mt-10">
     <h1 class="text-3xl font-bold text-center text-blue-800" *ngIf="currentView === 'home'">Welcome to the Home Page!</h1>
-    <app-board *ngIf="currentView === 'board'" [characterName]= "characterName" (resultRolled)="handleDiceResult($event)"></app-board>
-    <app-family *ngIf="currentView === 'family'" [characterName]= "characterName"></app-family>
-    <app-friends *ngIf="currentView === 'friends'" [characterName]= "characterName"></app-friends>
-    <app-inventory *ngIf="currentView === 'inventory'" (resultRolled)="handleDiceResult($event)" [characterName]= "characterName"></app-inventory>
-    <app-skills *ngIf="currentView === 'skills'" (resultRolled)="handleDiceResult($event)" [characterName]= "characterName"></app-skills>
-    <app-notes *ngIf="currentView === 'notes'" [characterName]="characterName"></app-notes> <!-- Pass characterName as username -->
-    <app-score *ngIf="currentView === 'score'" [characterName]="characterName || ''" [role]="role || ''"></app-score> <!-- Ensure characterName and role are strings -->
+    <app-board *ngIf="currentView === 'board'" [characterID]="characterID" (resultRolled)="handleDiceResult($event)"></app-board>
+    <app-family *ngIf="currentView === 'family'" [characterID]="characterID"></app-family>
+    <app-friends *ngIf="currentView === 'friends'" [characterID]="characterID"></app-friends>
+    <app-inventory *ngIf="currentView === 'inventory'" (resultRolled)="handleDiceResult($event)" [characterID]= "characterID"></app-inventory>
+    <app-skills *ngIf="currentView === 'skills'" (resultRolled)="handleDiceResult($event)" [characterID]= "characterID"></app-skills>
+    <app-notes *ngIf="currentView === 'notes'" [username]="username"></app-notes>
+    <app-score *ngIf="currentView === 'score'" [characterID]="characterName || ''" [role]="role || ''"></app-score>
     <app-dmscreen *ngIf="currentView === 'dm-screen'"></app-dmscreen>
   </div>
 
   <app-chat-button *ngIf="isHomeView() || !isMobile()" [newMessage]="diceResult" [username]="username || 'DefaultUser'"></app-chat-button>
   <app-roll-button *ngIf="isHomeView() || !isMobile()" (resultRolled)="handleDiceResult($event)"></app-roll-button>
   <app-vc-button *ngIf="isHomeView() || !isMobile()" [username]="username || 'DefaultUser'"></app-vc-button>
-  <app-soundbar class="hidden md:block"></app-soundbar> <!-- Hide soundbar on mobile devices -->
+  <!-- <app-soundbar class="hidden md:block"></app-soundbar> -->
 
 <div *ngIf="(isHomeView() || !isMobile())" class="fixed bottom-4 right-4 mb-0">
   <button class="vc-button p-3 w-12 h-12 bg-blue-800 text-black rounded-full shadow-lg hover:bg-blue-900 transition duration-200" (click)="navigateToBattle()">
@@ -78,7 +78,7 @@
   </button>
 </div>
 <div *ngIf="(isHomeView() || !isMobile())" class="fixed bottom-32 right-4 mb-4">
-  <button class="vc-button p-3 w-12 h-12 bg-blue-800 text-black rounded-full shadow-lg hover:bg-blue-900 transition duration-200" (click)="navigateToSpaceShipGallery()">
-    <i class="fa fa-space-shuttle" aria-hidden="true"></i>
+  <button class="vc-button p-3 w-12 h-12 bg-blue-800 text-black rounded-full shadow-lg hover:bg-blue-900 transition duration-200" (click)="navigateToCharactersGallery()">
+    <i class="fa fa-user" aria-hidden="true"></i>
   </button>
 </div>

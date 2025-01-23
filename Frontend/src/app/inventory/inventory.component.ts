@@ -1,6 +1,7 @@
 import { Component, OnInit, EventEmitter, Output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // Import FormsModule
+import { HttpClient } from '@angular/common/http'; // Import HttpClient
 import { localIP } from '../config'; // Import the IP address
 
 interface Item {
@@ -13,6 +14,31 @@ interface Item {
   photo: string; // This will now hold Base64 strings
 }
 
+interface StatsSheet {
+  strength: number;
+  athletics: number;
+  dexterity: number;
+  acrobatics: number;
+  sleightOfHand: number;
+  stealth: number;
+  constitution: number;
+  intelligence: number;
+  history: number;
+  investigation: number;
+  nature: number;
+  wisdom: number;
+  animalHandling: number;
+  insight: number;
+  medicine: number;
+  perception: number;
+  survival: number;
+  charisma: number;
+  deception: number;
+  intimidation: number;
+  performance: number;
+  persuasion: number;
+}
+
 @Component({
   selector: 'app-inventory',
   standalone: true,
@@ -23,170 +49,94 @@ interface Item {
 export class InventoryComponent implements OnInit {
   Item: Item[] = [];
   itemList: number[] = [];
-  strength: number = 0;
-  dexterity: number = 0;
-  constitution: number = 0;
-  intelligence: number = 0;
-  wisdom: number = 0;
-  charisma: number = 0;
-  marksmanship: string = "";
-  swordsmanship: string = "";
-  perception: string = "";
-  splicing: string = "";
-  forceStrength: string = "";
   searchQuery: string = ''; // Add searchQuery property
   sortCriteria: string = 'alphabetically'; // Add sortCriteria property
+  statsSheet: StatsSheet | null = null; // Add statsSheet property
 
-  @Input() characterName: string | null = '';
+  @Input() characterID: string | null = '';
   @Output() resultRolled = new EventEmitter<string>();
 
+  constructor(private http: HttpClient) {} // Add HttpClient to the constructor
+
   ngOnInit() {
-    if (this.characterName) {
-      this.fetchItemList(this.characterName);
+    if (this.characterID) {
+      this.fetchInventoryItems(this.characterID);
+      this.fetchStatsSheet(this.characterID); // Fetch stats sheet
     }
   }
 
-  async fetchItemList(characterName: string) {
-    try {
-      const response = await fetch(`https://${localIP}:8080/character-info/${characterName}`);
-      if (!response.ok) throw new Error('Failed to fetch item list');
-      
-      const itemListData = await response.json();
-      this.updateItemList(itemListData);  // Update friend members with the fetched data
-      await this.fetchItemById(); // Fetch friend members' details after getting IDs
-    } catch (error) {
-      console.error('Error fetching item list:', error);
-    }
-  }
-
-  updateItemList(itemListData: any) {
-    this.itemList = itemListData.itemInventory; // Assuming itemInventory is an array of IDs
-  }
-
-  async fetchItemById() {
-    try {
-      const fetchPromises = this.itemList.map(async (itemID) => {
-        const response = await fetch(`https://${localIP}:8080/item-list/${itemID}`);
-        if (!response.ok) throw new Error(`Failed to fetch item list with ID ${itemID}`);
-        
-        const item: Item = await response.json();
-        this.updateItem(item);
-      });
-      
-      // Wait for all fetch requests to complete
-      await Promise.all(fetchPromises);
-    } catch (error) {
-      console.error('Error fetching item list details:', error);
-    }
-  }
-
-  async updateItem(item: Item) {  
-
-    // Adjust the photo URL to be relative
-    item.photo = item.photo ? `https://${localIP}:8080${item.photo}` : '';
-    item.modifier = await this.fetchStatsSheet(this.characterName, item.mainStat);
-
-    this.Item.push(item);
-  }
-
-
-  async fetchStatsSheet(characterName: string | null, mainStat: string) {
-    try {
-      const response = await fetch(`https://${localIP}:8080/stats-sheet/${characterName}`);
-      if (!response.ok) throw new Error('Failed to fetch stats');
-      
-      const statsSheet = await response.json();
-      let modifier = this.updateStats(statsSheet, mainStat);  // Update stats with the fetched data
-      return modifier
-    } catch (error) {
-      console.error('Error fetching stats sheet:', error);
-      return "0"
-    }
-  }
-
-  updateStats(stats: any, mainStat: string) {
-    let modifier: string = "";
-    let usingStat: number = 0;
-
-    this.strength = stats.strength;
-    this.dexterity = stats.dexterity;
-    this.constitution = stats.constitution;
-    this.intelligence = stats.intelligence;
-    this.wisdom = stats.wisdom;
-    this.charisma = stats.charisma;
-    this.marksmanship = stats.marksmanship;
-    this.swordsmanship = stats.swordsmanship;
-    this.perception = stats.perception;
-    this.splicing = stats.splicing;
-    this.forceStrength = stats.forceStrength;
-
-    let calc = 0;
-
-    if (mainStat === "Strength") {
-      usingStat = this.strength
-    } else if (mainStat === "Dexterity"){
-      usingStat = this.dexterity
-    } else if (mainStat === "Constitution"){
-      usingStat = this.constitution
-    } else if (mainStat === "Intelligence"){
-      usingStat = this.intelligence
-    } else if (mainStat === "Wisdom"){
-      usingStat = this.wisdom
-    } else if (mainStat === "Charisma"){
-      usingStat = this.charisma
-    }
-
-    calc = Math.floor(usingStat / 2 - 5)
-    if (calc > 0) {
-      modifier = "+" + calc
-    } else {
-      modifier = "" + calc
-    }
-
-    if (mainStat === "Marksmanship") {
-      modifier = this.marksmanship; // Convert string to number
-    } else if (mainStat === "Swordsmanship") {
-      modifier = this.swordsmanship; // Convert string to number
-    } else if (mainStat === "Perception") {
-      modifier = this.perception; // Convert string to number
-    } else if (mainStat === "Splicing") {
-      modifier = this.splicing; // Convert string to number
-    } else if (mainStat === "Force Strength") {
-      modifier = this.forceStrength; // Convert string to number
-    }
-    return modifier
-    
-  }
-
-  get filteredItems() {
-    let sortedItems = [...this.Item];
-
-    switch (this.sortCriteria) {
-      case 'damage':
-        sortedItems.sort((a, b) => parseInt(b.damage) - parseInt(a.damage));
-        break;
-      case 'type':
-        sortedItems.sort((a, b) => a.type.localeCompare(b.type));
-        break;
-      case 'mainStat':
-        sortedItems.sort((a, b) => a.mainStat.localeCompare(b.mainStat));
-        break;
-      case 'alphabetically':
-      default:
-        sortedItems.sort((a, b) => a.itemName.localeCompare(b.itemName));
-        break;
-    }
-
-    return sortedItems.filter(item => 
-      item.itemName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      item.type.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      item.mainStat.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(this.searchQuery.toLowerCase())
+  fetchStatsSheet(characterID: string) {
+    this.http.get<StatsSheet>(`https://${localIP}:8080/stats-sheet/${characterID}`).subscribe(
+      (data) => {
+        this.statsSheet = data;
+        this.assignModifiers(); // Assign modifiers after fetching stats sheet
+      },
+      (error) => {
+        console.error('Error fetching stats sheet:', error);
+      }
     );
+  }
+
+  fetchInventoryItems(characterID: string) {
+    this.http.get<Item[]>(`https://${localIP}:8080/inventory-item/${characterID}`).subscribe(
+      (data) => {
+        this.Item = data.map(item => ({
+          ...item,
+          photo: item.photo ? `https://${localIP}:8080${item.photo}` : ''
+        }));
+        this.assignModifiers(); // Assign modifiers after fetching items
+        this.sortItems(); // Sort items after fetching
+      },
+      (error) => {
+        console.error('Error fetching inventory items:', error);
+      }
+    );
+  }
+
+  assignModifiers() {
+    if (this.statsSheet) {
+      this.Item = this.Item.map(item => {
+        let mainStatValue = this.statsSheet![item.mainStat.toLowerCase() as keyof StatsSheet] || 0;
+        
+        // Apply Dungeons and Dragons modifier values for specific main stats
+        if (['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'].includes(item.mainStat.toLowerCase())) {
+          mainStatValue = Math.floor((mainStatValue - 10) / 2);
+        }
+
+        return {
+          ...item,
+          modifier: mainStatValue.toString()
+        };
+      });
+    }
   }
 
   setSortCriteria(criteria: string) {
     this.sortCriteria = criteria;
+    this.sortItems(); // Sort items when criteria changes
+  }
+
+  sortItems() {
+    switch (this.sortCriteria) {
+      case 'alphabetically':
+        this.Item.sort((a, b) => a.itemName.localeCompare(b.itemName));
+        break;
+      case 'damage':
+        this.Item.sort((a, b) => parseInt(b.damage) - parseInt(a.damage)); // Sort damage in descending order
+        break;
+      case 'type':
+        this.Item.sort((a, b) => a.type.localeCompare(b.type));
+        break;
+      case 'mainStat':
+        this.Item.sort((a, b) => {
+          const aStat = this.statsSheet![a.mainStat.toLowerCase() as keyof StatsSheet] || 0;
+          const bStat = this.statsSheet![b.mainStat.toLowerCase() as keyof StatsSheet] || 0;
+          return bStat - aStat; // Sort in descending order
+        });
+        break;
+      default:
+        break;
+    }
   }
 
   rollDice(event: Event) {

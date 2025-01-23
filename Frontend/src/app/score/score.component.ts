@@ -19,6 +19,7 @@ export class ScoreComponent implements OnInit {
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
+    console.log('Score component initialized');
     this.isMobile = window.innerWidth <= 768; // Check if the device is mobile
     this.fetchScores();
   }
@@ -26,6 +27,7 @@ export class ScoreComponent implements OnInit {
   async fetchScores() {
     try {
       const response = await fetch(`https://${localIP}:8080/api/scores`);
+      console.log(response);
       this.scores = await response.json();
     } catch (error) {
       console.error('Error fetching scores:', error);

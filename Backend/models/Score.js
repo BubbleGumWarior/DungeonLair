@@ -3,7 +3,7 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
 
 const Score = sequelize.define('Score', {
-characterName: DataTypes.STRING,
+  characterName: DataTypes.STRING,
   wishes: DataTypes.INTEGER,
   antiWishes: DataTypes.INTEGER,
   inspiration: DataTypes.INTEGER,

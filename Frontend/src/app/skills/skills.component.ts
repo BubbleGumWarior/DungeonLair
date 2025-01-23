@@ -2,6 +2,7 @@ import { Component, OnInit, EventEmitter, Output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // Import FormsModule
 import { localIP } from '../config'; // Import the IP address
+import { HttpClient } from '@angular/common/http'; // Import HttpClient
 
 interface Skill {
   skillName: string;
@@ -9,6 +10,16 @@ interface Skill {
   mainStat: string;
   diceRoll: string;
   modifier: string;
+}
+
+interface StatsSheet {
+  strength: number;
+  dexterity: number;
+  constitution: number;
+  intelligence: number;
+  wisdom: number;
+  charisma: number;
+  // Add other stats as needed
 }
 
 @Component({
@@ -39,163 +50,88 @@ export class SkillsComponent implements OnInit {
   persuasion: string = "";
   searchQuery: string = ''; // Add searchQuery property
   sortCriteria: string = 'alphabetically'; // Add sortCriteria property
+  filteredSkills: Skill[] = []; // Add filteredSkills property
+  statsSheet: StatsSheet | null = null; // Add statsSheet property
 
-  @Input() characterName: string | null = '';
+  @Input() characterID: string | null = '';
   @Output() resultRolled = new EventEmitter<string>();
 
+  constructor(private http: HttpClient) {} // Add HttpClient to the constructor
+
   ngOnInit() {
-    if (this.characterName) {
-      this.fetchSkillsList(this.characterName);
+    if (this.characterID) {
+      this.fetchSkills(this.characterID);
+      this.fetchStatsSheet(this.characterID); // Fetch stats sheet
     }
   }
 
-  async fetchSkillsList(characterName: string) {
-    try {
-      const response = await fetch(`https://${localIP}:8080/character-info/${characterName}`);
-      if (!response.ok) throw new Error('Failed to fetch item list');
-      
-      const itemListData = await response.json();
-      this.updateSkillList(itemListData);  // Update friend members with the fetched data
-      await this.fetchSkillById(); // Fetch friend members' details after getting IDs
-    } catch (error) {
-      console.error('Error fetching item list:', error);
-    }
+  fetchStatsSheet(characterID: string) {
+    this.http.get<StatsSheet>(`https://${localIP}:8080/stats-sheet/${characterID}`).subscribe(
+      (data) => {
+        this.statsSheet = data;
+        this.assignModifiers(); // Assign modifiers after fetching stats sheet
+      },
+      (error) => {
+        console.error('Error fetching stats sheet:', error);
+      }
+    );
   }
 
-  updateSkillList(skillListData: any) {
-    this.skillList = skillListData.skillList; // Assuming skillListData is an array of IDs
+  fetchSkills(characterID: string) {
+    this.http.get<Skill[]>(`https://${localIP}:8080/skill-list/${characterID}`).subscribe(
+      (data) => {
+        this.Skill = data;
+        this.assignModifiers(); // Assign modifiers after fetching skills
+        this.filterAndSortSkills(); // Filter and sort skills after fetching
+      },
+      (error) => {
+        console.error('Error fetching skills:', error);
+      }
+    );
   }
 
-  async fetchSkillById() {
-    try {
-      const fetchPromises = this.skillList.map(async (skillID) => {
-        const response = await fetch(`https://${localIP}:8080/skill-list/${skillID}`);
-        if (!response.ok) throw new Error(`Failed to fetch skill list with ID ${skillID}`);
+  assignModifiers() {
+    if (this.statsSheet) {
+      this.Skill = this.Skill.map(skill => {
+        let mainStatValue = this.statsSheet![skill.mainStat.toLowerCase() as keyof StatsSheet] || 0;
         
-        const skill: Skill = await response.json();
-        this.updateSkill(skill);
+        // Apply Dungeons and Dragons modifier values for specific main stats
+        if (['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'].includes(skill.mainStat.toLowerCase())) {
+          mainStatValue = Math.floor((mainStatValue - 10) / 2);
+        }
+
+        return {
+          ...skill,
+          modifier: (mainStatValue >= 0 ? '+' + mainStatValue : mainStatValue.toString())
+        };
       });
-      
-      // Wait for all fetch requests to complete
-      await Promise.all(fetchPromises);
-    } catch (error) {
-      console.error('Error fetching skill list details:', error);
+      this.filterAndSortSkills(); // Ensure filteredSkills is updated after assigning modifiers
     }
   }
 
-  async updateSkill(skill: Skill) {  
-    skill.modifier = await this.fetchStatsSheet(this.characterName, skill.mainStat);
-
-    this.Skill.push(skill);
-  }
-
-  async fetchStatsSheet(characterName: string | null, mainStat: string) {
-    try {
-      const response = await fetch(`https://${localIP}:8080/stats-sheet/${characterName}`);
-      if (!response.ok) throw new Error('Failed to fetch stats');
-      
-      const statsSheet = await response.json();
-      let modifier = this.updateStats(statsSheet, mainStat);  // Update stats with the fetched data
-      return modifier
-    } catch (error) {
-      console.error('Error fetching stats sheet:', error);
-      return "0"
-    }
-  }
-
-  updateStats(stats: any, mainStat: string) {
-    let modifier: string = "";
-    let usingStat: number = 0;
-
-    this.strength = stats.strength;
-    this.dexterity = stats.dexterity;
-    this.constitution = stats.constitution;
-    this.intelligence = stats.intelligence;
-    this.wisdom = stats.wisdom;
-    this.charisma = stats.charisma;
-    this.marksmanship = stats.marksmanship;
-    this.swordsmanship = stats.swordsmanship;
-    this.forceStrength = stats.forceStrength;
-    this.stealth = stats.stealth;
-    this.pilot = stats.pilot;
-    this.perception = stats.perception;
-    this.splicing = stats.splicing;
-    this.athletics = stats.athletics;
-    this.mapping = stats.mapping;
-    this.persuasion = stats.persuasion;
-
-    let calc = 0;
-
-    if (mainStat === "Strength") {
-      usingStat = this.strength
-    } else if (mainStat === "Dexterity"){
-      usingStat = this.dexterity
-    } else if (mainStat === "Constitution"){
-      usingStat = this.constitution
-    } else if (mainStat === "Intelligence"){
-      usingStat = this.intelligence
-    } else if (mainStat === "Wisdom"){
-      usingStat = this.wisdom
-    } else if (mainStat === "Charisma"){
-      usingStat = this.charisma
-    }
-
-    calc = Math.floor(usingStat / 2 - 5)
-    if (calc > 0) {
-      modifier = "+" + calc
-    } else {
-      modifier = "" + calc
-    }
-
-    if (mainStat === "Marksmanship") {
-      modifier = this.marksmanship; // Convert string to number
-    } else if (mainStat === "Swordsmanship") {
-      modifier = this.swordsmanship; // Convert string to number
-    } else if (mainStat === "Force Strength") {
-      modifier = this.forceStrength; // Convert string to number
-    } else if (mainStat === "Stealth") {
-      modifier = this.stealth; // Convert string to number
-    } else if (mainStat === "Pilot") {
-      modifier = this.pilot; // Convert string to number
-    } else if (mainStat === "Perception") {
-      modifier = this.perception; // Convert string to number
-    } else if (mainStat === "Splicing") {
-      modifier = this.splicing; // Convert string to number
-    } else if (mainStat === "Athletics") {
-      modifier = this.athletics; // Convert string to number
-    } else if (mainStat === "Mapping") {
-      modifier = this.mapping; // Convert string to number
-    }
-    else if (mainStat === "Persuasion") {
-      modifier = this.persuasion; // Convert string to number
-    }
-    return modifier
-  }
-
-  get filteredSkills() {
-    let sortedSkills = [...this.Skill];
+  filterAndSortSkills() {
+    this.filteredSkills = this.Skill.filter(skill =>
+      skill.skillName.toLowerCase().includes(this.searchQuery.toLowerCase())
+    );
 
     switch (this.sortCriteria) {
+      case 'alphabetically':
+        this.filteredSkills.sort((a, b) => a.skillName.localeCompare(b.skillName));
+        break;
       case 'diceRoll':
-        sortedSkills.sort((a, b) => parseInt(b.diceRoll) - parseInt(a.diceRoll));
+        this.filteredSkills.sort((a, b) => parseInt(b.diceRoll) - parseInt(a.diceRoll)); // Sort diceRoll in descending order
         break;
       case 'mainStat':
-        sortedSkills.sort((a, b) => a.mainStat.localeCompare(b.mainStat));
+        this.filteredSkills.sort((a, b) => a.mainStat.localeCompare(b.mainStat));
         break;
-      case 'alphabetically':
       default:
-        sortedSkills.sort((a, b) => a.skillName.localeCompare(b.skillName));
         break;
     }
-
-    return sortedSkills.filter(skill => 
-      skill.skillName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      skill.description.toLowerCase().includes(this.searchQuery.toLowerCase())
-    );
   }
 
   setSortCriteria(criteria: string) {
     this.sortCriteria = criteria;
+    this.filterAndSortSkills(); // Sort skills when criteria changes
   }
 
   rollDice(event: Event) {

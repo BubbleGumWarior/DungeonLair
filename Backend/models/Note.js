@@ -3,6 +3,11 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
 
 const Note = sequelize.define('Note', {
+  noteID: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
   title: {
     type: DataTypes.STRING,
     allowNull: false,

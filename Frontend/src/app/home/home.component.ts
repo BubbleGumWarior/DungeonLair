@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // Import FormsModule
@@ -40,12 +40,14 @@ import { ScoreComponent } from '../score/score.component';
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA] // Add this line
 })
 export class HomeComponent implements OnInit {
   diceResult: string = '';
   username: string | null = null; // Initialize username as null
   characterName: string | null = null;
   role: string | null = null; // Initialize role as null
+  characterID: string | null = null; // Add characterID property
   localIP: string = localIP; // Initialize localIP with the value from config
   showMobileMenu: boolean = false; // Add property to control mobile menu visibility
 
@@ -61,19 +63,21 @@ export class HomeComponent implements OnInit {
       console.log('Logging in user:', this.username, 'with role:', this.role);
       this.webSocketService.loginUser({ username: this.username, role: this.role });
     }
-    if (this.role === 'Dungeon Master') {
-      this.username = 'Dungeon Master';
-    }
+    console.log('Character name in HomeComponent:', this.characterName); // Add this log
   }
 
   loadDataFromToken() {
     const token = localStorage.getItem('token'); // Get the JWT from localStorage
+    console.log('Token:', token); // Add this log
     if (token) {
       try {
         const decoded: any = jwtDecode(token); // Decode the JWT
+        console.log('Decoded token:', decoded); // Add this log
         this.username = decoded.username; // Extract the username
         this.characterName = decoded.characterName;
+        this.characterID = decoded.characterID;
         this.role = decoded.role; // Extract the role
+        console.log('Extracted characterID:', this.characterID); // Add this log
       } catch (error) {
         console.error('Failed to decode token:', error);
       }
@@ -88,6 +92,7 @@ export class HomeComponent implements OnInit {
 
   navigateView(view: string) {
     this.currentView = view;
+    this.showMobileMenu = false;
   }
 
   navigateTo(route: string) {
@@ -112,7 +117,7 @@ export class HomeComponent implements OnInit {
   navigateToGallery() {
     this.router.navigate(['/gallery']);
   }
-  navigateToSpaceShipGallery() {
-    this.router.navigate(['/spaceship-gallery']);
+  navigateToCharactersGallery() {
+    this.router.navigate(['/characters-gallery']);
   }
 }

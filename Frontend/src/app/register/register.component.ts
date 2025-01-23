@@ -4,13 +4,14 @@ import { Router } from '@angular/router';
 import { localIP } from '../config'; // Import the IP address
 import DOMPurify from 'dompurify'; // Import DOMPurify
 import { CommonModule } from '@angular/common'; // Import CommonModule
+import { FormsModule } from '@angular/forms'; // Import FormsModule
 
 @Component({
   selector: 'app-register',
   standalone: true,
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css'],
-  imports: [ReactiveFormsModule, CommonModule] // Add CommonModule here
+  imports: [ReactiveFormsModule, CommonModule, FormsModule] // Add FormsModule here
 })
 export class RegisterComponent {
   registerForm: FormGroup;
@@ -19,6 +20,8 @@ export class RegisterComponent {
   isMobile: boolean = false;
   loginImageUrl: string = `https://${localIP}:8080/assets/images/LoginBackground.jpg`;
   showModal: boolean = false; // Add this line
+  showCharacterNameModal: boolean = false; // Add this line
+  characterName: string = ''; // Add this line
 
   constructor(private fb: FormBuilder, private router: Router) {
     this.isMobile = window.innerWidth <= 768; // Detect if the device is mobile
@@ -26,8 +29,8 @@ export class RegisterComponent {
       username: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      role: ['Player'],
-      characterName: ['User' + Math.floor(Math.random() * 1000) + 1]
+      role: ['Player'],      
+      characterName: "User"
     });
   }
 
@@ -60,12 +63,12 @@ export class RegisterComponent {
     }
 
     const password = this.registerForm.value.password;
-    if (!this.isPasswordValid(password)) {
-      this.errorMessage = 'Password must contain a mix of letters and numbers.';
-      console.log('Password validation failed:', password);
-      this.showModal = true; // Show modal on error
-      return;
-    }
+    // if (!this.isPasswordValid(password)) {
+    //   this.errorMessage = 'Password must contain a mix of letters and numbers.';
+    //   console.log('Password validation failed:', password);
+    //   this.showModal = true; // Show modal on error
+    //   return;
+    // }
 
     const formData = {
       username: DOMPurify.sanitize(this.registerForm.value.username),
@@ -110,7 +113,7 @@ export class RegisterComponent {
     })
     .then(data => {
       console.log('Registration successful:', data);
-      this.navigateTo('/');
+      this.showCharacterNameModal = true; // Show character name modal
     })
     .catch(error => {
       this.errorMessage = `There was a problem with the fetch operation: ${error.message}`;
@@ -132,5 +135,39 @@ export class RegisterComponent {
     if ((event.target as HTMLElement).classList.contains('modal')) {
       this.showModal = false;
     }
+  }
+
+  submitCharacterName(): void {
+    if (!this.characterName) {
+      this.errorMessage = 'Character name is required.';
+      return;
+    }
+  
+    const formData = {
+      characterName: DOMPurify.sanitize(this.characterName),
+      email: DOMPurify.sanitize(this.registerForm.value.email) // Include email in the request body
+    };
+  
+    fetch(`https://${localIP}:8080/update-character-name`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.text().then(text => { throw new Error(text) });
+      }
+      return response.text();
+    })
+    .then(data => {
+      console.log('Character name updated successfully:', data);
+      this.navigateTo('/login');
+    })
+    .catch(error => {
+      this.errorMessage = `There was a problem with the fetch operation: ${error.message}`;
+      console.error('There was a problem with the fetch operation:', error);
+    });
   }
 }
