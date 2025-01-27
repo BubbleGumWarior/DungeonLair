@@ -644,17 +644,9 @@ app.put('/api/scores/:characterName', async (req, res) => {
     res.status(500).json({ message: 'Failed to update score' });
   }
 });
-
-// Socket.IO connection
-let usersInBattle = [
-]; // Move usersInBattle to the server
-
-let turnCounter = null;
-let currentTurnIndex = null;
 let vcMembers = [];
-let combatStats = {}; // Add combatStats variable
-let currentMapUrl = null; // Add variable to store the current map URL
-let currentIconScale = 1; // Add variable to store the current icon scale
+
+let usersInBattle = [];
 
 io.on('connection', (socket) => {
     console.log('A user connected with socket ID:', socket.id);
@@ -717,51 +709,6 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('galleryImage', data);
     });
 
-    socket.on('battleUpdate', (data) => {
-      usersInBattle = data.usersInBattle;
-      turnCounter = data.turnCounter;
-      currentTurnIndex = data.currentTurnIndex;
-      socket.broadcast.emit('battleUpdate', data);
-    });
-
-    socket.on('requestBattleState', () => {
-      socket.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex, mapUrl: currentMapUrl });
-    });
-
-    socket.on('endCombat', async () => {
-        usersInBattle = [];
-        turnCounter = null;
-        currentTurnIndex = null;
-        io.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex });
-        io.emit('endCombat'); // Emit endCombat event to all clients
-
-        // Delete the uploaded map image if it exists
-        if (currentMapUrl && currentMapUrl !== `https://${localIP}:8080/assets/images/Map.jpg`) {
-          const filePath = path.join(__dirname, 'assets/images', path.basename(currentMapUrl));
-          try {
-            await unlink(filePath);
-            console.log(`Deleted map image: ${filePath}`);
-          } catch (error) {
-            console.error(`Error deleting map image: ${error.message}`);
-          }
-          currentMapUrl = null; // Reset the current map URL
-        }
-    });
-
-    socket.on('combatStats', (stats) => {
-      combatStats = stats;
-      io.emit('combatStats', combatStats); // Emit stats to all clients
-    });
-
-    socket.on('requestCombatStats', () => {
-      socket.emit('combatStats', combatStats);
-    });
-
-    socket.on('killTarget', (target) => {
-      usersInBattle = usersInBattle.filter(user => user.characterName !== target);
-      io.emit('battleUpdate', { usersInBattle, turnCounter, currentTurnIndex });
-    });
-
     socket.on('updateVcMembers', (members) => {
       vcMembers = members;
       io.emit('vcMembersUpdate', vcMembers);
@@ -808,34 +755,6 @@ io.on('connection', (socket) => {
         console.error('Socket.IO error:', error);
     });
 
-    socket.on('combatAction', (data) => {
-      const user = liveUsers.find(user => user.id === socket.id);
-      if (user) {
-        data.username = user.username;
-        if (!combatStats[data.username]) {
-          combatStats[data.username] = { damageDealt: 0, healed: 0, shielded: 0 };
-        }
-        if (data.action === 'Take Damage') {
-          combatStats[data.username].damageDealt += data.value;
-        } else if (data.action === 'Heal') {
-          combatStats[data.username].healed += data.value;
-        } else if (data.action === 'Shield') {
-          combatStats[data.username].shielded += data.value;
-        }
-        io.emit('combatStats', combatStats); // Emit updated stats to all clients
-        io.emit('combatAction', data);
-      }
-    });
-
-    socket.on('combatStats', (stats) => {
-      combatStats = stats;
-      io.emit('combatStats', combatStats); // Emit stats to all clients
-    });
-
-    socket.on('requestCombatStats', () => {
-      socket.emit('combatStats', combatStats);
-    });
-
     // Handle map change
     socket.on('mapChange', (newMapUrl) => {
       currentMapUrl = newMapUrl;
@@ -846,6 +765,39 @@ io.on('connection', (socket) => {
     socket.on('iconScaleChange', (newScale) => {
       currentIconScale = newScale;
       io.emit('iconScaleChange', newScale);
+    });
+
+    socket.on('joinBattle', async (characterName) => {
+      const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
+      if (characterInfo && !usersInBattle.some(user => user.characterName === characterName)) {
+        const maskDetails = await MaskList.findOne({ where: { maskID: characterInfo.maskID } });
+        const userInBattle = {
+          characterName,
+          speed: maskDetails ? maskDetails.speed : 0, // Use the speed from the mask details
+          health: maskDetails ? maskDetails.health : 0,
+          currentSpeed: maskDetails ? maskDetails.speed : 0, // Initialize currentSpeed to the value from the table
+          currentHealth: maskDetails ? maskDetails.health : 0, // Initialize currentHealth to health
+          action: false,
+          bonusAction: false,
+          movement: false
+        };
+        usersInBattle.push(userInBattle);
+        io.emit('usersInBattleUpdate', usersInBattle);
+      }
+    });
+  
+    socket.on('leaveBattle', (characterName) => {
+      usersInBattle = usersInBattle.filter(user => user.characterName !== characterName);
+      io.emit('usersInBattleUpdate', usersInBattle);
+    });
+  
+    socket.on('requestUsersInBattle', () => {
+      socket.emit('usersInBattleUpdate', usersInBattle);
+    });
+
+    socket.on('usersInBattleUpdate', (updatedUsersInBattle) => {
+      usersInBattle = updatedUsersInBattle;
+      io.emit('usersInBattleUpdate', usersInBattle);
     });
 });
 
@@ -1333,9 +1285,17 @@ app.get('/masks', async (req, res) => {
 });
 
 app.post('/mask-skills', async (req, res) => {
-  const { skillName, description, mainStat, mainStatPercentage, cooldown } = req.body;
+  const { skillName, description, mainStat, mainStatPercentage, cooldown, amountOfStrikes, onHitEffect } = req.body;
   try {
-    const newSkill = await MaskSkills.create({ skillName, description, mainStat, mainStatPercentage, cooldown });
+    const newSkill = await MaskSkills.create({ 
+      skillName, 
+      description, 
+      mainStat, 
+      mainStatPercentage, 
+      cooldown,
+      amountOfStrikes, // Add amountOfStrikes
+      onHitEffect // Add onHitEffect
+    });
     res.status(201).json(newSkill);
   } catch (error) {
     console.error('Error creating mask skill:', error);

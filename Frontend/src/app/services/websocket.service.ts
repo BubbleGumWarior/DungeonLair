@@ -1,6 +1,18 @@
 import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { localIP } from '../config'; // Import the IP address
+import { jwtDecode } from 'jwt-decode'; // Import jwtDecode
+
+export interface UserInBattle {
+  characterName: string;
+  speed: number;
+  health: number;
+  currentSpeed: number;
+  currentHealth: number;
+  action: boolean;
+  bonusAction: boolean;
+  movement: boolean;
+}
 
 interface VcMember {
   username: string;
@@ -27,9 +39,6 @@ export class WebSocketService {
     });
     this.socket.on('disconnect', () => console.log('Socket.IO connection closed'));
     this.socket.on('connect_error', (error) => console.error('Socket.IO error:', error));
-    this.socket.on('endCombat', () => {
-      this.showEndCombatModal();
-    });
   }
 
   sendMessage(message: any) {
@@ -42,14 +51,6 @@ export class WebSocketService {
 
   onNewMessage(callback: (message: any) => void) {
     this.socket.on('newMessage', callback);
-  }
-
-  onBattleUpdate(callback: (data: any) => void) {
-    this.socket.on('battleUpdate', callback);
-  }
-
-  sendBattleUpdate(data: any) {
-    this.socket.emit('battleUpdate', data);
   }
 
   loginUser(user: { username: string, role: string }) {
@@ -83,27 +84,6 @@ export class WebSocketService {
     this.socket.on('galleryImage', (data) => {
       callback(data);
     });
-  }
-
-  requestBattleState() {
-    const currentMapUrl = localStorage.getItem('currentMapUrl'); // Assuming current map URL is stored in localStorage
-    this.socket.emit('requestBattleState', { currentMapUrl });
-  }
-
-  endCombat() {
-    console.log('Emitting endCombat event');
-    this.socket.emit('endCombat');
-  }
-
-  killTarget(target: string) {
-    this.socket.emit('killTarget', target);
-    // Remove the target from the turn list and remove their names and icons from everywhere
-    const turnList = JSON.parse(localStorage.getItem('turnList') || '[]');
-    const updatedTurnList = turnList.filter((item: any) => item.username !== target);
-    localStorage.setItem('turnList', JSON.stringify(updatedTurnList));
-
-    const targetElements = document.querySelectorAll(`[data-username="${target}"]`);
-    targetElements.forEach(element => element.remove());
   }
 
   updateVcMembers(members: VcMember[]) {
@@ -150,48 +130,23 @@ export class WebSocketService {
     this.socket.on('rtcIceCandidate', callback);
   }
 
-  showEndCombatModal() {
-    const event = new CustomEvent('endCombat');
-    window.dispatchEvent(event);
+  async joinBattle(characterName: string) {
+    this.socket.emit('joinBattle', characterName);
   }
 
-  sendCombatAction(action: string, target: string, value: number, username: string, turnIndex: number) {
-    this.socket.emit('combatAction', { action, target, value, username, turnIndex });
+  leaveBattle(characterName: string) {
+    this.socket.emit('leaveBattle', characterName);
   }
 
-  onCombatAction(callback: (data: { action: string, target: string, value: number, username: string }) => void) {
-    this.socket.on('combatAction', callback);
+  onUsersInBattleUpdate(callback: (users: UserInBattle[]) => void) {
+    this.socket.on('usersInBattleUpdate', callback);
   }
 
-  sendCombatStats(stats: { [username: string]: { damageDealt: number, healed: number, shielded: number } }) {
-    this.socket.emit('combatStats', stats);
+  requestUsersInBattle() {
+    this.socket.emit('requestUsersInBattle');
   }
 
-  requestCombatStats() {
-    this.socket.emit('requestCombatStats');
-  }
-
-  onEndCombat(callback: () => void) {
-    this.socket.on('endCombat', callback);
-  }
-
-  onCombatStats(callback: (stats: { [username: string]: { damageDealt: number, healed: number, shielded: number } }) => void) {
-    this.socket.on('combatStats', callback);
-  }
-
-  broadcastMapChange(newMapUrl: string) {
-    this.socket.emit('mapChange', newMapUrl);
-  }
-
-  onMapChange(callback: (newMapUrl: string) => void) {
-    this.socket.on('mapChange', callback);
-  }
-
-  broadcastIconScaleChange(newScale: number) {
-    this.socket.emit('iconScaleChange', newScale);
-  }
-
-  onIconScaleChange(callback: (newScale: number) => void) {
-    this.socket.on('iconScaleChange', callback);
+  emitUsersInBattleUpdate(usersInBattle: UserInBattle[]) {
+    this.socket.emit('usersInBattleUpdate', usersInBattle);
   }
 }

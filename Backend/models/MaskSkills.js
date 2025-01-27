@@ -27,6 +27,16 @@ const MaskSkills = sequelize.define('MaskSkills', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  amountOfStrikes: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 1, // Default value is 1
+  },
+  onHitEffect: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'None', // Default value is 'None'
+  },
 }, {
   tableName: 'mask_skills',
 });

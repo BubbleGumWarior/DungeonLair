@@ -351,6 +351,21 @@
           <p class="font-semibold text-blue-700">Cooldown</p>
           <input [(ngModel)]="newMaskSkill.cooldown" type="number" class="p-2 border rounded w-full bg-stone-900 text-white" />
         </div>
+        <div class="col-span-1">
+          <p class="font-semibold text-blue-700">Amount of Strikes</p>
+          <input [(ngModel)]="newMaskSkill.amountOfStrikes" type="number" class="p-2 border rounded w-full bg-stone-900 text-white" />
+        </div>
+        <div class="col-span-1">
+          <p class="font-semibold text-blue-700">On Hit Effect</p>
+          <select [(ngModel)]="newMaskSkill.onHitEffect" class="p-2 border rounded w-full bg-stone-900 text-white">
+            <option>None</option>
+            <option>Stun</option>
+            <option>Burn</option>
+            <option>Poison</option>
+            <option>Bleed</option>
+            <option>Buff Stack</option>
+          </select>
+        </div>
       </div>
       <button (click)="saveMaskSkill()" class="mt-4 p-2 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded">Submit</button>
     </div>

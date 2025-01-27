@@ -111,7 +111,7 @@ export class HomeComponent implements OnInit {
   }
 
   navigateToBattle() {
-    this.router.navigate(['/battle-map'], { queryParams: { maxHealth: 100, currentHealth: 100} });
+    this.router.navigate(['/battle-map']);
   }
 
   navigateToGallery() {

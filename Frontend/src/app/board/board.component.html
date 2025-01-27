@@ -204,8 +204,9 @@
                     <li *ngFor="let skill of maskActiveSkillDetails" class="flex flex-col">
                         <span class="text-2xl font-bold">{{ skill.skillName }}</span>
                         <span><strong>Main Stat:</strong> {{ skill.mainStat }} ({{ skill.mainStatPercentage }}%)</span>
-                        
-                        <span><strong>Cooldown:</strong> {{ skill.cooldown }} seconds</span>
+                        <span><strong>Cooldown:</strong> {{ skill.cooldown }} turns</span>
+                        <span><strong>Amount of Strikes:</strong> {{ skill.amountOfStrikes }}</span>
+                        <span><strong>On Hit Effect:</strong> {{ skill.onHitEffect }}</span>
                         <span><strong>Description:</strong> {{ skill.description }}</span>
                     </li>
                 </ul>

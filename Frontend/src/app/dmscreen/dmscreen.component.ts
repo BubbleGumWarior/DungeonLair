@@ -35,7 +35,15 @@ export class DMScreenComponent implements OnInit {
   maskDetails: any = {}; // Add this variable to store mask details
   maskList: any[] = []; // Add this variable to store masks
   selectedMaskID: number | null = null; // Add this variable to store the selected mask ID
-  newMaskSkill: any = { skillName: '', description: '', mainStat: '', mainStatPercentage: 0, cooldown: 0 }; // Initialize new mask skill
+  newMaskSkill: any = { 
+    skillName: '', 
+    description: '', 
+    mainStat: '', 
+    mainStatPercentage: 0, 
+    cooldown: 0,
+    amountOfStrikes: 1, // Default value is 1
+    onHitEffect: 'None' // Default value is 'None'
+  }; // Initialize new mask skill
 
   constructor(private http: HttpClient) {}
 
@@ -229,12 +237,21 @@ export class DMScreenComponent implements OnInit {
     const maskSkillData = { 
       ...this.newMaskSkill,
       mainStatPercentage: parseFloat(this.newMaskSkill.mainStatPercentage),
-      cooldown: parseInt(this.newMaskSkill.cooldown, 10)
+      cooldown: parseInt(this.newMaskSkill.cooldown, 10),
+      amountOfStrikes: parseInt(this.newMaskSkill.amountOfStrikes, 10),
     };
     this.http.post(`https://${localIP}:8080/mask-skills`, maskSkillData).subscribe(
       (data: any) => {
         this.updateMaskActiveSkills(data.skillID);
-        this.newMaskSkill = { skillName: '', description: '', mainStat: '', mainStatPercentage: 0, cooldown: 0 }; // Reset the newMaskSkill
+        this.newMaskSkill = { 
+          skillName: '', 
+          description: '', 
+          mainStat: '', 
+          mainStatPercentage: 0, 
+          cooldown: 0,
+          amountOfStrikes: 1, // Reset to default value
+          onHitEffect: 'None' // Reset to default value
+        };
       },
       (error) => {
         console.error('Error saving mask skill:', error);

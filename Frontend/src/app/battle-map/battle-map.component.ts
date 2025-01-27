@@ -4,10 +4,10 @@ import { CommonModule } from '@angular/common'; // Import CommonModule
 import { FormsModule } from '@angular/forms'; // Import FormsModule
 import { HttpClientModule, HttpClient } from '@angular/common/http'; // Import HttpClientModule and HttpClient
 import { localIP } from '../config'; // Import localIP from config
-import { WebSocketService } from '../services/websocket.service'; // Import WebSocketService
+import { WebSocketService, UserInBattle } from '../services/websocket.service'; // Import WebSocketService and UserInBattle
 import { ChatButtonComponent } from '../chat-button/chat-button.component'; // Import ChatButtonComponent
-import { jwtDecode } from 'jwt-decode'; // Import jwtDecode
 import { RollButtonComponent } from '../roll-button/roll-button.component'; // Import RollButtonComponent
+import { jwtDecode } from 'jwt-decode'; // Import jwtDecode
 
 @Component({
   selector: 'app-battle-map',
@@ -17,85 +17,63 @@ import { RollButtonComponent } from '../roll-button/roll-button.component'; // I
   styleUrls: ['./battle-map.component.css']
 })
 export class BattleMapComponent implements OnInit {
-  characterName: string | null = null;
-  username: string | null = null;
-  maxHealth: number | null = null;
-  currentHealth: number | null = null;
-  role: string | null = null;
-  showAddNPCModal: boolean = false;
-  showCombatActionsModal: boolean = false;
-  showKillTargetModal: boolean = false;
-  showEndCombatModal: boolean = false; // Add showEndCombatModal property
-  showChangeMapModal: boolean = false; // Add showChangeMapModal property
-  npcName: string = '';
-  npcMaxHealth: number | null = null;
-  npcCurrentHealth: number | null = null;
-  npcIsEnemy: boolean = false;
-  npcInitiative: number | null = null;
-  combatAction: string = 'Take Damage';
-  combatTarget: string = '';
-  combatValue: number | null = null;
-  killTargetName: string = '';
+  role: string = 'Player'; // Add role property
+  username: string | null = null; // Add username property
+  usersInBattle: UserInBattle[] = []; // Update usersInBattle property type
+  inBattle: boolean = false; // Add inBattle property
+  showMaskSkillsModal: boolean = false; // Add property to control modal visibility
+  maskActiveSkillDetails: any[] = []; // Add property to store mask active skill details
+  maskID: number | null = null; // Add property to store mask ID
+  selectedSkill: any = null; // Add property to store the selected skill
+  isSelectingTarget: boolean = false; // Add property to control target selection mode
+  showChooseUserPopup: boolean = false; // Add property to control choose user popup visibility
+  showSkillCanceledPopup: boolean = false; // Add property to control skill canceled popup visibility
+  characterName: string = ''; // Add property to store the character name
+
+  ngOnInit(): void {
+    this.loadDataFromToken(); // Load data from token
+    this.webSocketService.onUsersInBattleUpdate((users: UserInBattle[]) => {
+      this.usersInBattle = users;
+      this.sortUsersInBattle(); // Sort users by currentSpeed
+      this.updateInBattleState();
+    });
+    this.webSocketService.requestUsersInBattle(); // Request initial list of users in battle
+
+    // Log the currently signed-in user's characterName and fetch mask ID
+    const token = localStorage.getItem('token'); // Get the JWT from localStorage
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token); // Decode the JWT
+        const characterID = decoded.characterID; // Extract the characterID
+
+        // Fetch character info
+        this.http.get(`https://${localIP}:8080/character-info/${characterID}`).subscribe((characterInfo: any) => {
+          this.characterName = characterInfo.characterName;
+          this.maskID = characterInfo.maskID; // Store the mask ID
+          console.log(`Currently signed-in user's characterName: ${this.characterName}`);
+        });
+      } catch (error) {
+        console.error('Error decoding token:', error);
+      }
+    }
+
+    // Fetch initial battle details
+    this.webSocketService.requestUsersInBattle();
+  }
+  router: Router; // Add router property
+  constructor(private route: ActivatedRoute, private http: HttpClient, private webSocketService: WebSocketService, router: Router) {
+    this.router = router; // Initialize router
+  }
   defaultIcon: string = `https://${localIP}:8080/assets/images/Default.png`; // Add defaultIcon property
   mapUrl: string = `https://${localIP}:8080/assets/images/Map.jpg`;
-  turnCounter: number | null = null; // Add turnCounter property
-  currentTurnIndex: number | null = null; // Add currentTurnIndex property
-  usersInBattle: { username: string, characterName: string, initiative: number, maxHealth: number, currentHealth: number, isEnemy: boolean, isCurrentTurn?: boolean, photo?: string, positionX?: number, positionY?: number, isHovered?: boolean, isReadied?: boolean }[] = []; // Add positionX and positionY properties and isHovered property and isReadied property
-  characters: { name: string, photo: string }[] = [];
-  sortedUsersInBattle: { username: string, characterName: string, initiative: number, maxHealth: number, currentHealth: number, isEnemy: boolean, isCurrentTurn?: boolean, photo?: string, positionX?: number, positionY?: number, isHovered?: boolean, isReadied?: boolean }[] = []; // Add sortedUsersInBattle property
-  alphabeticallySortedUsersInBattle: { username: string, characterName: string, initiative: number, maxHealth: number, currentHealth: number, isEnemy: boolean, isCurrentTurn?: boolean, photo?: string, positionX?: number, positionY?: number, isHovered?: boolean, isReadied?: boolean }[] = []; // Add alphabeticallySortedUsersInBattle property
   diceResult: string = ''; // Add diceResult property
-  galleryImages: any[] = []; // Add property to store gallery images
-  combatStats: { [username: string]: { damageDealt: number, healed: number, shielded: number } } = {}; // Update combatStats property
-  iconScale: number = 1; // Add iconScale property
 
-  constructor(private route: ActivatedRoute, private router: Router, private webSocketService: WebSocketService, private http: HttpClient) {}
+  closeBattleMap() {
+    this.router.navigate(['/']);
+  }
 
-  ngOnInit() {
-    this.loadDataFromToken(); // Load data from token
-    this.route.queryParams.subscribe(params => {
-      this.maxHealth = +params['maxHealth'];
-      this.currentHealth = +params['currentHealth'];
-    });
-    this.webSocketService.onBattleUpdate((data) => {
-      this.usersInBattle = data.usersInBattle.map((user: { username: string, characterName: string, initiative: number, maxHealth: number, currentHealth: number, isEnemy: boolean, isCurrentTurn?: boolean, photo?: string, positionX?: number, positionY?: number, isHovered?: boolean, isReadied?: boolean }) => ({
-        ...user,
-        isHovered: false // Initialize isHovered to false
-      }));
-      this.sortedUsersInBattle = [...this.usersInBattle].sort((a, b) => b.initiative - a.initiative); // Sort by initiative (highest to lowest)
-      this.alphabeticallySortedUsersInBattle = [...this.usersInBattle].sort((a, b) => a.characterName.localeCompare(b.characterName)); // Sort alphabetically by characterName
-      this.turnCounter = data.turnCounter;
-      this.currentTurnIndex = data.currentTurnIndex;
-      this.mapUrl = data.mapUrl || this.mapUrl; // Update mapUrl from battle state
-
-      // Highlight the current turn
-      this.highlightCurrentTurn();
-
-      // Log the current turn
-      if (this.currentTurnIndex !== null) {
-      }
-    });
-    this.webSocketService.requestBattleState(); // Request initial battle state from the server
-    this.fetchCharacterNames();
-    this.fetchGalleryImages(); // Fetch gallery images on initialization
-    this.webSocketService.onCombatAction((data) => {
-      this.updateCombatStats(data.action, data.target, data.value, data.username);
-    });
-    this.webSocketService.onCombatStats((stats) => {
-      this.combatStats = stats;
-    });
-    window.addEventListener('endCombat', () => {
-      this.webSocketService.requestCombatStats(); // Request combat stats before showing the modal
-    });
-    this.webSocketService.onEndCombat(() => {
-      this.showEndCombatModal = true; // Show the modal after receiving the end combat event
-    });
-    this.webSocketService.onMapChange((newMapUrl) => {
-      this.mapUrl = newMapUrl;
-    });
-    this.webSocketService.onIconScaleChange((newScale) => {
-      this.iconScale = newScale;
-    });
+  handleDiceResult(result: string) {
+    this.diceResult = result; // Update the result when emitted
   }
 
   loadDataFromToken() {
@@ -104,317 +82,202 @@ export class BattleMapComponent implements OnInit {
       try {
         const decoded: any = jwtDecode(token); // Decode the JWT
         this.username = decoded.username; // Extract the username
-        this.characterName = decoded.characterName;
         this.role = decoded.role; // Extract the role
       } catch (error) {
-        console.error('Failed to decode token:', error);
       }
     }
   }
 
-  fetchCharacterNames() {
-    this.http.get<{ characterName: string, photo: string }[]>(`https://${localIP}:8080/character-names`).subscribe(
-      (data) => {
-        this.characters = data
-          .map(character => ({
-            name: character.characterName,
-            photo: character.photo ? `https://${localIP}:8080${character.photo}` : ''
-          }))
-          .sort((a, b) => a.name.localeCompare(b.name)); // Sort characters alphabetically by name
-      },
-      (error) => {
-        console.error('Error fetching character names:', error);
-      }
-    );
-  }
+  toggleBattleStatus() {
+    const token = localStorage.getItem('token'); // Get the JWT from localStorage
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token); // Decode the JWT
+        const characterID = decoded.characterID; // Extract the characterID
 
-  async fetchGalleryImages() {
-    this.galleryImages = await this.webSocketService.fetchGalleryImages();
-  }
+        // Fetch character info
+        this.http.get(`https://${localIP}:8080/character-info/${characterID}`).subscribe((characterInfo: any) => {
+          const characterName = characterInfo.characterName;
 
-  closeBattleMap() {
-    this.router.navigate(['/']);
-  }
+          if (this.inBattle) {
+            this.webSocketService.leaveBattle(characterName);
+          } else {
+            this.webSocketService.joinBattle(characterName);
 
-  getUserPhoto(characterName: string): string {
-    const character = this.characters.find(char => char.name === characterName);
-    return character && character.photo ? `url(${character.photo})` : `url(${this.defaultIcon})`;
-  }
+            // Fetch mask details
+            if (this.maskID) {
+              this.http.get(`https://${localIP}:8080/mask-details/${this.maskID}`).subscribe((maskDetails: any) => {
+                const userInBattle: UserInBattle = {
+                  characterName,
+                  speed: maskDetails.speed,
+                  health: maskDetails.health,
+                  currentSpeed: 0, // Initialize currentSpeed to the value from the table
+                  currentHealth: maskDetails.health, // Initialize currentHealth to health
+                  action: false,
+                  bonusAction: false,
+                  movement: false
+                };
 
-  getUserPhotoUrl(characterName: string): string {
-    const galleryImage = this.galleryImages.find(image => image.imageName === characterName);
-    if (galleryImage) {
-      return `https://${localIP}:8080${galleryImage.photo}`;
-    }
-    const character = this.characters.find(char => char.name === characterName);
-    return character && character.photo ? character.photo : this.defaultIcon;
-  }
+                // Add user to the list if not already present
+                if (!this.usersInBattle.some(user => user.characterName === characterName)) {
+                  this.usersInBattle.push(userInBattle);
+                }
 
-  joinBattle() {
-    if (this.username && this.characterName && this.maxHealth !== null && this.currentHealth !== null) {
-      const userIndex = this.usersInBattle.findIndex(user => user.username === this.username);
-      if (userIndex === -1) {
-        const initiative = Math.floor(Math.random() * 20) + 1;
-        const photo = this.getUserPhotoUrl(this.characterName);
-        const positionX = 50; // Center position
-        const positionY = 50; // Center position
-        this.usersInBattle.push({ username: this.username, characterName: this.characterName, initiative, maxHealth: this.maxHealth, currentHealth: this.currentHealth, isEnemy: false, photo, positionX, positionY });
-      } else {
-        this.usersInBattle.splice(userIndex, 1);
-      }
-      this.sortedUsersInBattle = [...this.usersInBattle].sort((a, b) => b.initiative - a.initiative); // Sort by initiative (highest to lowest)
-      this.webSocketService.sendBattleUpdate({
-        usersInBattle: this.usersInBattle,
-        turnCounter: this.turnCounter,
-        currentTurnIndex: this.currentTurnIndex
-      });
-    }
-  }
-
-  isUserInBattle(): boolean {
-    return this.usersInBattle.some(user => user.username === this.username);
-  }
-
-  openAddNPCModal() {
-    this.showAddNPCModal = true;
-  }
-
-  closeAddNPCModal() {
-    this.showAddNPCModal = false;
-    this.npcName = '';
-    this.npcMaxHealth = null;
-    this.npcCurrentHealth = null;
-    this.npcIsEnemy = false;
-    this.npcInitiative = null;
-  }
-
-  addNPC() {
-    if (this.npcName && this.npcMaxHealth !== null && this.npcCurrentHealth !== null) {
-      const initiative = this.npcInitiative !== null ? this.npcInitiative : Math.floor(Math.random() * 20) + 1;
-      const photo = this.getUserPhotoUrl(this.npcName);
-      const positionX = 50; // Center position
-      const positionY = 50; // Center position
-
-      // Check if NPC name already exists and rename if necessary
-      let npcName = this.npcName;
-      let count = 1;
-      while (this.usersInBattle.some(user => user.characterName === npcName)) {
-        npcName = `${this.npcName} ${count}`;
-        count++;
-      }
-
-      this.usersInBattle.push({ username: npcName, characterName: npcName, initiative, maxHealth: this.npcMaxHealth, currentHealth: this.npcCurrentHealth, isEnemy: this.npcIsEnemy, photo, positionX, positionY });
-      this.sortedUsersInBattle = [...this.usersInBattle].sort((a, b) => b.initiative - a.initiative); // Sort by initiative (highest to lowest)
-      this.closeAddNPCModal();
-      this.webSocketService.sendBattleUpdate({
-        usersInBattle: this.usersInBattle,
-        turnCounter: this.turnCounter,
-        currentTurnIndex: this.currentTurnIndex
-      });
-    }
-  }
-
-  openCombatActionsModal() {
-    this.showCombatActionsModal = true;
-    this.alphabeticallySortedUsersInBattle = [...this.usersInBattle].sort((a, b) => a.characterName.localeCompare(b.characterName)); // Ensure the list is sorted alphabetically
-  }
-
-  closeCombatActionsModal() {
-    this.showCombatActionsModal = false;
-    this.combatAction = 'Take Damage';
-    this.combatTarget = '';
-    this.combatValue = null;
-  }
-
-  performCombatAction() {
-    const targetUser = this.usersInBattle.find(user => user.characterName === this.combatTarget);
-    if (targetUser && this.currentTurnIndex !== null) {
-      const currentUser = this.sortedUsersInBattle[this.currentTurnIndex];
-      if (this.combatAction === 'Take Damage' && this.combatValue !== null) {
-        targetUser.currentHealth = Math.max(0, targetUser.currentHealth - this.combatValue);
-        this.webSocketService.sendCombatAction('Take Damage', this.combatTarget, this.combatValue, currentUser.username, this.currentTurnIndex);
-        this.updateCombatStats('Take Damage', this.combatTarget, this.combatValue, currentUser.username);
-      } else if ((this.combatAction === 'Heal' || this.combatAction === 'Shield') && this.combatValue !== null) {
-        targetUser.currentHealth = Math.min(targetUser.maxHealth, targetUser.currentHealth + this.combatValue);
-        this.webSocketService.sendCombatAction(this.combatAction, this.combatTarget, this.combatValue, currentUser.username, this.currentTurnIndex);
-        this.updateCombatStats(this.combatAction, this.combatTarget, this.combatValue, currentUser.username);
-      } else if (this.combatAction === 'Set Readied') {
-        targetUser.isReadied = true;
-      }
-      this.closeCombatActionsModal();
-      this.webSocketService.sendBattleUpdate({
-        usersInBattle: this.usersInBattle,
-        turnCounter: this.turnCounter,
-        currentTurnIndex: this.currentTurnIndex
-      });
-    }
-  }
-
-  updateCombatStats(action: string, target: string, value: number, username: string) {
-    if (!username) return; // Ensure username is defined
-    if (!this.combatStats[username]) {
-      this.combatStats[username] = { damageDealt: 0, healed: 0, shielded: 0 };
-    }
-    if (action === 'Take Damage') {
-      this.combatStats[username].damageDealt += value;
-    } else if (action === 'Heal') {
-      this.combatStats[username].healed += value;
-    } else if (action === 'Shield') {
-      this.combatStats[username].shielded += value;
-    }
-    this.webSocketService.sendCombatStats(this.combatStats); // Send updated stats to the server
-  }
-
-  getCombatStatsKeys() {
-    const keys = Object.keys(this.combatStats);
-    const totalIndex = keys.indexOf('undefined');
-    if (totalIndex !== -1) {
-      return keys.sort();
-    }
-    else{
-      return keys.filter(key => key !== 'Total').sort().concat('Total');
-    }
-  }
-
-  openKillTargetModal() {
-    this.showKillTargetModal = true;
-  }
-
-  closeKillTargetModal() {
-    this.showKillTargetModal = false;
-    this.killTargetName = '';
-  }
-
-  killTarget() {
-    if (this.killTargetName) {
-      const targetIndex = this.usersInBattle.findIndex(user => user.characterName === this.killTargetName);
-      if (targetIndex !== -1) {
-        this.usersInBattle.splice(targetIndex, 1);
-        this.sortedUsersInBattle = this.sortedUsersInBattle.filter(user => user.characterName !== this.killTargetName);
-        this.alphabeticallySortedUsersInBattle = this.alphabeticallySortedUsersInBattle.filter(user => user.characterName !== this.killTargetName);
-        this.webSocketService.sendBattleUpdate({
-          usersInBattle: this.usersInBattle,
-          turnCounter: this.turnCounter,
-          currentTurnIndex: this.currentTurnIndex
+                this.sortUsersInBattle(); // Sort users by currentSpeed
+                this.updateInBattleState();
+              });
+            } else {
+              this.updateInBattleState();
+            }
+          }
         });
+      } catch (error) {
       }
-      this.closeKillTargetModal();
     }
   }
 
-  startOrEndTurn() {
-    if (this.role === 'Dungeon Master' || this.isCurrentUserTurn()) {
-      if (this.turnCounter === null) {
-        this.turnCounter = 1;
-        this.currentTurnIndex = 0;
-        this.highlightCurrentTurn();
-      } else {
-        this.advanceTurn();
+  sortUsersInBattle() {
+    this.usersInBattle.sort((a, b) => b.currentSpeed - a.currentSpeed);
+  }
+
+  updateInBattleState() {
+    const token = localStorage.getItem('token'); // Get the JWT from localStorage
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token); // Decode the JWT
+        const characterID = decoded.characterID; // Extract the characterID
+
+        // Fetch character info
+        this.http.get(`https://${localIP}:8080/character-info/${characterID}`).subscribe((characterInfo: any) => {
+          const characterName = characterInfo.characterName;
+          this.inBattle = this.usersInBattle.some(user => user.characterName === characterName);
+        });
+      } catch (error) {
       }
-      this.webSocketService.sendBattleUpdate({
-        usersInBattle: this.usersInBattle,
-        turnCounter: this.turnCounter,
-        currentTurnIndex: this.currentTurnIndex
+    }
+  }
+
+  continueBattle() {
+    // Stage 1: Set Action, Bonus Action and Movement to false
+    this.usersInBattle.forEach(user => {
+      user.action = false;
+      user.bonusAction = false;
+      user.movement = false;
+    });
+
+    // Stage 2: Update currentSpeed for each user
+    this.usersInBattle.forEach(user => {
+      if (user.currentSpeed >= 100) {
+        user.currentSpeed = 0; // Decrease currentSpeed by 100
+      }
+      user.currentSpeed += user.speed; // Increase currentSpeed by speed value
+      if (user.currentSpeed >= 100) {
+        user.currentSpeed = 100; // Cap currentSpeed at 100
+      }
+    });
+    this.sortUsersInBattle(); // Sort users by updated currentSpeed
+
+    // Stage 3: Set Action, Bonus Action and Movement to true if currentSpeed is 100
+    this.usersInBattle.forEach(user => {
+      if (user.currentSpeed === 100) {
+        user.action = true;
+        user.bonusAction = true;
+        user.movement = true;
+        console.log(`${user.characterName} is ready to take action!`);
+      }
+    });
+
+    // Emit the updated usersInBattle to the server
+    console.log(this.usersInBattle);
+    this.webSocketService.emitUsersInBattleUpdate(this.usersInBattle);
+  }
+
+  openMaskSkillsModal() {
+    const user = this.usersInBattle.find(user => user.characterName === this.characterName);
+    console.log(user);
+    if (user && user.action) {
+      console.log("Getting mask details");
+      this.http.get(`https://${localIP}:8080/mask-details/${this.maskID}`).subscribe((maskDetails: any) => {
+        this.maskActiveSkillDetails = maskDetails.activeSkills.map((skillID: number) => {
+          return this.http.get(`https://${localIP}:8080/mask-skill-details/${skillID}`).toPromise();
+        });
+        Promise.all(this.maskActiveSkillDetails).then((skills: any[]) => {
+          this.maskActiveSkillDetails = skills;
+          this.showMaskSkillsModal = true;
+        }).catch(error => {
+        });
+      }, error => {
       });
     }
   }
 
-  isCurrentUserTurn(): boolean {
-    return this.currentTurnIndex !== null && this.sortedUsersInBattle[this.currentTurnIndex].characterName === this.characterName;
+  closeMaskSkillsModal() {
+    this.showMaskSkillsModal = false;
   }
 
-  advanceTurn() {
-    if (this.currentTurnIndex !== null) {
-      let nextTurnIndex = this.currentTurnIndex;
-      do {
-        nextTurnIndex = (nextTurnIndex + 1) % this.sortedUsersInBattle.length;
-      } while (this.sortedUsersInBattle[nextTurnIndex].currentHealth === 0 && nextTurnIndex !== this.currentTurnIndex);
+  logSkillId(skillID: number) {
+    this.http.get(`https://${localIP}:8080/mask-skill-details/${skillID}`).subscribe((skillDetails: any) => {
+      const mainStat = skillDetails.mainStat;
+      console.log(`Main Stat: ${mainStat}`);
+      const mainStatPercentage = skillDetails.mainStatPercentage;
+      console.log(`Main Stat Percentage: ${mainStatPercentage}`);
+      const amountOfStrikes = skillDetails.amountOfStrikes;
+      console.log(`Amount of Strikes: ${amountOfStrikes}`);
+      const onHitEffect = skillDetails.onHitEffect;
+      console.log(`On Hit Effect: ${onHitEffect}`);
 
-      if (nextTurnIndex !== this.currentTurnIndex) {
-        this.currentTurnIndex = nextTurnIndex;
-        this.highlightCurrentTurn();
-      }
-    }
-  }
+      if (this.maskID) {
+        this.http.get(`https://${localIP}:8080/mask-details/${this.maskID}`).subscribe((maskDetails: any) => {
+          let mainStatValue;
+          if (mainStat.toLowerCase() === 'ability damage') {
+            mainStatValue = maskDetails.abilityDamage;
+          } else if (mainStat.toLowerCase() === 'attack damage') {
+            mainStatValue = maskDetails.attackDamage;
+          } else {
+            mainStatValue = maskDetails[mainStat.toLowerCase()];
+          }
+          console.log(`Main Stat Value: ${mainStatValue}`);
+          const damage = mainStatValue * (mainStatPercentage / 100);
+          console.log(`Damage: ${damage}`);
 
-  highlightCurrentTurn() {
-    this.sortedUsersInBattle.forEach((user, index) => {
-      user.isCurrentTurn = index === this.currentTurnIndex;
-      if (user.isCurrentTurn) {
-        user.isReadied = false; // Remove the readied state when the user's turn starts
+          this.selectedSkill = {
+            damage,
+            amountOfStrikes,
+            onHitEffect
+          };
+          this.showMaskSkillsModal = false;
+          this.isSelectingTarget = true;
+          this.showChooseUserPopup = true;
+        });
       }
     });
   }
 
-  endCombat() {
-    this.webSocketService.sendCombatStats(this.combatStats); // Send final stats to the server
-    this.webSocketService.endCombat();
-    this.mapUrl = `https://${localIP}:8080/assets/images/Map.jpg`; // Reset to default map
-  }
+  selectTarget(user: UserInBattle) {
+    if (this.isSelectingTarget && this.selectedSkill) {
+      const totalDamage = this.selectedSkill.damage * this.selectedSkill.amountOfStrikes;
+      user.currentHealth -= totalDamage;
+      console.log(`User: ${user.characterName}, Health reduced by: ${totalDamage}, New Health: ${user.currentHealth}`);
+      this.isSelectingTarget = false;
+      this.selectedSkill = null;
+      this.showChooseUserPopup = false;
 
-  closeEndCombatModal() {
-    this.showEndCombatModal = false;
-    this.closeBattleMap(); // Also close the battle map
-  }
+      // Set action to false after dealing damage
+      const token = localStorage.getItem('token'); // Get the JWT from localStorage
+      if (token) {
+        try {
+          const decoded: any = jwtDecode(token); // Decode the JWT
+          const characterID = decoded.characterID; // Extract the characterID
 
-  handleDiceResult(result: string) {
-    this.diceResult = result; // Update the result when emitted
-  }
+          const currentUser = this.usersInBattle.find(user => user.characterName === decoded.username);
+          if (currentUser) {
+            currentUser.action = false;
+          }
+        } catch (error) {
+        }
+      }
 
-  startDrag(event: MouseEvent, user: any) {
-    if (this.role === 'Dungeon Master' || (user.username === this.username && this.isCurrentUserTurn())) {
-      event.preventDefault();
-      const onMouseMove = (e: MouseEvent) => this.dragging(e, user);
-      const onMouseUp = () => {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-        this.webSocketService.sendBattleUpdate({
-          usersInBattle: this.usersInBattle,
-          turnCounter: this.turnCounter,
-          currentTurnIndex: this.currentTurnIndex
-        });
-      };
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
+      this.webSocketService.emitUsersInBattleUpdate(this.usersInBattle);
     }
-  }
-
-  dragging(event: MouseEvent, user: any) {
-    const mapElement = document.querySelector('.map-container');
-    if (mapElement) {
-      const rect = mapElement.getBoundingClientRect();
-      user.positionX = ((event.clientX - rect.left) / rect.width) * 100;
-      user.positionY = ((event.clientY - rect.top) / rect.height) * 100;
-      this.webSocketService.sendBattleUpdate({
-        usersInBattle: this.usersInBattle,
-        turnCounter: this.turnCounter,
-        currentTurnIndex: this.currentTurnIndex
-      });
-    }
-  }
-
-  openChangeMapModal() {
-    this.showChangeMapModal = true;
-  }
-
-  closeChangeMapModal() {
-    this.showChangeMapModal = false;
-  }
-
-  async uploadMapImage(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      const formData = new FormData();
-      formData.append('image', file);
-      const response = await this.webSocketService.uploadGalleryImage(formData);
-      this.mapUrl = `https://${localIP}:8080${response.filePath}`;
-      this.webSocketService.broadcastMapChange(this.mapUrl);
-      this.closeChangeMapModal();
-    }
-  }
-
-  updateIconScale(event: any) {
-    this.iconScale = event.target.value;
-    this.webSocketService.broadcastIconScaleChange(this.iconScale);
   }
 }

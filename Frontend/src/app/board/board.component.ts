@@ -150,24 +150,13 @@ export class BoardComponent implements OnInit {
       this.http.get(`https://${localIP}:8080/mask-skill-details/${skillID}`)
         .subscribe(
           (data: any) => {
-            console.log('Fetched skill details:', data); // Log the fetched skill details
             this.ngZone.run(() => {
               if (Array.isArray(data)) {
                 data.forEach(skill => {
                   this.maskActiveSkillDetails.push(skill);
-                  console.log('Skill Name:', skill.skillName);
-                  console.log('Main Stat:', skill.mainStat);
-                  console.log('Description:', skill.description);
-                  console.log('Main Stat Percentage:', skill.mainStatPercentage);
-                  console.log('Cooldown:', skill.cooldown);
                 });
               } else {
                 this.maskActiveSkillDetails.push(data);
-                console.log('Skill Name:', data.skillName);
-                console.log('Main Stat:', data.mainStat);
-                console.log('Description:', data.description);
-                console.log('Main Stat Percentage:', data.mainStatPercentage);
-                console.log('Cooldown:', data.cooldown);
               }
               this.cdr.detectChanges(); // Trigger change detection
             });
@@ -177,7 +166,6 @@ export class BoardComponent implements OnInit {
           }
         );
     });
-    console.log(this.maskActiveSkillDetails);
   }
 
   toggleMask() {

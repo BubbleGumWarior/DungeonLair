@@ -1,170 +1,93 @@
-<div class="battle-map">
-  <button class="mt-1 close-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 w-10 h-10 rounded-full fixed top-4 right-4 flex items-center justify-center" (click)="closeBattleMap()">X</button>
-  <button class="mt-1 join-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full fixed top-4 left-4 flex items-center justify-center  w-64  h-10" (click)="joinBattle()">
-    {{ isUserInBattle() ? 'Leave Battle' : 'Join Battle' }}
-  </button>
-  <button class="mt-1 end-turn-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full fixed top-16 left-4 flex items-center justify-center w-64  h-10"
-    [class.bg-gray-500]="!(role === 'Dungeon Master' || isCurrentUserTurn())"
-    [class.cursor-not-allowed]="!(role === 'Dungeon Master' || isCurrentUserTurn())"
-    [disabled]="!(role === 'Dungeon Master' || isCurrentUserTurn())"
-    (click)="startOrEndTurn()">
-    {{ turnCounter === null ? 'Start Battle' : 'End Turn' }}
-  </button>
-  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center fixed top-4 left-1/4 w-64 h-10" (click)="openAddNPCModal()">
-    Add NPC
-  </button>
-  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center fixed top-16 left-1/4 w-64 h-10" (click)="openKillTargetModal()">
-    Remove Target
-  </button>
-  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center fixed top-4 left-2/4 w-64 h-10" (click)="openCombatActionsModal()">
-    Combat Actions
-  </button>
-  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center fixed top-16 left-2/4 w-64 h-10" (click)="openChangeMapModal()">
-    Change Map
-  </button>
-  <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center fixed top-4 left-3/4 w-64 h-10" (click)="endCombat()">
-    End Combat
-  </button>
-  <div  *ngIf="role === 'Dungeon Master'" class="mt-1 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full transition duration-200 flex items-center justify-center fixed top-16 left-3/4 w-64 h-10">
-    <input type="range" id="iconScale" min="0.3" max="1" step="0.1" [value]="iconScale" (input)="updateIconScale($event)" class="w-full bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 rounded-full">
+<div class="battle-map h-full max-w-screen relative">
+  <button class="mt-1 close-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 w-10 h-10 rounded-full fixed top-2 right-4 flex items-center justify-center" (click)="closeBattleMap()">X</button>
+  
+  <div class="grid grid-cols-4 gap-4 p-4">
+    <button class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center" (click)="toggleBattleStatus()">
+      {{ inBattle ? 'Leave Battle' : 'Join Battle' }}
+    </button>
+    <button class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center" (click)="openMaskSkillsModal()">
+      Use Mask Skills
+    </button>
+    <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
+      Demo button 3
+    </button>
+    <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
+      Demo button 4
+    </button>
+    <button class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center" (click)="continueBattle()">
+      Continue
+    </button>
+    <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
+      Demo button 6
+    </button>
+    <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
+      Demo button 7
+    </button>
+    <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
+      Demo button 8
+    </button>
   </div>
-
-  <div class="bg-stone-950 h-full min-h-screen w-screen">
-    <div class="flex pt-32">
-      <div class="w-1/4 h-full mx-4 border-2 border-blue-800 rounded-lg p-4">
-        <ul>
-          <li *ngFor="let user of sortedUsersInBattle" [ngClass]="{'text-white': user.username === username && !user.isHovered, 'text-red-500': user.isEnemy && !user.isHovered, 'text-blue-800': user.username !== username && !user.isHovered, 'bg-blue-500': user.isCurrentTurn, 'line-through': user.currentHealth === 0, 'text-cyan-500': user.isHovered}" class="relative group p-2 rounded" (mouseenter)="user.isHovered = true" (mouseleave)="user.isHovered = false">
-            {{ user.characterName }} <span *ngIf="user.isReadied" class="text-sm">(Readied)</span> <span class="float-right">{{ user.initiative }}</span>
-            <div class="relative w-full h-4 bg-gray-400 mt-1 rounded-full flex items-center justify-center">
-              <div class="absolute top-0 left-0 h-full bg-green-500 rounded-full" [style.width.%]="(user.currentHealth / user.maxHealth) * 100"></div>
-              <div *ngIf="role === 'Dungeon Master'" class="relative z-10 text-xs">
-                {{ user.currentHealth }} / {{ user.maxHealth }}
-              </div>
-            </div>
-          </li>
-        </ul>
-      </div>
-      <div class="w-3/4 h-full mx-4 border-2 border-blue-800 rounded-lg p-4 overflow-auto relative map-container" style="position: relative; aspect-ratio: 16/9;">
-        <img *ngIf="mapUrl" [src]="mapUrl" alt="mapUrl" class="h-full w-full object-contain" />
-        <div *ngFor="let user of usersInBattle" class="absolute cursor-pointer" [ngStyle]="{'top': user.positionY + '%', 'left': user.positionX + '%', 'display': user.currentHealth > 0 ? 'block' : 'none', 'transform': 'scale(' + iconScale + ')'}" (mousedown)="startDrag($event, user)" (mouseenter)="user.isHovered = true" (mouseleave)="user.isHovered = false">
-          <div class="w-16 h-16 rounded-full bg-cover bg-cente" [style.background-image]="'url(' + user.photo + ')'" [ngClass]="{'border-4': true, 'border-green-500': !user.isEnemy && !user.isHovered, 'border-red-500': user.isEnemy && !user.isHovered, 'border-cyan-500': user.isHovered}"></div>
+  <div class="grid grid-cols-3 gap-8 p-8 h-full w-full text-blue-800">
+    <div class="col-span-1 h-full w-full">
+      <div *ngFor="let user of usersInBattle" (click)="selectTarget(user); $event.stopPropagation()" [ngClass]="{'cursor-pointer': isSelectingTarget}">
+        <div>{{ user.characterName }}</div>
+        <div class="mt-1">
+          <div class="w-full h-5 bg-gray-500 mb-1 relative">
+            <div class="h-full bg-yellow-500 absolute top-0 left-0" [style.width.%]="(user.currentSpeed / 100) * 100"></div> <!-- Max value is 100 -->
+          </div>
+          <div class="w-full h-5 bg-gray-500 relative">
+            <div class="h-full bg-green-500 absolute top-0 left-0" [style.width.%]="(user.currentHealth / user.health) * 100"></div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- Add NPC Modal -->
-  <div *ngIf="showAddNPCModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-    <div class="modal-content bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 p-4 rounded-lg shadow-lg text-center">
-      <p class="text-lg font-bold mb-4">Add NPC</p>
-      <div class="mb-4">
-        <label class="block text-white font-bold mb-2">Character Name</label>
-        <input type="text" [(ngModel)]="npcName" class="bg-white text-black px-2 py-1 rounded" />
-      </div>
-      <div class="mb-4">
-        <label class="block text-white font-bold mb-2">Max Health</label>
-        <input type="number" [(ngModel)]="npcMaxHealth" class="bg-white text-black px-2 py-1 rounded" />
-      </div>
-      <div class="mb-4">
-        <label class="block text-white font-bold mb-2">Current Health</label>
-        <input type="number" [(ngModel)]="npcCurrentHealth" class="bg-white text-black px-2 py-1 rounded" />
-      </div>
-      <div class="mb-4">
-        <label class="block text-white font-bold mb-2">Initiative</label>
-        <input type="number" [(ngModel)]="npcInitiative" class="bg-white text-black px-2 py-1 rounded" placeholder="Leave empty for random" />
-      </div>
-      <div class="mb-4">
-        <label class="text-white font-bold">
-          <input type="checkbox" [(ngModel)]="npcIsEnemy" class="mr-2" />
-          Enemy
-        </label>
-      </div>
-      <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="addNPC()">Add</button>
-      <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="closeAddNPCModal()">Cancel</button>
-    </div>
-  </div>
-
-  <!-- Combat Actions Modal -->
-  <div *ngIf="showCombatActionsModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-    <div class="modal-content bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 p-4 rounded-lg shadow-lg text-center">
-      <p class="text-lg font-bold mb-4">Combat Actions</p>
-      <div class="mb-4">
-        <label class="block text-white font-bold mb-2">Action</label>
-        <select [(ngModel)]="combatAction" class="bg-white text-black px-2 py-1 rounded">
-          <option value="Take Damage">Take Damage</option>
-          <option value="Heal">Heal</option>
-          <option value="Shield">Shield</option>
-          <option value="Set Readied">Set Readied</option>
-        </select>
-      </div>
-      <div class="mb-4">
-        <label class="block text-white font-bold mb-2">Target</label>
-        <select [(ngModel)]="combatTarget" class="bg-white text-black px-2 py-1 rounded">
-          <option *ngFor="let user of alphabeticallySortedUsersInBattle" [value]="user.characterName">{{ user.characterName }}</option>
-        </select>
-      </div>
-      <div class="mb-4" *ngIf="combatAction !== 'Set Readied'">
-        <label class="block text-white font-bold mb-2">Value</label>
-        <input type="number" [(ngModel)]="combatValue" class="bg-white text-black px-2 py-1 rounded" />
-      </div>
-      <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="performCombatAction()">Submit</button>
-      <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="closeCombatActionsModal()">Cancel</button>
-    </div>
-  </div>
-
-  <!-- Kill Target Modal -->
-  <div *ngIf="showKillTargetModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-    <div class="modal-content bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 p-4 rounded-lg shadow-lg text-center">
-      <p class="text-lg font-bold mb-4">Kill Target</p>
-      <div class="mb-4">
-        <label class="block text-white font-bold mb-2">Select Target</label>
-        <select [(ngModel)]="killTargetName" class="bg-white text-black px-2 py-1 rounded">
-          <option *ngFor="let user of usersInBattle" [value]="user.characterName">{{ user.characterName }}</option>
-        </select>
-      </div>
-      <button class="bg-white text-black px-4 py-2 rounded mr-2" (click)="killTarget()">Submit</button>
-      <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="closeKillTargetModal()">Cancel</button>
-    </div>
-  </div>
-
-  <!-- End Combat Modal -->
-  <div *ngIf="showEndCombatModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-    <div class="modal-content bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 p-4 rounded-lg shadow-lg text-center w-9/10 h-9/10">
-      <p class="text-lg font-bold mb-4">The battle has ended!</p>
-      <table class="table-auto w-full text-white">
-        <thead>
-          <tr>
-            <th class="px-4 py-2">Username</th>
-            <th class="px-4 py-2">Damage Dealt</th>
-            <th class="px-4 py-2">Healed</th>
-            <th class="px-4 py-2">Shielded</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let username of getCombatStatsKeys()">
-            <td class="border px-4 py-2">{{ username }}</td>
-            <td class="border px-4 py-2">{{ combatStats[username].damageDealt }}</td>
-            <td class="border px-4 py-2">{{ combatStats[username].healed }}</td>
-            <td class="border px-4 py-2">{{ combatStats[username].shielded }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <button class="bg-white text-black px-4 py-2 rounded mt-4" (click)="closeEndCombatModal()">Close</button>
-    </div>
-  </div>
-
-  <!-- Change Map Modal -->
-  <div *ngIf="showChangeMapModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-    <div class="modal-content bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 p-4 rounded-lg shadow-lg text-center">
-      <p class="text-lg font-bold mb-4">Change Map</p>
-      <div class="mb-4">
-        <label class="block text-white font-bold mb-2">Upload New Map Image</label>
-        <input type="file" (change)="uploadMapImage($event)" class="bg-white text-black px-2 py-1 rounded" />
-      </div>
-      <button class="bg-stone-950 text-white px-4 py-2 rounded" (click)="closeChangeMapModal()">Cancel</button>
+    <div class="col-span-2 h-full w-full bg-green-500">
+      Column 2
     </div>
   </div>
 
   <app-chat-button [newMessage]="diceResult" [username]="username || 'DefaultUser'"></app-chat-button>
   <app-roll-button (resultRolled)="handleDiceResult($event)"></app-roll-button>
+
+  <div *ngIf="showMaskSkillsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" (click)="closeMaskSkillsModal()">
+    <div class="bg-stone-950 text-blue-800 p-6 rounded-lg w-4/5 h-5/6 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-700 scrollbar-track-stone-900" (click)="$event.stopPropagation()">
+      <ul>
+        <li *ngFor="let skill of maskActiveSkillDetails" (click)="logSkillId(skill.skillID); closeMaskSkillsModal()" class="border border-blue-500 p-4 mb-4 rounded-lg bg-stone-900 hover:bg-blue-950 hover:cursor-pointer">
+          <div class="mb-4">
+            <span class="text-2xl font-bold">{{ skill.skillName }}</span>
+          </div>
+          <div class="text-lg">
+            <div class="flex justify-between mb-2">
+              <span><strong>Main Stat:</strong></span>
+              <span>{{ skill.mainStat }} ({{ skill.mainStatPercentage }}%)</span>
+            </div>
+            <div class="flex justify-between mb-2">
+              <span><strong>Cooldown:</strong></span>
+              <span>{{ skill.cooldown }} turns</span>
+            </div>
+            <div class="flex justify-between mb-2">
+              <span><strong>Amount of Strikes:</strong></span>
+              <span>{{ skill.amountOfStrikes }}</span>
+            </div>
+            <div class="flex justify-between mb-2">
+              <span><strong>On Hit Effect:</strong></span>
+              <span>{{ skill.onHitEffect }}</span>
+            </div>
+            <div class="flex flex-col">
+              <span><strong>Description:</strong></span>
+              <span>{{ skill.description }}</span>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div *ngIf="showChooseUserPopup" class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-blue-500 text-white p-4">
+    <p class="text-xl font-bold">Choose a user</p>
+  </div>
+
+  <div *ngIf="showSkillCanceledPopup && isSelectingTarget" class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-red-500 text-white p-4">
+    <p class="text-xl font-bold">Skill canceled</p>
+  </div>
 </div>
