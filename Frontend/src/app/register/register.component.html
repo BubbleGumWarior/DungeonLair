@@ -53,22 +53,22 @@
 </div>
 
 <div *ngIf="showModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" (click)="closeModal($event)">
-  <div class="bg-white p-6 rounded shadow-lg">
+  <div class="bg-stone-950 p-6 rounded shadow-lg">
     <h2 class="text-xl font-bold mb-4">Error</h2>
     <p>{{ errorMessage }}</p>
-    <button class="mt-4 bg-blue-800 text-white py-2 px-4 rounded" (click)="showModal = false">Close</button>
+    <button class="mt-4 bg-blue-800 text-blue-800 py-2 px-4 rounded" (click)="showModal = false">Close</button>
   </div>
 </div>
 
 <div *ngIf="showCharacterNameModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-  <div class="bg-white p-6 rounded shadow-lg">
-    <h2 class="text-xl font-bold mb-4">Enter Character Name</h2>
+  <div class="bg-stone-950 p-6 rounded shadow-lg">
+    <h2 class="text-xl font-bold text-blue-800 mb-4">Enter Character Name</h2>
     <input 
       type="text" 
       [(ngModel)]="characterName" 
       class="rounded w-full py-2 px-3 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 p-2 mr-2 text-black placeholder-black" 
       placeholder="Enter your character name" 
     />
-    <button class="mt-4 bg-blue-800 text-white py-2 px-4 rounded" (click)="submitCharacterName()">Submit</button>
+    <button class="mt-4 bg-blue-800 text-stone-950 py-2 px-4 rounded" (click)="submitCharacterName()">Submit</button>
   </div>
 </div>

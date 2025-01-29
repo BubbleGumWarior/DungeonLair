@@ -12,6 +12,15 @@ export interface UserInBattle {
   action: boolean;
   bonusAction: boolean;
   movement: boolean;
+  stun: number; // Add stun field
+  burn: number; // Add burn field
+  poison: number; // Add poison field
+  bleed: number; // Add bleed field
+  buffstack: number; // Add buffstack field
+  cooldowns?: { [skillID: number]: number }; // Add cooldowns field
+  magicResist: number; // Add magicResist field
+  protections: number; // Add protections field
+  maskID: number; // Add maskID field
 }
 
 interface VcMember {
@@ -148,5 +157,13 @@ export class WebSocketService {
 
   emitUsersInBattleUpdate(usersInBattle: UserInBattle[]) {
     this.socket.emit('usersInBattleUpdate', usersInBattle);
+  }
+
+  emitTimerStart() {
+    this.socket.emit('startTimer');
+  }
+
+  onTimerStart(callback: (data: { timer: number, cycleCount: number }) => void) {
+    this.socket.on('timerStart', callback);
   }
 }

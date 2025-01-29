@@ -773,13 +773,21 @@ io.on('connection', (socket) => {
         const maskDetails = await MaskList.findOne({ where: { maskID: characterInfo.maskID } });
         const userInBattle = {
           characterName,
+          maskID: maskDetails ? maskDetails.maskID : 0,
           speed: maskDetails ? maskDetails.speed : 0, // Use the speed from the mask details
           health: maskDetails ? maskDetails.health : 0,
+          magicResist: maskDetails ? maskDetails.magicResist : 0, // Include magicResist
+          protections: maskDetails ? maskDetails.protections : 0, // Include protections
           currentSpeed: maskDetails ? maskDetails.speed : 0, // Initialize currentSpeed to the value from the table
           currentHealth: maskDetails ? maskDetails.health : 0, // Initialize currentHealth to health
           action: false,
           bonusAction: false,
-          movement: false
+          movement: false,
+          stun: 0, // Initialize stun to 0
+          burn: 0, // Initialize burn to 0
+          poison: 0, // Initialize poison to 0
+          bleed: 0, // Initialize bleed to 0
+          buffstack: 0 // Initialize buffstack to 0
         };
         usersInBattle.push(userInBattle);
         io.emit('usersInBattleUpdate', usersInBattle);
@@ -797,6 +805,7 @@ io.on('connection', (socket) => {
 
     socket.on('usersInBattleUpdate', (updatedUsersInBattle) => {
       usersInBattle = updatedUsersInBattle;
+      console.log('Updated usersInBattle:', usersInBattle);
       io.emit('usersInBattleUpdate', usersInBattle);
     });
 });
@@ -1311,7 +1320,7 @@ app.put('/masks/:maskID/add-skill', async (req, res) => {
     if (!mask) {
       return res.status(404).send('Mask not found');
     }
-    const updatedActiveSkills = [...mask.activeSkills, skillID];
+    const updatedActiveSkills = mask.activeSkills ? [...mask.activeSkills, skillID] : [skillID];
     await MaskList.update({ activeSkills: updatedActiveSkills }, { where: { maskID } });
     res.status(200).json({ message: 'Skill added to mask successfully' });
   } catch (error) {

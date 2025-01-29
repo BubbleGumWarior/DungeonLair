@@ -8,35 +8,46 @@
     <button class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center" (click)="openMaskSkillsModal()">
       Use Mask Skills
     </button>
-    <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
-      Demo button 3
-    </button>
-    <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
-      Demo button 4
-    </button>
-    <button class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center" (click)="continueBattle()">
+    <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 text-stone-950 p-2 rounded-full flex items-center justify-center" (click)="continueBattle()">
       Continue
     </button>
-    <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
-      Demo button 6
-    </button>
-    <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
-      Demo button 7
-    </button>
-    <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
-      Demo button 8
+    <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-red-700 via-red-800 to-red-900 text-stone-950 p-2 rounded-full flex items-center justify-center" (click)="endBattle()">
+      End Battle
     </button>
   </div>
   <div class="grid grid-cols-3 gap-8 p-8 h-full w-full text-blue-800">
     <div class="col-span-1 h-full w-full">
-      <div *ngFor="let user of usersInBattle" (click)="selectTarget(user); $event.stopPropagation()" [ngClass]="{'cursor-pointer': isSelectingTarget}">
-        <div>{{ user.characterName }}</div>
-        <div class="mt-1">
-          <div class="w-full h-5 bg-gray-500 mb-1 relative">
-            <div class="h-full bg-yellow-500 absolute top-0 left-0" [style.width.%]="(user.currentSpeed / 100) * 100"></div> <!-- Max value is 100 -->
+      <div *ngFor="let user of usersInBattle" (click)="selectTarget(user); $event.stopPropagation()" [ngClass]="{'cursor-pointer': isSelectingTarget, 'hover:bg-blue-500 hover:text-stone-950': showChooseUserPopup}" class="border border-blue-800 p-4 rounded mb-4">
+        <div class="flex justify-between">
+          <div class="flex items-center">
+            <div class="text-xl">{{ user.characterName }}</div>
+            <i class="fa-solid fa-mask ml-2 cursor-pointer hover:text-white" (mouseenter)="showMaskStats(user, $event)" (mouseleave)="hideMaskStats()"></i>
           </div>
-          <div class="w-full h-5 bg-gray-500 relative">
-            <div class="h-full bg-green-500 absolute top-0 left-0" [style.width.%]="(user.currentHealth / user.health) * 100"></div>
+          <div class="flex space-x-2">
+            <div class="text-center">
+              <i class="fa-solid fa-bolt-lightning"></i>
+              <div>{{ user.stun }}</div>
+            </div>
+            <div class="text-center">
+              <i class="fa-solid fa-fire"></i>
+              <div>{{ user.burn }}</div>
+            </div>
+            <div class="text-center">
+              <i class="fa-solid fa-skull"></i>
+              <div>{{ user.poison }}</div>
+            </div>
+            <div class="text-center">
+              <i class="fa-solid fa-droplet"></i>
+              <div>{{ user.bleed }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-1">
+          <div class="w-full h-5 bg-gray-500 mb-1 rounded-l-full rounded-r-full relative">
+            <div class="h-full bg-yellow-500 absolute top-0 left-0 rounded-l-full rounded-r-full" [style.width.%]="(user.currentSpeed / 100) * 100"></div> <!-- Max value is 100 -->
+          </div>
+          <div class="w-full h-5 bg-gray-500 rounded-l-full rounded-r-full relative">
+            <div class="h-full bg-green-500 absolute top-0 left-0 rounded-l-full rounded-r-full" [style.width.%]="(user.currentHealth / user.health) * 100"></div>
           </div>
         </div>
       </div>
@@ -52,7 +63,7 @@
   <div *ngIf="showMaskSkillsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" (click)="closeMaskSkillsModal()">
     <div class="bg-stone-950 text-blue-800 p-6 rounded-lg w-4/5 h-5/6 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-700 scrollbar-track-stone-900" (click)="$event.stopPropagation()">
       <ul>
-        <li *ngFor="let skill of maskActiveSkillDetails" (click)="logSkillId(skill.skillID); closeMaskSkillsModal()" class="border border-blue-500 p-4 mb-4 rounded-lg bg-stone-900 hover:bg-blue-950 hover:cursor-pointer">
+        <li *ngFor="let skill of maskActiveSkillDetails" (click)="logSkillId(skill.skillID)" [ngClass]="getSkillBorderClass(skill.skillID)" class="border p-4 mb-4 rounded-lg bg-stone-900 hover:bg-blue-950 hover:cursor-pointer">
           <div class="mb-4">
             <span class="text-2xl font-bold">{{ skill.skillName }}</span>
           </div>
@@ -83,11 +94,44 @@
     </div>
   </div>
 
-  <div *ngIf="showChooseUserPopup" class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-blue-500 text-white p-4">
+  <div *ngIf="showChooseUserPopup" class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-blue-800 text-white p-4 h-16">
     <p class="text-xl font-bold">Choose a user</p>
+    <button class="absolute right-4 bg-blue-500 text-white p-2 rounded-full" (click)="cancelSkill()">X</button>
   </div>
 
-  <div *ngIf="showSkillCanceledPopup && isSelectingTarget" class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-red-500 text-white p-4">
+  <div *ngIf="showSkillCanceledPopup" class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-red-500 text-white p-4 h-16">
     <p class="text-xl font-bold">Skill canceled</p>
+  </div>
+
+  <div *ngIf="showMaskStatsPopup" class="fixed z-50 bg-stone-950 text-blue-800 p-4 rounded-lg border border-blue-800" [style.top.px]="maskStatsPopupPosition.top" [style.left.px]="maskStatsPopupPosition.left">
+    <div class="text-lg">
+      <div class="flex justify-between mb-2">
+        <span><strong>Attack Damage:</strong></span>
+        <span>{{ maskStats.attackDamage }}</span>
+      </div>
+      <div class="flex justify-between mb-2">
+        <span><strong>Ability Damage:</strong></span>
+        <span>{{ maskStats.abilityDamage }}</span>
+      </div>
+      <div class="flex justify-between mb-2">
+        <span><strong>Magic Resist:</strong></span>
+        <span>{{ maskStats.magicResist }}</span>
+      </div>
+      <div class="flex justify-between mb-2">
+        <span><strong>Protections:</strong></span>
+        <span>{{ maskStats.protections }}</span>
+      </div>
+      <div class="flex justify-between mb-2">
+        <span><strong>Health:</strong></span>
+        <span>{{ maskStats.health }}</span>
+      </div>
+      <div class="flex justify-between mb-2">
+        <span><strong>Speed:</strong></span>
+        <span>{{ maskStats.speed }}</span>
+      </div>
+      <div class="flex justify-center mt-4">
+        <img *ngIf="maskStats.photo" [src]="maskStats.photo" alt="Mask Photo" class="h-64">
+      </div>
+    </div>
   </div>
 </div>
