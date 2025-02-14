@@ -808,6 +808,23 @@ io.on('connection', (socket) => {
       console.log('Updated usersInBattle:', usersInBattle);
       io.emit('usersInBattleUpdate', usersInBattle);
     });
+
+    socket.on('iconPlacement', (data) => {
+      io.emit('iconPlacement', data);
+    });
+
+    socket.on('iconRemoval', (data) => {
+      io.emit('iconRemoval', data);
+    });
+
+    socket.on('iconDragging', (data) => {
+      io.emit('iconDragging', data);
+    });
+
+    socket.on('attackDamageModifier', (data) => {
+      const { characterName, attackDamageModifier } = data;
+      io.emit('attackDamageModifier', { characterName, attackDamageModifier });
+    });
 });
 
 // Function to broadcast user updates

@@ -21,6 +21,8 @@ export interface UserInBattle {
   magicResist: number; // Add magicResist field
   protections: number; // Add protections field
   maskID: number; // Add maskID field
+  skillList?: string[]; // Add skillList property
+  attackDamageModifier?: number; // Add attackDamageModifier property
 }
 
 interface VcMember {
@@ -165,5 +167,45 @@ export class WebSocketService {
 
   onTimerStart(callback: (data: { timer: number, cycleCount: number }) => void) {
     this.socket.on('timerStart', callback);
+  }
+
+  // Add a new method to emit the icon placement event
+  emitIconPlacement(characterName: string, maskPhoto: string) {
+    this.socket.emit('iconPlacement', { characterName, maskPhoto });
+  }
+
+  // Add a new method to handle the icon placement event
+  onIconPlacement(callback: (data: { characterName: string, maskPhoto: string }) => void) {
+    this.socket.on('iconPlacement', callback);
+  }
+
+  // Add a new method to emit the icon removal event
+  emitIconRemoval(characterName: string) {
+    this.socket.emit('iconRemoval', { characterName });
+  }
+
+  // Add a new method to handle the icon removal event
+  onIconRemoval(callback: (data: { characterName: string }) => void) {
+    this.socket.on('iconRemoval', callback);
+  }
+
+  // Add a new method to emit the icon dragging event
+  emitIconDragging(characterName: string, position: { top: number, left: number }) {
+    this.socket.emit('iconDragging', { characterName, position });
+  }
+
+  // Add a new method to handle the icon dragging event
+  onIconDragging(callback: (data: { characterName: string, position: { top: number, left: number } }) => void) {
+    this.socket.on('iconDragging', callback);
+  }
+
+  // Add a new method to emit the attack damage modifier event
+  emitAttackDamageModifier(characterName: string, attackDamageModifier: number) {
+    this.socket.emit('attackDamageModifier', { characterName, attackDamageModifier });
+  }
+
+  // Add a new method to handle the attack damage modifier event
+  onAttackDamageModifier(callback: (data: { characterName: string, attackDamageModifier: number }) => void) {
+    this.socket.on('attackDamageModifier', callback);
   }
 }

@@ -319,12 +319,6 @@
     <div *ngIf="selectedView === 'Manage Mask Skills'" class="text-white">
       <div class="grid grid-cols-2 gap-4 mt-4">
         <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Select Mask</p>
-          <select [(ngModel)]="selectedMaskID" class="p-2 border rounded w-full bg-stone-900 text-white">
-            <option *ngFor="let mask of maskList" [value]="mask.maskID">{{ mask.maskID }}</option>
-          </select>
-        </div>
-        <div class="col-span-1">
           <p class="font-semibold text-blue-700">Skill Name</p>
           <input [(ngModel)]="newMaskSkill.skillName" class="p-2 border rounded w-full bg-stone-900 text-white" />
         </div>

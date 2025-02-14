@@ -40,6 +40,10 @@
               <i class="fa-solid fa-droplet"></i>
               <div>{{ user.bleed }}</div>
             </div>
+            <div class="text-center">
+              <i class="fa-solid fa-layer-group"></i>
+              <div>{{ user.buffstack }}</div>
+            </div>
           </div>
         </div>
         <div class="mt-1">
@@ -52,8 +56,16 @@
         </div>
       </div>
     </div>
-    <div class="col-span-2 h-full w-full bg-green-500">
-      Column 2
+    <div class="col-span-2 h-full w-full bg-green-500 relative" (dragover)="dragOver($event)">
+      <img [src]="mapUrl" alt="Battle Map" class="w-full h-full object-cover">
+      <div *ngFor="let icon of iconsOnMap" class="absolute" [ngStyle]="{ top: icon.position.top + 'px', left: icon.position.left + 'px' }">
+        <img [src]="icon.maskPhoto" alt="{{ icon.characterName }}" class="w-10 h-10 rounded-full" 
+             [draggable]="role === 'Dungeon Master'" 
+             (dragstart)="startDrag($event, icon.characterName)" 
+             (drag)="drag($event, icon.characterName)" 
+             (dragend)="endDrag($event, icon.characterName)" 
+             [style.cursor]="role === 'Dungeon Master' ? 'grabbing' : 'default'">
+      </div>
     </div>
   </div>
 

@@ -32,6 +32,10 @@ export class BattleMapComponent implements OnInit {
   showMaskStatsPopup: boolean = false; // Add property to control mask stats popup visibility
   maskStatsPopupPosition: { top: number, left: number } = { top: 0, left: 0 }; // Add property to store popup position
   maskStats: any = {}; // Add property to store mask stats
+  iconsOnMap: { characterName: string, maskPhoto: string, position: { top: number, left: number } }[] = []; // Update property to store icon positions
+  triggerSkills: string[] = ['Nightmare', 'TestSkill', 'Rampage']; // Add array to store skill names
+  abilityDamageModifier: number = 0; // Initialize abilityDamageModifier
+  attackDamageModifier: number = 0; // Initialize attackDamageModifier
 
   ngOnInit(): void {
     this.loadDataFromToken(); // Load data from token
@@ -60,6 +64,28 @@ export class BattleMapComponent implements OnInit {
 
     // Fetch initial battle details
     this.webSocketService.requestUsersInBattle();
+
+    this.webSocketService.onIconPlacement((data: { characterName: string, maskPhoto: string }) => {
+      this.iconsOnMap.push({ ...data, position: { top: 0, left: 0 } }); // Add default position
+    });
+
+    this.webSocketService.onIconRemoval((data: { characterName: string }) => {
+      this.iconsOnMap = this.iconsOnMap.filter(icon => icon.characterName !== data.characterName);
+    });
+
+    this.webSocketService.onIconDragging((data: { characterName: string, position: { top: number, left: number } }) => {
+      const icon = this.iconsOnMap.find(icon => icon.characterName === data.characterName);
+      if (icon) {
+        icon.position = data.position;
+      }
+    });
+
+    this.webSocketService.onAttackDamageModifier((data: { characterName: string, attackDamageModifier: number }) => {
+      const user = this.usersInBattle.find(user => user.characterName === data.characterName);
+      if (user) {
+        this.attackDamageModifier = data.attackDamageModifier; // Update the attackDamageModifier
+      }
+    });
   }
   router: Router; // Add router property
   constructor(private route: ActivatedRoute, private http: HttpClient, private webSocketService: WebSocketService, router: Router) {
@@ -102,6 +128,7 @@ export class BattleMapComponent implements OnInit {
 
           if (this.inBattle) {
             this.webSocketService.leaveBattle(characterName);
+            this.webSocketService.emitIconRemoval(characterName);
           } else {
             this.webSocketService.joinBattle(characterName);
 
@@ -112,20 +139,21 @@ export class BattleMapComponent implements OnInit {
                   characterName,
                   speed: maskDetails.speed,
                   health: maskDetails.health,
-                  magicResist: maskDetails.magicResist, // Initialize magicResist
-                  protections: maskDetails.protections, // Initialize protections
-                  currentSpeed: 0, // Initialize currentSpeed to the value from the table
-                  currentHealth: maskDetails.health, // Initialize currentHealth to health
+                  magicResist: maskDetails.magicResist,
+                  protections: maskDetails.protections,
+                  currentSpeed: 0,
+                  currentHealth: maskDetails.health, 
                   action: false,
                   bonusAction: false,
                   movement: false,
-                  stun: 0, // Initialize stun to 0
-                  burn: 0, // Initialize burn to 0
-                  poison: 0, // Initialize poison to 0
-                  bleed: 0, // Initialize bleed to 0
-                  buffstack: 0, // Initialize buffstack to 0
-                  cooldowns: {}, // Initialize cooldowns to an empty object
-                  maskID: this.maskID // Include maskID
+                  stun: 0,
+                  burn: 0,
+                  poison: 0,
+                  bleed: 0,
+                  buffstack: 0,
+                  cooldowns: {}, 
+                  maskID: this.maskID,
+                  attackDamageModifier: 0 // Initialize attackDamageModifier
                 };
 
                 // Add user to the list if not already present
@@ -135,6 +163,8 @@ export class BattleMapComponent implements OnInit {
 
                 this.sortUsersInBattle(); // Sort users by currentSpeed
                 this.updateInBattleState();
+
+                this.webSocketService.emitIconPlacement(characterName, `https://${localIP}:8080${maskDetails.photo}`);
               });
             } else {
               this.updateInBattleState();
@@ -223,6 +253,33 @@ export class BattleMapComponent implements OnInit {
         user.bonusAction = true;
         user.movement = true;
 
+        // Stage 5: Emit trigger skills event
+        this.usersInBattle.forEach(user => {
+          console.log(`User: ${user.characterName}`, user.skillList);
+          this.triggerSkills.forEach(skill => {
+            if (user.skillList && user.skillList.includes(skill)) {
+              if (skill === 'Nightmare') {
+                this.usersInBattle.forEach(targetUser => {
+                  if (targetUser.characterName !== user.characterName) {
+                    const roll = Math.floor(Math.random() * 20) + 1;
+                    console.log(`User ${targetUser.characterName} rolled ${roll}`);
+                    if (roll === 1) {
+                      targetUser.currentHealth = 0;
+                    } else if (roll < user.buffstack) {
+                      targetUser.stun += 3;
+                    }
+                  }
+                });
+              } else if (skill === 'Rampage') {
+                const attackDamageModifier = (10 * user.buffstack) / 100 + 1; // Calculate attackDamageModifier
+                this.webSocketService.emitAttackDamageModifier(user.characterName, attackDamageModifier); // Emit the attackDamageModifier
+              } else {
+                console.log(`${skill} is present`);
+              }
+            }
+          });
+        });
+
         // Decrement cooldowns for skills
         if (user.cooldowns) {
           Object.keys(user.cooldowns).forEach(skillID => {
@@ -234,9 +291,6 @@ export class BattleMapComponent implements OnInit {
         }
       }
     });
-
-    // Emit the updated usersInBattle to the server
-    console.log(this.usersInBattle);
     this.webSocketService.emitUsersInBattleUpdate(this.usersInBattle);
   }
 
@@ -263,6 +317,9 @@ export class BattleMapComponent implements OnInit {
               user.cooldowns[skill.skillID] = 0;
             }
           });
+
+          // Save skillList locally for the user
+          user.skillList = skills.map((skill: any) => skill.skillName);
         }).catch(error => {
           // Handle error
         });
@@ -303,14 +360,20 @@ export class BattleMapComponent implements OnInit {
         if (this.maskID) {
           this.http.get(`https://${localIP}:8080/mask-details/${this.maskID}`).subscribe((maskDetails: any) => {
             let mainStatValue;
+            let mainStatModifier = 0; // Declare mainStatModifier
             if (mainStat.toLowerCase() === 'ability damage') {
               mainStatValue = maskDetails.abilityDamage;
+              mainStatModifier = this.abilityDamageModifier; // Use abilityDamageModifier
             } else if (mainStat.toLowerCase() === 'attack damage') {
               mainStatValue = maskDetails.attackDamage;
+              mainStatModifier = this.attackDamageModifier; // Use attackDamageModifier
             } else {
               mainStatValue = maskDetails[mainStat.toLowerCase()];
             }
-            const damage = mainStatValue * (mainStatPercentage / 100);
+            const damage = (mainStatValue * mainStatModifier) * (mainStatPercentage / 100);
+            console.log(this.usersInBattle)
+            console.log(`Damage: (${mainStatValue} x ${mainStatModifier}) x (${mainStatPercentage} / 100)` );
+            console.log(`Damage: ${damage}`);
   
             this.selectedSkill = {
               skillID,
@@ -328,33 +391,23 @@ export class BattleMapComponent implements OnInit {
       });
     } else {
     }
-    
   }
 
   selectTarget(user: UserInBattle) {
     if (this.isSelectingTarget && this.selectedSkill) {
-      
-      console.log(`Magic Resist: ${user.magicResist}`);
-      console.log(`Protections: ${user.protections}`);
-      let totalDamage = 0
-
-      console.log(this.selectedSkill);
+      let totalDamage = 0;
       // Apply Magic Resist and Protection
       if (this.selectedSkill.mainStat && this.selectedSkill.mainStat.toLowerCase() === 'ability damage') {
         this.selectedSkill.damage -= user.magicResist;
-        console.log(`Damage after Magic Resist: ${this.selectedSkill.damage}`);
       } else if (this.selectedSkill.mainStat && this.selectedSkill.mainStat.toLowerCase() === 'attack damage') {
         this.selectedSkill.damage -= user.protections;
-        console.log(`Damage after Protection: ${this.selectedSkill.damage}`);
       }
 
-      totalDamage =  this.selectedSkill.damage * this.selectedSkill.amountOfStrikes;
-      
+      totalDamage = this.selectedSkill.damage * this.selectedSkill.amountOfStrikes;
 
       // Ensure damage does not go below zero
       totalDamage = Math.max(totalDamage, 0);
-      console.log(`Total Damage: ${totalDamage}`);
-      
+
       user.currentHealth -= totalDamage;
 
       // Apply on-hit effects
@@ -366,8 +419,14 @@ export class BattleMapComponent implements OnInit {
         user.poison += this.selectedSkill.amountOfStrikes;
       } else if (this.selectedSkill.onHitEffect === 'Bleed') {
         user.bleed += this.selectedSkill.amountOfStrikes;
-      } else if (this.selectedSkill.onHitEffect === 'Buffstack') {
-        user.buffstack += this.selectedSkill.amountOfStrikes;
+      }
+
+      // Apply Buff Stack to the user instead of the target
+      if (this.selectedSkill.onHitEffect === 'Buff Stack') {
+        const currentUser = this.usersInBattle.find(u => u.characterName === this.characterName);
+        if (currentUser) {
+          currentUser.buffstack += this.selectedSkill.amountOfStrikes;
+        }
       }
 
       // Set cooldown for the used skill
@@ -459,5 +518,34 @@ export class BattleMapComponent implements OnInit {
 
   hideMaskStats() {
     this.showMaskStatsPopup = false;
+  }
+
+  startDrag(event: DragEvent, characterName: string) {
+    event.dataTransfer?.setData('text/plain', characterName);
+    event.dataTransfer?.setDragImage(new Image(), 0, 0); // Hide the default drag image
+  }
+
+  dragOver(event: DragEvent) {
+    event.preventDefault(); // Allow the drop
+  }
+
+  drag(event: DragEvent, characterName: string) {
+    const icon = this.iconsOnMap.find(icon => icon.characterName === characterName);
+    if (icon) {
+      const container = document.querySelector('.col-span-2') as HTMLElement; // Ensure the correct container is selected
+      if (container) {
+        const containerRect = container.getBoundingClientRect();
+        const newPosition = {
+          top: Math.max(0, Math.min(event.clientY - containerRect.top, containerRect.height - (event.target as HTMLElement).offsetHeight)),
+          left: Math.max(0, Math.min(event.clientX - containerRect.left, containerRect.width - (event.target as HTMLElement).offsetWidth))
+        };
+        icon.position = newPosition;
+        this.webSocketService.emitIconDragging(characterName, newPosition);
+      }
+    }
+  }
+
+  endDrag(event: DragEvent, characterName: string) {
+    // No need to handle anything here for now
   }
 }

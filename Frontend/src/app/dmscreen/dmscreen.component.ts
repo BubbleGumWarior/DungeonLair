@@ -34,6 +34,7 @@ export class DMScreenComponent implements OnInit {
   newMask: any = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magiResist: 0, protections: 0, health: 0, speed: 0 }; // Initialize with new fields
   maskDetails: any = {}; // Add this variable to store mask details
   maskList: any[] = []; // Add this variable to store masks
+  maskOwner: any[] = []; // Add this variable to store mask owners
   selectedMaskID: number | null = null; // Add this variable to store the selected mask ID
   newMaskSkill: any = { 
     skillName: '', 
@@ -94,6 +95,9 @@ export class DMScreenComponent implements OnInit {
         console.error('Error fetching masks:', error);
       }
     );
+    
+    // for each mask in masklist look at the characterInfo table and search for the maskID then save the characterName associated with the maskID and console log "CharacterName: MaskID"
+    // Then display the masks in the drop down in manage mask skill by the characterName. Only use the characterName for display. The maskID should still be used for other functions.
   }
 
   selectCharacter(name: string) {
@@ -260,8 +264,8 @@ export class DMScreenComponent implements OnInit {
   }
 
   updateMaskActiveSkills(skillID: number) {
-    if (this.selectedMaskID !== null) {
-      this.http.put(`https://${localIP}:8080/masks/${this.selectedMaskID}/add-skill`, { skillID }).subscribe(
+    if (this.currentlySelectedCharacterID !== null) {
+      this.http.put(`https://${localIP}:8080/masks/${this.maskDetails.maskID}/add-skill`, { skillID }).subscribe(
         () => {
           console.log('Skill added to mask successfully');
         },
