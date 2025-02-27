@@ -17,7 +17,7 @@
   </div>
   <div class="grid grid-cols-3 gap-8 p-8 h-full w-full text-blue-800">
     <div class="col-span-1 h-full w-full">
-      <div *ngFor="let user of usersInBattle" (click)="selectTarget(user); $event.stopPropagation()" [ngClass]="{'cursor-pointer': isSelectingTarget, 'hover:bg-blue-500 hover:text-stone-950': showChooseUserPopup}" class="border border-blue-800 p-4 rounded mb-4">
+      <div *ngFor="let user of usersInBattle" (click)="selectTarget(user); $event.stopPropagation()" [ngClass]="getUserClasses(user)" class="border p-4 rounded mb-4">
         <div class="flex justify-between">
           <div class="flex items-center">
             <div class="text-xl">{{ user.characterName }}</div>
@@ -25,23 +25,23 @@
           </div>
           <div class="flex space-x-2">
             <div class="text-center">
-              <i class="fa-solid fa-bolt-lightning"></i>
+              <i class="fa-solid fa-bolt-lightning text-yellow-600"></i>
               <div>{{ user.stun }}</div>
             </div>
             <div class="text-center">
-              <i class="fa-solid fa-fire"></i>
+              <i class="fa-solid fa-fire text-orange-600"></i>
               <div>{{ user.burn }}</div>
             </div>
             <div class="text-center">
-              <i class="fa-solid fa-skull"></i>
+              <i class="fa-solid fa-skull text-purple-600"></i>
               <div>{{ user.poison }}</div>
             </div>
             <div class="text-center">
-              <i class="fa-solid fa-droplet"></i>
+              <i class="fa-solid fa-droplet text-red-600"></i>
               <div>{{ user.bleed }}</div>
             </div>
             <div class="text-center">
-              <i class="fa-solid fa-layer-group"></i>
+              <i class="fa-solid fa-layer-group text-green-600"></i>
               <div>{{ user.buffstack }}</div>
             </div>
           </div>
@@ -107,7 +107,12 @@
   </div>
 
   <div *ngIf="showChooseUserPopup" class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-blue-800 text-white p-4 h-16">
-    <p class="text-xl font-bold">Choose a user</p>
+    <p class="text-xl font-bold">
+      Choose a user 
+      <span *ngIf="selectedSkill?.isMultiTarget">
+        (Target {{ currentTargetIndex + 1 }} of {{ selectedSkill.amountOfStrikes }})
+      </span>
+    </p>
     <button class="absolute right-4 bg-blue-500 text-white p-2 rounded-full" (click)="cancelSkill()">X</button>
   </div>
 

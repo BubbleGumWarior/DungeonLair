@@ -825,6 +825,21 @@ io.on('connection', (socket) => {
       const { characterName, attackDamageModifier } = data;
       io.emit('attackDamageModifier', { characterName, attackDamageModifier });
     });
+
+    socket.on('magicResistModifier', (data) => {
+      const { characterName, magicResistModifier } = data;
+      io.emit('magicResistModifier', { characterName, magicResistModifier });
+    });
+  
+    socket.on('protectionsModifier', (data) => {
+      const { characterName, protectionsModifier } = data;
+      io.emit('protectionsModifier', { characterName, protectionsModifier });
+    });
+  
+    socket.on('speedModifier', (data) => {
+      const { characterName, speedModifier } = data;
+      io.emit('speedModifier', { characterName, speedModifier });
+    });
 });
 
 // Function to broadcast user updates
@@ -1311,7 +1326,7 @@ app.get('/masks', async (req, res) => {
 });
 
 app.post('/mask-skills', async (req, res) => {
-  const { skillName, description, mainStat, mainStatPercentage, cooldown, amountOfStrikes, onHitEffect } = req.body;
+  const { skillName, description, mainStat, mainStatPercentage, cooldown, amountOfStrikes, onHitEffect, isMultiTarget } = req.body;
   try {
     const newSkill = await MaskSkills.create({ 
       skillName, 
@@ -1320,7 +1335,8 @@ app.post('/mask-skills', async (req, res) => {
       mainStatPercentage, 
       cooldown,
       amountOfStrikes, // Add amountOfStrikes
-      onHitEffect // Add onHitEffect
+      onHitEffect, // Add onHitEffect
+      isMultiTarget // Add isMultiTarget
     });
     res.status(201).json(newSkill);
   } catch (error) {

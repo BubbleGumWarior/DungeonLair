@@ -208,4 +208,34 @@ export class WebSocketService {
   onAttackDamageModifier(callback: (data: { characterName: string, attackDamageModifier: number }) => void) {
     this.socket.on('attackDamageModifier', callback);
   }
+
+  // Add a new method to emit the magic resist modifier event
+  emitMagicResistModifier(characterName: string, magicResistModifier: number) {
+    this.socket.emit('magicResistModifier', { characterName, magicResistModifier });
+  }
+
+  // Add a new method to handle the magic resist modifier event
+  onMagicResistModifier(callback: (data: { characterName: string, magicResistModifier: number }) => void) {
+    this.socket.on('magicResistModifier', callback);
+  }
+
+  // Add a new method to emit the protections modifier event
+  emitProtectionsModifier(characterName: string, protectionsModifier: number) {
+    this.socket.emit('protectionsModifier', { characterName, protectionsModifier });
+  }
+
+  // Add a new method to handle the protections modifier event
+  onProtectionsModifier(callback: (data: { characterName: string, protectionsModifier: number }) => void) {
+    this.socket.on('protectionsModifier', callback);
+  }
+
+  // Add a new method to emit the speed modifier event
+  emitSpeedModifier(characterName: string, speedModifier: number) {
+    this.socket.emit('speedModifier', { characterName, speedModifier });
+  }
+
+  // Add a new method to handle the speed modifier event
+  onSpeedModifier(callback: (data: { characterName: string, speedModifier: number }) => void) {
+    this.socket.on('speedModifier', callback);
+  }
 }

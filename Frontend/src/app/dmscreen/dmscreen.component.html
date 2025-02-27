@@ -349,6 +349,13 @@
           <p class="font-semibold text-blue-700">Amount of Strikes</p>
           <input [(ngModel)]="newMaskSkill.amountOfStrikes" type="number" class="p-2 border rounded w-full bg-stone-900 text-white" />
         </div>
+        <div class="col-span-1" *ngIf="newMaskSkill.amountOfStrikes > 1">
+          <p class="font-semibold text-blue-700">Target Type</p>
+          <label class="flex items-center">
+            <input type="checkbox" [(ngModel)]="newMaskSkill.isMultiTarget" class="mr-2" />
+            <span>{{ newMaskSkill.isMultiTarget ? 'Multi Target' : 'Single Target' }}</span>
+          </label>
+        </div>
         <div class="col-span-1">
           <p class="font-semibold text-blue-700">On Hit Effect</p>
           <select [(ngModel)]="newMaskSkill.onHitEffect" class="p-2 border rounded w-full bg-stone-900 text-white">

@@ -31,7 +31,17 @@ export class DMScreenComponent implements OnInit {
   allCharacters: { name: string, id: string }[] = []; // Add this variable to store all characters
   selectedFamilyMember: string | null = null; // Add this variable to store the selected family member
   selectedFriendMember: string | null = null; // Add this variable to store the selected friend member
-  newMask: any = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magiResist: 0, protections: 0, health: 0, speed: 0 }; // Initialize with new fields
+  newMask: any = { 
+    photo: '', 
+    passiveSkill: '', 
+    activeSkills: '', 
+    attackDamage: 0, 
+    abilityDamage: 0, 
+    magicResist: 0, // Corrected typo
+    protections: 0, 
+    health: 0, 
+    speed: 0 
+  }; // Initialize with new fields
   maskDetails: any = {}; // Add this variable to store mask details
   maskList: any[] = []; // Add this variable to store masks
   maskOwner: any[] = []; // Add this variable to store mask owners
@@ -43,7 +53,8 @@ export class DMScreenComponent implements OnInit {
     mainStatPercentage: 0, 
     cooldown: 0,
     amountOfStrikes: 1, // Default value is 1
-    onHitEffect: 'None' // Default value is 'None'
+    onHitEffect: 'None', // Default value is 'None'
+    isMultiTarget: false // Add this property
   }; // Initialize new mask skill
 
   constructor(private http: HttpClient) {}
@@ -62,6 +73,7 @@ export class DMScreenComponent implements OnInit {
             name: character.characterName,
             photo: character.photo ? `https://${localIP}:8080${character.photo}` : ''
           }))
+          .filter(character => character.name) // Add null check
           .sort((a, b) => a.name.localeCompare(b.name)); // Sort characters alphabetically by name
       },
       (error) => {
@@ -113,7 +125,7 @@ export class DMScreenComponent implements OnInit {
         if (data.maskID) {
           this.fetchMaskDetails(data.maskID); // Fetch mask details if maskID is not null
         } else {
-          this.newMask = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magiResist: 0, protections: 0, health: 0, speed: 0 }; // Initialize newMask with default values
+          this.newMask = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magicResist: 0, protections: 0, health: 0, speed: 0 }; // Initialize newMask with default values
           this.maskDetails = {}; // Reset maskDetails
         }
       },
@@ -243,6 +255,7 @@ export class DMScreenComponent implements OnInit {
       mainStatPercentage: parseFloat(this.newMaskSkill.mainStatPercentage),
       cooldown: parseInt(this.newMaskSkill.cooldown, 10),
       amountOfStrikes: parseInt(this.newMaskSkill.amountOfStrikes, 10),
+      isMultiTarget: this.newMaskSkill.isMultiTarget // Include this property
     };
     this.http.post(`https://${localIP}:8080/mask-skills`, maskSkillData).subscribe(
       (data: any) => {
@@ -254,7 +267,8 @@ export class DMScreenComponent implements OnInit {
           mainStatPercentage: 0, 
           cooldown: 0,
           amountOfStrikes: 1, // Reset to default value
-          onHitEffect: 'None' // Reset to default value
+          onHitEffect: 'None', // Reset to default value
+          isMultiTarget: false // Reset to default value
         };
       },
       (error) => {
@@ -344,7 +358,7 @@ export class DMScreenComponent implements OnInit {
       activeSkills: this.newMask.activeSkills.split(',').map((skill: string) => parseInt(skill.trim(), 10)), // Convert activeSkills to array of integers
       attackDamage: this.newMask.attackDamage,
       abilityDamage: this.newMask.abilityDamage,
-      magicResist: this.newMask.magiResist, // Corrected typo
+      magicResist: this.newMask.magicResist, // Corrected typo
       protections: this.newMask.protections,
       health: this.newMask.health,
       speed: this.newMask.speed
@@ -352,7 +366,7 @@ export class DMScreenComponent implements OnInit {
     this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacterID}/mask`, maskData).subscribe(
       (data: any) => {
         this.maskDetails = data; // Update mask details
-        this.newMask = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magiResist: 0, protections: 0, health: 0, speed: 0 }; // Reset the newMask with default values
+        this.newMask = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magicResist: 0, protections: 0, health: 0, speed: 0 }; // Reset the newMask with default values
       },
       (error) => {
         console.error('Error saving mask:', error);

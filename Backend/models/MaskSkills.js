@@ -37,6 +37,11 @@ const MaskSkills = sequelize.define('MaskSkills', {
     allowNull: false,
     defaultValue: 'None', // Default value is 'None'
   },
+  isMultiTarget: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false, // Default value is false
+  },
 }, {
   tableName: 'mask_skills',
 });
