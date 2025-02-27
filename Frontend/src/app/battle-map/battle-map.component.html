@@ -1,12 +1,17 @@
 <div class="battle-map h-full max-w-screen relative">
   <button class="mt-1 close-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 w-10 h-10 rounded-full fixed top-2 right-4 flex items-center justify-center" (click)="closeBattleMap()">X</button>
   
-  <div class="grid grid-cols-4 gap-4 p-4">
+  <div class="grid grid-cols-4 gap-4 p-4 pt-14">
     <button class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center" (click)="toggleBattleStatus()">
       {{ inBattle ? 'Leave Battle' : 'Join Battle' }}
     </button>
-    <button class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center" (click)="openMaskSkillsModal()">
+    <button class="mt-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center relative" 
+            (click)="openMaskSkillsModal()" 
+            [ngClass]="{'goo-effect': shouldApplyGooEffect()}">
       Use Mask Skills
+      <span class="bubbles" *ngIf="shouldApplyGooEffect()">
+        <span class="bubble" *ngFor="let bubble of [].constructor(10); let i = index" [style.animation-delay]="bubbleDelays[i]" [style.animation-duration]="bubbleDurations[i]"></span>
+      </span>
     </button>
     <button *ngIf="role === 'Dungeon Master'" class="mt-1 add-npc-button bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 text-stone-950 p-2 rounded-full flex items-center justify-center" (click)="continueBattle()">
       Continue
@@ -152,3 +157,13 @@
     </div>
   </div>
 </div>
+
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" class="hidden">
+  <defs>
+    <filter id="gooey">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="highContrastGraphic" />
+      <feComposite in="SourceGraphic" in2="highContrastGraphic" operator="atop" />
+    </filter>
+  </defs>
+</svg>

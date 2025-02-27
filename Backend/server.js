@@ -820,26 +820,6 @@ io.on('connection', (socket) => {
     socket.on('iconDragging', (data) => {
       io.emit('iconDragging', data);
     });
-
-    socket.on('attackDamageModifier', (data) => {
-      const { characterName, attackDamageModifier } = data;
-      io.emit('attackDamageModifier', { characterName, attackDamageModifier });
-    });
-
-    socket.on('magicResistModifier', (data) => {
-      const { characterName, magicResistModifier } = data;
-      io.emit('magicResistModifier', { characterName, magicResistModifier });
-    });
-  
-    socket.on('protectionsModifier', (data) => {
-      const { characterName, protectionsModifier } = data;
-      io.emit('protectionsModifier', { characterName, protectionsModifier });
-    });
-  
-    socket.on('speedModifier', (data) => {
-      const { characterName, speedModifier } = data;
-      io.emit('speedModifier', { characterName, speedModifier });
-    });
 });
 
 // Function to broadcast user updates

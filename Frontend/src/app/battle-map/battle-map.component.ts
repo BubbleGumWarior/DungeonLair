@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common'; // Import CommonModule
 import { FormsModule } from '@angular/forms'; // Import FormsModule
@@ -33,13 +33,10 @@ export class BattleMapComponent implements OnInit {
   maskStatsPopupPosition: { top: number, left: number } = { top: 0, left: 0 }; // Add property to store popup position
   maskStats: any = {}; // Add property to store mask stats
   iconsOnMap: { characterName: string, maskPhoto: string, position: { top: number, left: number } }[] = []; // Update property to store icon positions
-  triggerSkills: string[] = ['Nightmare', 'TestSkill', 'Rampage']; // Add array to store skill names Stage 5 uses this.
-  abilityDamageModifier: number = 1; // Initialize abilityDamageModifier
-  attackDamageModifier: number = 1; // Initialize attackDamageModifier
-  magicResistModifier: number = 1; // Initialize magicResistModifier
-  protectionsModifier: number = 1; // Initialize protectionsModifier
-  speedModifier: number = 1; // Initialize speedModifier
+  triggerSkills: string[] = ['Nightmare', 'Test']; // Add array to store skill names Stage 5 uses this.
   currentTargetIndex: number = 0; // Add property to track current target index
+  bubbleDelays: string[] = [];
+  bubbleDurations: string[] = [];
 
   ngOnInit(): void {
     this.loadDataFromToken(); // Load data from token
@@ -84,40 +81,9 @@ export class BattleMapComponent implements OnInit {
       }
     });
 
-    this.webSocketService.onAttackDamageModifier((data: { characterName: string, attackDamageModifier: number }) => {
-      const user = this.usersInBattle.find(user => user.characterName === data.characterName);
-      if (user) {
-        this.attackDamageModifier = data.attackDamageModifier; // Update the attackDamageModifier
-      }
-    });
-
-    this.webSocketService.onMagicResistModifier((data: { characterName: string, magicResistModifier: number }) => {
-      const user = this.usersInBattle.find(user => user.characterName === data.characterName);
-      if (user) {
-        user.magicResist *= data.magicResistModifier;
-        console.log(`Updated magic resist for ${user.characterName}: ${user.magicResist}`); // Debugging log
-      }
-    });
-
-    this.webSocketService.onProtectionsModifier((data: { characterName: string, protectionsModifier: number }) => {
-      const user = this.usersInBattle.find(user => user.characterName === data.characterName);
-      if (user) {
-        user.protections *= data.protectionsModifier;
-        console.log(`Updated protections for ${user.characterName}: ${user.protections}`); // Debugging log
-      }
-    });
-
-    this.webSocketService.onSpeedModifier((data: { characterName: string, speedModifier: number }) => {
-      const user = this.usersInBattle.find(user => user.characterName === data.characterName);
-      if (user) {
-        user.speed *= data.speedModifier;
-        console.log(`Updated speed for ${user.characterName}: ${user.speed}`); // Debugging log
-      }
-    });
+    this.generateBubbleAnimations();
   }
-  router: Router; // Add router property
-  constructor(private route: ActivatedRoute, private http: HttpClient, private webSocketService: WebSocketService, router: Router) {
-    this.router = router; // Initialize router
+  constructor(private route: ActivatedRoute, private http: HttpClient, private webSocketService: WebSocketService, private router: Router, private cdr: ChangeDetectorRef) {
   }
   defaultIcon: string = `https://${localIP}:8080/assets/images/Default.png`; // Add defaultIcon property
   mapUrl: string = `https://${localIP}:8080/assets/images/Map.jpg`;
@@ -181,7 +147,6 @@ export class BattleMapComponent implements OnInit {
                   buffstack: 0,
                   cooldowns: {}, 
                   maskID: this.maskID,
-                  attackDamageModifier: 0 // Initialize attackDamageModifier
                 };
 
                 // Add user to the list if not already present
@@ -291,7 +256,6 @@ export class BattleMapComponent implements OnInit {
 
         // Stage 5: Emit trigger skills event
         this.usersInBattle.forEach(user => {
-          console.log(`User: ${user.characterName}`, user.skillList);
           this.triggerSkills.forEach(skill => {
             if (user.skillList && user.skillList.includes(skill)) {
               if (skill === 'Nightmare') {
@@ -306,15 +270,8 @@ export class BattleMapComponent implements OnInit {
                     }
                   }
                 });
-              } else if (skill === 'Rampage') {
-                const attackDamageModifier = (10 * user.buffstack) / 100 + 1; // Calculate attackDamageModifier
-                this.webSocketService.emitAttackDamageModifier(user.characterName, attackDamageModifier); // Emit the attackDamageModifier
-              } else if (skill === 'Bide') {
-                const magicResistModifier = (10 * user.buffstack) / 100 + 1; // Calculate magicResistModifier
-                const protectionsModifier = (10 * user.buffstack) / 100 + 1; // Calculate protectionsModifier
-                this.webSocketService.emitMagicResistModifier(user.characterName, magicResistModifier); // Emit the magicResistModifier
-                this.webSocketService.emitProtectionsModifier(user.characterName, protectionsModifier); // Emit the protectionsModifier
-                
+              } else if (skill === 'Test') {
+                console.log('Test skill is present');
               } else {
                 console.log(`${skill} is present`);
               }
@@ -403,20 +360,14 @@ export class BattleMapComponent implements OnInit {
         if (this.maskID) {
           this.http.get(`https://${localIP}:8080/mask-details/${this.maskID}`).subscribe((maskDetails: any) => {
             let mainStatValue;
-            let mainStatModifier = 0; // Declare mainStatModifier
             if (mainStat.toLowerCase() === 'ability damage') {
               mainStatValue = maskDetails.abilityDamage;
-              mainStatModifier = this.abilityDamageModifier; // Use abilityDamageModifier
             } else if (mainStat.toLowerCase() === 'attack damage') {
               mainStatValue = maskDetails.attackDamage;
-              mainStatModifier = this.attackDamageModifier; // Use attackDamageModifier
             } else {
               mainStatValue = maskDetails[mainStat.toLowerCase()];
             }
-            const damage = (mainStatValue * mainStatModifier) * (mainStatPercentage / 100);
-            console.log(this.usersInBattle)
-            console.log(`Damage: (${mainStatValue} x ${mainStatModifier}) x (${mainStatPercentage} / 100)` );
-            console.log(`Damage: ${damage}`);
+            const damage = mainStatValue * (mainStatPercentage / 100);
 
             this.selectedSkill = {
               skillID,
@@ -624,5 +575,25 @@ export class BattleMapComponent implements OnInit {
 
   endDrag(event: DragEvent, characterName: string) {
     // No need to handle anything here for now
+  }
+
+  shouldApplyGooEffect(): boolean {
+    return this.usersInBattle.some(user => user.characterName === this.characterName && user.action && user.stun === 0 && user.currentHealth > 0);
+  }
+
+  generateBubbleAnimations() {
+    for (let i = 0; i < 10; i++) {
+      this.bubbleDelays[i] = this.generateRandomDelay();
+      this.bubbleDurations[i] = this.generateRandomDuration();
+    }
+    this.cdr.detectChanges(); // Manually trigger change detection
+  }
+
+  generateRandomDelay(): string {
+    return `${Math.random() * 2}s`; // Generate a random delay between 0 and 2 seconds
+  }
+
+  generateRandomDuration(): string {
+    return `${Math.random() * 3 + 2}s`; // Generate a random duration between 2 and 5 seconds
   }
 }

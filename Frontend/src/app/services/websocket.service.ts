@@ -22,7 +22,6 @@ export interface UserInBattle {
   protections: number; // Add protections field
   maskID: number; // Add maskID field
   skillList?: string[]; // Add skillList property
-  attackDamageModifier?: number; // Add attackDamageModifier property
 }
 
 interface VcMember {
@@ -44,7 +43,6 @@ export class WebSocketService {
       const username = localStorage.getItem('username'); // Assuming username is stored in localStorage
       const role = localStorage.getItem('role'); // Assuming role is stored in localStorage
       if (username && role) {
-        console.log('Logging in user:', username, 'with role:', role);
         this.loginUser({ username, role });
       }
     });
@@ -197,45 +195,5 @@ export class WebSocketService {
   // Add a new method to handle the icon dragging event
   onIconDragging(callback: (data: { characterName: string, position: { top: number, left: number } }) => void) {
     this.socket.on('iconDragging', callback);
-  }
-
-  // Add a new method to emit the attack damage modifier event
-  emitAttackDamageModifier(characterName: string, attackDamageModifier: number) {
-    this.socket.emit('attackDamageModifier', { characterName, attackDamageModifier });
-  }
-
-  // Add a new method to handle the attack damage modifier event
-  onAttackDamageModifier(callback: (data: { characterName: string, attackDamageModifier: number }) => void) {
-    this.socket.on('attackDamageModifier', callback);
-  }
-
-  // Add a new method to emit the magic resist modifier event
-  emitMagicResistModifier(characterName: string, magicResistModifier: number) {
-    this.socket.emit('magicResistModifier', { characterName, magicResistModifier });
-  }
-
-  // Add a new method to handle the magic resist modifier event
-  onMagicResistModifier(callback: (data: { characterName: string, magicResistModifier: number }) => void) {
-    this.socket.on('magicResistModifier', callback);
-  }
-
-  // Add a new method to emit the protections modifier event
-  emitProtectionsModifier(characterName: string, protectionsModifier: number) {
-    this.socket.emit('protectionsModifier', { characterName, protectionsModifier });
-  }
-
-  // Add a new method to handle the protections modifier event
-  onProtectionsModifier(callback: (data: { characterName: string, protectionsModifier: number }) => void) {
-    this.socket.on('protectionsModifier', callback);
-  }
-
-  // Add a new method to emit the speed modifier event
-  emitSpeedModifier(characterName: string, speedModifier: number) {
-    this.socket.emit('speedModifier', { characterName, speedModifier });
-  }
-
-  // Add a new method to handle the speed modifier event
-  onSpeedModifier(callback: (data: { characterName: string, speedModifier: number }) => void) {
-    this.socket.on('speedModifier', callback);
   }
 }
