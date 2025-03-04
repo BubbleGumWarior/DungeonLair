@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Import CommonModule
 import { HttpClientModule, HttpClient } from '@angular/common/http'; // Import HttpClientModule and HttpClient
+import { Router } from '@angular/router'; // Import Router
 import { jwtDecode } from 'jwt-decode';
 import { localIP } from '../config'; // Import the IP address
 import { WebSocketService } from '../services/websocket.service'; // Import WebSocketService
@@ -22,9 +23,9 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   showTargetBanner: boolean = false; // Add showTargetBanner flag
   selectedTargets: any[] = []; // Add selectedTargets array
 
-  constructor(private http: HttpClient, private webSocketService: WebSocketService) { // Add WebSocketService to constructor
+  constructor(private http: HttpClient, private webSocketService: WebSocketService, private router: Router) { // Add Router to constructor
     this.webSocketService.onMasksInBattleUpdate((masks) => {
-      this.masksInBattle = masks;
+      this.masksInBattle = masks.sort((a, b) => b.currentSpeed - a.currentSpeed);
       this.fetchMaskPhotos(); // Fetch mask photos each time masksInBattle is updated
     });
   }
@@ -118,6 +119,9 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   }
 
   useMainAction() {
+    if (!this.canUseMainAction()) {
+      return; // Do nothing if the main action cannot be used
+    }
     if (this.userInformation.maskID) {
       this.http.get(`https://${localIP}:8080/mask-skills/${this.userInformation.maskID}`)
         .subscribe(
@@ -130,6 +134,14 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
           }
         );
     }
+  }
+
+  canUseMainAction(): boolean {
+    if (this.userInformation && this.userInformation.maskID) {
+      const mask = this.masksInBattle.find(mask => mask.maskID === this.userInformation.maskID);
+      return mask ? mask.action : false;
+    }
+    return false;
   }
 
   selectSkill(skill: any) {
@@ -160,6 +172,12 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
     this.showTargetBanner = false; // Hide banner
   }
 
+  cancelSkillSelection() {
+    this.selectedSkill = null; // Reset selectedSkill
+    this.selectedTargets = []; // Reset selectedTargets
+    this.showTargetBanner = false; // Hide banner
+  }
+
   closeSkillsModal() {
     this.showSkillsModal = false; // Close the modal
   }
@@ -176,5 +194,16 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
       () => console.log('Continue request sent successfully'),
       (error) => console.error('Error sending continue request:', error)
     );
+  }
+
+  leaveBattle() {
+    this.router.navigate(['/']); // Navigate to the root route
+  }
+
+  getBorderColor(mask: any): string {
+    if (mask.currentHealth === 0) {
+      return 'border-red-700';
+    }
+    return mask.hover ? 'border-blue-400' : 'border-blue-700';
   }
 }

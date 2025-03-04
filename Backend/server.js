@@ -779,7 +779,10 @@ io.on('connection', (socket) => {
                             burnStacks: 0, // Add burnStacks field
                             poisonStacks: 0, // Add poisonStacks field
                             bleedStacks: 0, // Add bleedStacks field
-                            buffStacks: 0 // Add buffStacks field
+                            buffStacks: 0, // Add buffStacks field
+                            action: false, // Add action field
+                            bonusAction: false, // Add bonusAction field
+                            movement: 0 // Add movement field
                         };
                         // Fetch mask skills and store them
                         MaskSkills.findAll({ where: { skillID: maskDetails.activeSkills } })
@@ -838,6 +841,9 @@ io.on('connection', (socket) => {
                     switch (skill.onHitEffect) {
                         case 'Stun':
                             masksInBattle[targetMaskID].stunStacks += 1;
+                            masksInBattle[targetMaskID].action = false;
+                            masksInBattle[targetMaskID].bonusAction = false;
+                            masksInBattle[targetMaskID].movement = 0;
                             break;
                         case 'Burn':
                             masksInBattle[targetMaskID].burnStacks += 1;
@@ -852,6 +858,12 @@ io.on('connection', (socket) => {
                             masksInBattle[maskID].buffStacks += 1;
                             console.log(`Mask ${maskID} gained a buff stack`);
                             break;
+                    }
+                    if (masksInBattle[targetMaskID].currentHealth === 0) {
+                      masksInBattle[targetMaskID].action = false;
+                      masksInBattle[targetMaskID].bonusAction = false;
+                      masksInBattle[targetMaskID].movement = 0;
+                      masksInBattle[targetMaskID].currentSpeed = 0;
                     }
                 }
             });
@@ -1380,14 +1392,61 @@ app.get('/mask-skills/:maskID', async (req, res) => {
 app.post('/continue', (req, res) => {
   console.log('Continuing');
   Object.values(masksInBattle).forEach(mask => {
-    if (mask.currentSpeed >= 100) {
-      mask.currentSpeed = mask.speed;
+    if (mask.currentHealth === 0) {
+      mask.action = false; // Reset action to false
+      mask.bonusAction = false; // Reset bonusAction to false
+      mask.movement = 0; // Reset movement to 0
+      mask.currentSpeed = 0;
+      return;
     } else {
-      mask.currentSpeed += mask.speed;
-      if (mask.currentSpeed > 100) {
-        mask.currentSpeed = 100;
+      if (mask.burnStacks > 0) {
+        mask.currentHealth -= mask.currentHealth * 0.1;
+        mask.burnStacks -= 1;
       }
-    }
+      if (mask.poisonStacks > 0) {
+        mask.currentHealth -= (mask.currentHealth * 0.02) * mask.poisonStacks;
+        mask.poisonStacks += 1;
+      }
+      if (mask.bleedStacks > 0) {
+        mask.currentHealth -= (mask.health * 0.05);
+        mask.bleedStacks -= 1;
+        if(mask.currentHealth / mask.health * 100 <= mask.bleedStacks * 2) {
+          mask.currentHealth = 0;
+        }
+      }
+      if (mask.stunStacks > 0) {
+        mask.stunStacks -= 1;
+        if (mask.stunStacks === 0) {
+          mask.action = true; // Reset action to false
+          mask.bonusAction = true; // Reset bonusAction to false
+          mask.movement = mask.speed; // Reset movement to 0
+        }
+        return;
+      }
+      else {
+        if (mask.currentSpeed >= 100) {
+          mask.currentSpeed = mask.speed; // Ensure currentSpeed is capped at 100
+          mask.action = true; // Set action to true
+          mask.bonusAction = true; // Set bonusAction to true
+          mask.movement = mask.speed; // Set movement to mask.speed
+          mask.action = false; // Reset action to false
+          mask.bonusAction = false; // Reset bonusAction to false
+          mask.movement = 0; // Reset movement to 0
+        } else {
+          mask.currentSpeed += mask.speed;
+          if (mask.currentSpeed >= 100) {
+            mask.currentSpeed = 100; // Ensure currentSpeed is capped at 100
+            mask.action = true; // Set action to true
+            mask.bonusAction = true; // Set bonusAction to true
+            mask.movement = mask.speed; // Set movement to mask.speed
+          } else {
+            mask.action = false; // Reset action to false
+            mask.bonusAction = false; // Reset bonusAction to false
+            mask.movement = 0; // Reset movement to 0
+          }
+        }
+      }   
+    }     
   });
   console.log('Updated masksInBattle:', masksInBattle);
   io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Emit updated masksInBattle
