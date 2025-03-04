@@ -111,7 +111,7 @@ export class HomeComponent implements OnInit {
   }
 
   navigateToBattle() {
-    this.router.navigate(['/battle-map']);
+    this.router.navigate(['/battle-area']);
   }
 
   navigateToGallery() {

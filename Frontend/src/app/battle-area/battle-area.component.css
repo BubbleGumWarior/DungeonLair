@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thumb-blue-700 {
+  scrollbar-color: #1e3a8a #1c1c1e;
+}
+
+.scrollbar-track-stone-900 {
+  scrollbar-color: #1c1c1e #1e3a8a;
+}
+
+/* For WebKit browsers */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-thumb-blue-700::-webkit-scrollbar-thumb {
+  background-color: #1e3a8a;
+}
+
+.scrollbar-track-stone-900::-webkit-scrollbar-track {
+  background-color: #1c1c1e;
+}

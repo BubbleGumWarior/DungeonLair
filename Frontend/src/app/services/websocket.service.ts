@@ -22,6 +22,7 @@ export interface UserInBattle {
   protections: number; // Add protections field
   maskID: number; // Add maskID field
   skillList?: string[]; // Add skillList property
+  abilityDamage: number; // Add abilityDamage field
 }
 
 interface VcMember {
@@ -139,61 +140,27 @@ export class WebSocketService {
     this.socket.on('rtcIceCandidate', callback);
   }
 
-  async joinBattle(characterName: string) {
-    this.socket.emit('joinBattle', characterName);
+  joinBattle(maskID: number) {
+    this.socket.emit('joinBattle', maskID);
   }
 
-  leaveBattle(characterName: string) {
-    this.socket.emit('leaveBattle', characterName);
+  leaveBattle(maskID: number) {
+    this.socket.emit('leaveBattle', maskID);
   }
 
-  onUsersInBattleUpdate(callback: (users: UserInBattle[]) => void) {
-    this.socket.on('usersInBattleUpdate', callback);
+  onMaskJoinedBattle(callback: (data: { maskID: number }) => void) {
+    this.socket.on('maskJoinedBattle', callback);
   }
 
-  requestUsersInBattle() {
-    this.socket.emit('requestUsersInBattle');
+  onMaskLeftBattle(callback: (data: { maskID: number }) => void) {
+    this.socket.on('maskLeftBattle', callback);
   }
 
-  emitUsersInBattleUpdate(usersInBattle: UserInBattle[]) {
-    this.socket.emit('usersInBattleUpdate', usersInBattle);
+  onMasksInBattleUpdate(callback: (masks: any[]) => void) {
+    this.socket.on('masksInBattleUpdate', callback);
   }
 
-  emitTimerStart() {
-    this.socket.emit('startTimer');
-  }
-
-  onTimerStart(callback: (data: { timer: number, cycleCount: number }) => void) {
-    this.socket.on('timerStart', callback);
-  }
-
-  // Add a new method to emit the icon placement event
-  emitIconPlacement(characterName: string, maskPhoto: string) {
-    this.socket.emit('iconPlacement', { characterName, maskPhoto });
-  }
-
-  // Add a new method to handle the icon placement event
-  onIconPlacement(callback: (data: { characterName: string, maskPhoto: string }) => void) {
-    this.socket.on('iconPlacement', callback);
-  }
-
-  // Add a new method to emit the icon removal event
-  emitIconRemoval(characterName: string) {
-    this.socket.emit('iconRemoval', { characterName });
-  }
-
-  // Add a new method to handle the icon removal event
-  onIconRemoval(callback: (data: { characterName: string }) => void) {
-    this.socket.on('iconRemoval', callback);
-  }
-
-  // Add a new method to emit the icon dragging event
-  emitIconDragging(characterName: string, position: { top: number, left: number }) {
-    this.socket.emit('iconDragging', { characterName, position });
-  }
-
-  // Add a new method to handle the icon dragging event
-  onIconDragging(callback: (data: { characterName: string, position: { top: number, left: number } }) => void) {
-    this.socket.on('iconDragging', callback);
+  sendSkillAction(maskID: number, skillID: number, targetMaskIDs: number[]) {
+    this.socket.emit('skillAction', { maskID, skillID, targetMaskIDs });
   }
 }

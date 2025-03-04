@@ -645,8 +645,8 @@ app.put('/api/scores/:characterName', async (req, res) => {
   }
 });
 let vcMembers = [];
-
-let usersInBattle = [];
+let masksInBattle = {}; // Add masksInBattle object
+let maskSkills = {}; // Add maskSkills object
 
 io.on('connection', (socket) => {
     console.log('A user connected with socket ID:', socket.id);
@@ -755,71 +755,111 @@ io.on('connection', (socket) => {
         console.error('Socket.IO error:', error);
     });
 
-    // Handle map change
-    socket.on('mapChange', (newMapUrl) => {
-      currentMapUrl = newMapUrl;
-      io.emit('mapChange', newMapUrl);
+    socket.on('joinBattle', (maskID) => {
+        if (masksInBattle[maskID]) {
+            delete masksInBattle[maskID];
+            delete maskSkills[maskID]; // Remove mask skills when leaving battle
+            io.emit('masksInBattleUpdate', Object.values(masksInBattle));
+        } else {
+            MaskList.findOne({ where: { maskID } })
+                .then(maskDetails => {
+                    if (maskDetails) {
+                        masksInBattle[maskID] = {
+                            maskID: maskDetails.maskID,
+                            attackDamage: maskDetails.attackDamage,
+                            abilityDamage: maskDetails.abilityDamage,
+                            protections: maskDetails.protections,
+                            magicResist: maskDetails.magicResist,
+                            health: maskDetails.health,
+                            speed: maskDetails.speed,
+                            currentHealth: maskDetails.health,
+                            currentSpeed: maskDetails.speed,
+                            activeSkills: maskDetails.activeSkills,
+                            stunStacks: 0, // Add stunStacks field
+                            burnStacks: 0, // Add burnStacks field
+                            poisonStacks: 0, // Add poisonStacks field
+                            bleedStacks: 0, // Add bleedStacks field
+                            buffStacks: 0 // Add buffStacks field
+                        };
+                        // Fetch mask skills and store them
+                        MaskSkills.findAll({ where: { skillID: maskDetails.activeSkills } })
+                            .then(skills => {
+                                maskSkills[maskID] = skills.map(skill => ({
+                                    skillID: skill.skillID,
+                                    skillName: skill.skillName,
+                                    description: skill.description,
+                                    mainStat: skill.mainStat,
+                                    mainStatPercentage: skill.mainStatPercentage,
+                                    cooldown: skill.cooldown,
+                                    amountOfStrikes: skill.amountOfStrikes,
+                                    onHitEffect: skill.onHitEffect,
+                                    isMultiTarget: skill.isMultiTarget
+                                }));
+                                io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Broadcast the update
+                            })
+                            .catch(error => {
+                                console.error('Error fetching mask skills:', error);
+                            });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching mask details:', error);
+                });
+        }
     });
 
-    // Handle icon scale change
-    socket.on('iconScaleChange', (newScale) => {
-      currentIconScale = newScale;
-      io.emit('iconScaleChange', newScale);
+    socket.on('skillAction', (data) => {
+        console.log('Skill action received:', data);
+        const { maskID, skillID, targetMaskIDs } = data;
+        const mask = masksInBattle[maskID];
+        const skill = maskSkills[maskID].find(s => s.skillID === skillID);
+
+        if (mask && skill) {
+            let totalDamage = 0; // Initialize totalDamage
+            targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                    let damage = 0;
+                    let reduction = 0;
+                    if (skill.mainStat === 'Ability Damage') {
+                        damage = mask.abilityDamage * (skill.mainStatPercentage / 100);
+                        reduction = targetMask.magicResist;
+                    } else if (skill.mainStat === 'Attack Damage') {
+                        damage = mask.attackDamage * (skill.mainStatPercentage / 100);
+                        reduction = targetMask.protections;
+                    }
+                    const finalDamage = Math.max(damage - reduction, 0); // Ensure damage is not negative
+                    console.log(`Mask ${maskID} did ${damage} damage to Mask ${targetMaskID}, reduced by ${reduction}, final damage ${finalDamage}`);
+                    totalDamage += finalDamage; // Add finalDamage to totalDamage
+                    masksInBattle[targetMaskID].currentHealth = Math.max(masksInBattle[targetMaskID].currentHealth - finalDamage, 0); // Reduce target mask's currentHealth and cap at 0
+                    console.log(`Updated Mask ${targetMaskID} values:`, masksInBattle[targetMaskID]); // Log updated mask values
+
+                    // Apply on-hit effects
+                    switch (skill.onHitEffect) {
+                        case 'Stun':
+                            masksInBattle[targetMaskID].stunStacks += 1;
+                            break;
+                        case 'Burn':
+                            masksInBattle[targetMaskID].burnStacks += 1;
+                            break;
+                        case 'Poison':
+                            masksInBattle[targetMaskID].poisonStacks += 1;
+                            break;
+                        case 'Bleed':
+                            masksInBattle[targetMaskID].bleedStacks += 1;
+                            break;
+                        case 'Buff Stack':
+                            masksInBattle[maskID].buffStacks += 1;
+                            console.log(`Mask ${maskID} gained a buff stack`);
+                            break;
+                    }
+                }
+            });
+            console.log(`Total damage dealt by Mask ${maskID}: ${totalDamage}`); // Log totalDamage
+            io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Emit updated masksInBattle to all users
+        }
     });
 
-    socket.on('joinBattle', async (characterName) => {
-      const characterInfo = await CharacterInfo.findOne({ where: { characterName } });
-      if (characterInfo && !usersInBattle.some(user => user.characterName === characterName)) {
-        const maskDetails = await MaskList.findOne({ where: { maskID: characterInfo.maskID } });
-        const userInBattle = {
-          characterName,
-          maskID: maskDetails ? maskDetails.maskID : 0,
-          speed: maskDetails ? maskDetails.speed : 0, // Use the speed from the mask details
-          health: maskDetails ? maskDetails.health : 0,
-          magicResist: maskDetails ? maskDetails.magicResist : 0, // Include magicResist
-          protections: maskDetails ? maskDetails.protections : 0, // Include protections
-          currentSpeed: maskDetails ? maskDetails.speed : 0, // Initialize currentSpeed to the value from the table
-          currentHealth: maskDetails ? maskDetails.health : 0, // Initialize currentHealth to health
-          action: false,
-          bonusAction: false,
-          movement: false,
-          stun: 0, // Initialize stun to 0
-          burn: 0, // Initialize burn to 0
-          poison: 0, // Initialize poison to 0
-          bleed: 0, // Initialize bleed to 0
-          buffstack: 0 // Initialize buffstack to 0
-        };
-        usersInBattle.push(userInBattle);
-        io.emit('usersInBattleUpdate', usersInBattle);
-      }
-    });
-  
-    socket.on('leaveBattle', (characterName) => {
-      usersInBattle = usersInBattle.filter(user => user.characterName !== characterName);
-      io.emit('usersInBattleUpdate', usersInBattle);
-    });
-  
-    socket.on('requestUsersInBattle', () => {
-      socket.emit('usersInBattleUpdate', usersInBattle);
-    });
-
-    socket.on('usersInBattleUpdate', (updatedUsersInBattle) => {
-      usersInBattle = updatedUsersInBattle;
-      console.log('Updated usersInBattle:', usersInBattle);
-      io.emit('usersInBattleUpdate', usersInBattle);
-    });
-
-    socket.on('iconPlacement', (data) => {
-      io.emit('iconPlacement', data);
-    });
-
-    socket.on('iconRemoval', (data) => {
-      io.emit('iconRemoval', data);
-    });
-
-    socket.on('iconDragging', (data) => {
-      io.emit('iconDragging', data);
-    });
 });
 
 // Function to broadcast user updates
@@ -852,25 +892,6 @@ app.get('/images', async (req, res) => {
     res.status(500).send('Failed to fetch images');
   }
 });
-
-// app.get('/stats-sheet/:characterName', async (req, res) => {
-//   const { characterName } = req.params;
-//   console.loge(characterName)
-//   try {
-//     const characterInfo = await CharacterInfo.findOne({ where: { characterName} });
-//     if (!characterInfo) {
-//       return res.status(404).send('Character info not found');
-//     }
-//     const statsSheet = await StatsSheet.findOne({ where: { characterName: characterInfo.characterName } });
-//     if (!statsSheet) {
-//       return res.status(404).send('Stats sheet not found');
-//     }
-//     res.json(statsSheet);
-//   } catch (error) {
-//     console.error('Error fetching stats sheet:', error);
-//     res.status(500).send('Failed to fetch stats sheet');
-//   }
-// });
 
 // Endpoint to fetch character ID by character name
 app.get('/character-id/:characterName', async (req, res) => {
@@ -1131,7 +1152,6 @@ app.post('/add-note/:username', async (req, res) => {
   try {
     const userInfo = await User.findOne({ where: { username: username } });
     if (!userInfo) {
-      console.log(`User info not found for username: ${username}`); // Log if character info is not found
       return res.status(404).send('User info not found');
     }
 
@@ -1340,4 +1360,36 @@ app.put('/masks/:maskID/add-skill', async (req, res) => {
     console.error('Error adding skill to mask:', error);
     res.status(500).send('Failed to add skill to mask');
   }
+});
+
+// Endpoint to fetch mask skills by maskID
+app.get('/mask-skills/:maskID', async (req, res) => {
+  const { maskID } = req.params;
+  try {
+    const skills = maskSkills[maskID];
+    if (!skills) {
+      return res.status(404).send('Mask skills not found');
+    }
+    res.json(skills);
+  } catch (error) {
+    console.error('Error fetching mask skills:', error);
+    res.status(500).send('Failed to fetch mask skills');
+  }
+});
+
+app.post('/continue', (req, res) => {
+  console.log('Continuing');
+  Object.values(masksInBattle).forEach(mask => {
+    if (mask.currentSpeed >= 100) {
+      mask.currentSpeed = mask.speed;
+    } else {
+      mask.currentSpeed += mask.speed;
+      if (mask.currentSpeed > 100) {
+        mask.currentSpeed = 100;
+      }
+    }
+  });
+  console.log('Updated masksInBattle:', masksInBattle);
+  io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Emit updated masksInBattle
+  res.status(200).send('Continue request received');
 });

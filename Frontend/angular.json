@@ -68,7 +68,7 @@
           "options": {
             "host": "0.0.0.0",
             "disableHostCheck": true,
-            "host": "192.168.50.214",
+            "host": "192.168.10.130",
             "port": 443,
             "ssl": true,
             "sslKey": "d:/Coding/DungeonLair/DungeonLair/key.pem",
