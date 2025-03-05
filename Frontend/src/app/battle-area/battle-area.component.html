@@ -19,6 +19,12 @@
     </button>
 </div>
 
+<div class="fixed top-1/3 right-4 space-y-2">
+  <div *ngFor="let message of battleMessages" class="bg-blue-500 text-white p-4 rounded shadow-lg transition-opacity duration-300">
+    {{ message }}
+  </div>
+</div>
+
 <div *ngIf="showTargetBanner && selectedSkill?.isMultiTarget" class="fixed top-0 left-0 right-0 bg-yellow-500 text-black text-center p-2">
   <span>Choose target {{ selectedTargets.length + 1 }} of {{ selectedSkill?.amountOfStrikes || 1 }} of skill {{ selectedSkill?.skillName }}</span>
   <button (click)="cancelSkillSelection()" class="absolute right-4 bg-amber-600 text-white p-1 rounded">Cancel</button>
@@ -38,26 +44,29 @@
                         <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="w-full h-full rounded-full" />
                     </div>
                     <div class="flex flex-col justify-around h-24 w-full">
-                        <div class="flex space-x-2 justify-end text-blue-700"><!-- Align this entire div to the right -->
-                            <div class="text-center">
-                              <i class="fa-solid fa-bolt-lightning text-yellow-600"></i>
-                              <div>{{ mask.stunStacks }}</div>
-                            </div>
-                            <div class="text-center">
-                              <i class="fa-solid fa-fire text-orange-600"></i>
-                              <div>{{ mask.burnStacks }}</div>
-                            </div>
-                            <div class="text-center">
-                              <i class="fa-solid fa-skull text-purple-600"></i>
-                              <div>{{ mask.poisonStacks }}</div>
-                            </div>
-                            <div class="text-center">
-                              <i class="fa-solid fa-droplet text-red-600"></i>
-                              <div>{{ mask.bleedStacks }}</div>
-                            </div>
-                            <div class="text-center">
-                              <i class="fa-solid fa-layer-group text-green-600"></i>
-                              <div>{{ mask.buffStacks }}</div>
+                        <div class="flex justify-between">
+                            <div class="text-blue-700 text-2xl">Mask: {{ mask.maskID }}</div>
+                            <div class="flex space-x-2 justify-end text-blue-700">
+                                <div class="text-center">
+                                  <i class="fa-solid fa-bolt-lightning text-yellow-600"></i>
+                                  <div>{{ mask.stunStacks }}</div>
+                                </div>
+                                <div class="text-center">
+                                  <i class="fa-solid fa-fire text-orange-600"></i>
+                                  <div>{{ mask.burnStacks }}</div>
+                                </div>
+                                <div class="text-center">
+                                  <i class="fa-solid fa-skull text-purple-600"></i>
+                                  <div>{{ mask.poisonStacks }}</div>
+                                </div>
+                                <div class="text-center">
+                                  <i class="fa-solid fa-droplet text-red-600"></i>
+                                  <div>{{ mask.bleedStacks }}</div>
+                                </div>
+                                <div class="text-center">
+                                  <i class="fa-solid fa-layer-group text-green-600"></i>
+                                  <div>{{ mask.buffStacks }}</div>
+                                </div>
                             </div>
                         </div>
                         <div class="w-full bg-gray-300 h-4 rounded-full">

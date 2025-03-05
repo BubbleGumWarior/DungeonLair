@@ -49,6 +49,9 @@ export class WebSocketService {
     });
     this.socket.on('disconnect', () => console.log('Socket.IO connection closed'));
     this.socket.on('connect_error', (error) => console.error('Socket.IO error:', error));
+    this.socket.on('battleMessage', (message) => {
+      console.log('Battle Message:', message); // Log the battle message
+    });
   }
 
   sendMessage(message: any) {
@@ -166,5 +169,9 @@ export class WebSocketService {
 
   updateTeams(teamChanges: { maskID: number, team: string }[]) {
     this.socket.emit('updateTeams', teamChanges);
+  }
+
+  onBattleMessage(callback: (message: string) => void) {
+    this.socket.on('battleMessage', callback);
   }
 }

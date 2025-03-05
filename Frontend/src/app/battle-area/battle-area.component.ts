@@ -28,11 +28,18 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   enemies: any[] = []; // Add enemies array
   showConfirmationModal: boolean = false; // Add showConfirmationModal flag
   confirmationTarget: any = null; // Add confirmationTarget variable
+  battleMessages: string[] = []; // Change battleMessage to an array
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private router: Router) { // Add Router to constructor
     this.webSocketService.onMasksInBattleUpdate((masks) => {
       this.masksInBattle = masks.sort((a, b) => b.currentSpeed - a.currentSpeed);
       this.fetchMaskPhotos(); // Fetch mask photos each time masksInBattle is updated
+    });
+    this.webSocketService.onBattleMessage((message) => {
+      this.battleMessages.push(message);
+      setTimeout(() => {
+        this.battleMessages.shift();
+      }, 5000); // Remove message after 3 seconds
     });
   }
 

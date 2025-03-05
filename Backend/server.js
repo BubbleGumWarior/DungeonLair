@@ -868,8 +868,14 @@ io.on('connection', (socket) => {
                       masksInBattle[targetMaskID].currentSpeed = 0;
                     }
                 }
+                console.log(`Total damage dealt by Mask ${maskID}: ${totalDamage}`); // Log totalDamage
+                battleMessage = `Mask ${maskID} dealt ${totalDamage} to Mask ${targetMaskID}`; // Add message to battleMessage
+                      
+                if (battleMessage) {
+                  console.log(battleMessage); // Log battleMessage if not empty
+                  io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+                }
             });
-            console.log(`Total damage dealt by Mask ${maskID}: ${totalDamage}`); // Log totalDamage
             mask.cooldowns[skillID] = skill.cooldown + 1; // Apply cooldown to the used skill
             io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Emit updated masksInBattle to all users
         }
@@ -1379,7 +1385,7 @@ app.put('/masks/:maskID/add-skill', async (req, res) => {
       return res.status(404).send('Mask not found');
     }
     const updatedActiveSkills = mask.activeSkills ? [...mask.activeSkills, skillID] : [skillID];
-    await MaskList.update({ activeSkills: updatedActiveSkills }, { where: { maskID } });
+    await MaskList.update({ activeSkills: updatedActiveActiveSkills }, { where: { maskID } });
     res.status(200).json({ message: 'Skill added to mask successfully' });
   } catch (error) {
     console.error('Error adding skill to mask:', error);
@@ -1405,6 +1411,7 @@ app.get('/mask-skills/:maskID', async (req, res) => {
 app.post('/continue', async (req, res) => {
   console.log('Continuing');
   const skillNames = {};
+  let battleMessage = ''; // Initialize battleMessage
 
   // Fetch all skills once and store them in a dictionary
   const skills = await MaskSkills.findAll();
@@ -1461,10 +1468,19 @@ app.post('/continue', async (req, res) => {
           }
           if (skillName === "Petal Storm") {
             console.log(`Mask ${mask.maskID} has skill: Petal Storm`);
+            if (mask.buffStacks >= 10) {
+              Object.values(masksInBattle).forEach(targetMask => {
+                if (targetMask.team !== mask.team) {
+                  const damage = targetMask.health * 0.3;
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Heal mask and cap at mask.health
+                }
+              });
+              mask.buffStacks = 0;
+            }
             if (mask.buffStacks > 0) {
               Object.values(masksInBattle).forEach(targetMask => {
                 if (targetMask.team === mask.team) {
-                  const heal = targetMask.health * 0.02 * mask.buffStacks;
+                  const heal = targetMask.health * 0.005 * mask.buffStacks;
                   targetMask.currentHealth = Math.min(targetMask.currentHealth + heal, targetMask.health); // Heal mask and cap at mask.health
                 }
               });
@@ -1479,6 +1495,12 @@ app.post('/continue', async (req, res) => {
                 if (targetMask.maskID !== mask.maskID) {
                   targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
                   mask.currentHealth = Math.min(mask.currentHealth + heal, mask.health); // Heal mask and cap at mask.health
+                  battleMessage = `Mask ${mask.maskID} damaged everyone with black hole and healed from it`; // Add message to battleMessage
+                  
+                  if (battleMessage) {
+                    console.log(battleMessage); // Log battleMessage if not empty
+                    io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+                  }
                 }
               });
             }
@@ -1492,7 +1514,12 @@ app.post('/continue', async (req, res) => {
                 const roll = Math.floor(Math.random() * 20) + 1;
                 if (roll < mask.buffStacks) {
                   targetMask.stunStacks += 3;
-                  console.log(`Mask ${targetMask.maskID} was feared by Nightmare`);
+                  battleMessage = `Mask ${targetMask.maskID} was feared by Nightmare`; // Add message to battleMessage
+                  
+                  if (battleMessage) {
+                    console.log(battleMessage); // Log battleMessage if not empty
+                    io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+                  }
                 }
               }
             });
@@ -1531,7 +1558,7 @@ app.post('/continue', async (req, res) => {
         return;
       }
       else {
-        if (mask.currentSpeed >= 100) {
+        if (mask.currentSpeed >= 100 && mask.speed != 100) {
           mask.currentSpeed = mask.speed; // Ensure currentSpeed is capped at 100
           mask.action = true; // Set action to true
           mask.bonusAction = true; // Set bonusAction to true
@@ -1562,8 +1589,6 @@ app.post('/continue', async (req, res) => {
       }   
     } 
   });
-  // console.log('Updated masksInBattle:', masksInBattle);
-  console.log(masksInBattle)
   io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Emit updated masksInBattle
   res.status(200).send('Continue request received');
 });
