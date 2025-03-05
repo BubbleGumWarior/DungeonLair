@@ -29,6 +29,8 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   showConfirmationModal: boolean = false; // Add showConfirmationModal flag
   confirmationTarget: any = null; // Add confirmationTarget variable
   battleMessages: string[] = []; // Change battleMessage to an array
+  selectedMaskDetails: any = null; // Add selectedMaskDetails variable
+  showMaskDetailsModal: boolean = false; // Add showMaskDetailsModal flag
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private router: Router) { // Add Router to constructor
     this.webSocketService.onMasksInBattleUpdate((masks) => {
@@ -135,8 +137,8 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   }
 
   useMainAction() {
-    if (!this.canUseMainAction()) {
-      return; // Do nothing if the main action cannot be used
+    if (!this.canUseMainAction() || this.isUserStunned()) {
+      return; // Do nothing if the main action cannot be used or user is stunned
     }
     if (this.userInformation.maskID) {
       this.http.get(`https://${localIP}:8080/mask-skills/${this.userInformation.maskID}`)
@@ -162,8 +164,11 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   }
 
   selectSkill(skill: any) {
-    if (skill.cooldown > 0) {
-      return; // Do nothing if the skill is on cooldown
+    if (skill.cooldown > 0 || this.isUserStunned()) {
+      return; // Do nothing if the skill is on cooldown or user is stunned
+    }
+    if (this.masksInBattle.find(mask => mask.maskID === this.userInformation.maskID).stunStacks > 0) {
+      return; // Do nothing if the user mask is stunned
     }
     this.selectedSkill = skill;
     this.selectedTargets = []; // Reset selectedTargets
@@ -172,7 +177,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   }
 
   selectTarget(mask: any) {
-    if (this.selectedSkill) {
+    if (this.selectedSkill && mask.stunStacks < 1 && !this.isUserStunned()) {
       const userMask = this.masksInBattle.find(m => m.maskID === this.userInformation.maskID);
       if (userMask && userMask.team === mask.team) {
         this.showConfirmationModal = true;
@@ -240,11 +245,11 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   }
 
   continue() {
-    this.http.post(`https://${localIP}:8080/continue`, {}).subscribe(
-      () => console.log('Continue request sent successfully'),
-      (error) => console.error('Error sending continue request:', error)
-    );
-  }
+          this.http.post(`https://${localIP}:8080/continue`, {}).subscribe(
+        () => console.log('Continue request sent successfully'),
+        (error) => console.error('Error sending continue request:', error)
+      );
+      }
 
   leaveBattle() {
     this.router.navigate(['/']); // Navigate to the root route
@@ -315,5 +320,27 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
         });
       }
     }
+  }
+
+  endBattle() {
+          this.http.post(`https://${localIP}:8080/end-battle`, {}).subscribe(
+        () => console.log('End battle request sent successfully'),
+        (error) => console.error('Error sending end battle request:', error)
+      );
+      }
+
+  openMaskDetails(mask: any) {
+    this.selectedMaskDetails = mask;
+    this.showMaskDetailsModal = true;
+  }
+
+  closeMaskDetailsModal() {
+    this.showMaskDetailsModal = false;
+    this.selectedMaskDetails = null;
+  }
+
+  isUserStunned(): boolean {
+    const userMask = this.masksInBattle.find(mask => mask.maskID === this.userInformation.maskID);
+    return userMask ? userMask.stunStacks > 0 : false;
   }
 }

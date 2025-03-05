@@ -17,7 +17,8 @@ const MaskList = sequelize.define('MaskList', {
   },
   activeSkills: {
     type: DataTypes.ARRAY(DataTypes.INTEGER),
-    allowNull: false,
+    allowNull: true, // Allow NULL values
+    defaultValue: [], // Default value is an empty array
   },
   attackDamage: {
     type: DataTypes.INTEGER,

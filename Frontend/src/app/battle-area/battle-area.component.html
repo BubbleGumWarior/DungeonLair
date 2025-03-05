@@ -11,11 +11,14 @@
     <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="continue()" class="m-2 add-npc-button bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 text-stone-950 p-2 rounded-full flex items-center justify-center">
         Continue
     </button>
-    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="openAssignTeamsModal()" class="m-2 add-npc-button bg-gradient-to-r from-green-600 via-stone-600 to-red-600 text-stone-950 p-2 rounded-full flex items-center justify-center">
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="openAssignTeamsModal()" class="m-2 add-npc-button bg-gradient-to-r from-green-500 via-green-600 to-green-700 text-stone-950 p-2 rounded-full flex items-center justify-center">
       Assign Teams
     </button>
     <button (click)="leaveBattle()" class="m-2 add-npc-button bg-gradient-to-r from-red-600 via-red-900 to-stone-950 text-stone-950 p-2 rounded-full flex items-center justify-center">
-        Leave Battle
+        Return to Home Page
+    </button>
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="endBattle()" class="m-2 add-npc-button bg-gradient-to-r from-purple-700 via-purple-800 to-purple-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
+      End Battle
     </button>
 </div>
 
@@ -25,12 +28,12 @@
   </div>
 </div>
 
-<div *ngIf="showTargetBanner && selectedSkill?.isMultiTarget" class="fixed top-0 left-0 right-0 bg-yellow-500 text-black text-center p-2">
+<div *ngIf="showTargetBanner && selectedSkill?.isMultiTarget" class="fixed top-0 left-0 right-0 bg-yellow-500 text-black text-center p-2 h-36 flex items-center justify-center">
   <span>Choose target {{ selectedTargets.length + 1 }} of {{ selectedSkill?.amountOfStrikes || 1 }} of skill {{ selectedSkill?.skillName }}</span>
   <button (click)="cancelSkillSelection()" class="absolute right-4 bg-amber-600 text-white p-1 rounded">Cancel</button>
 </div>
 
-<div *ngIf="showTargetBanner && !selectedSkill?.isMultiTarget" class="fixed top-0 left-0 right-0 bg-yellow-500 text-black text-center p-2">
+<div *ngIf="showTargetBanner && !selectedSkill?.isMultiTarget" class="fixed top-0 left-0 right-0 bg-yellow-500 text-black text-center p-2 h-36 flex items-center justify-center">
   <span>Choose target of skill {{ selectedSkill?.skillName }}</span>
   <button (click)="cancelSkillSelection()" class="absolute right-4 bg-amber-600 text-white p-1 rounded">Cancel</button>
 </div>
@@ -45,7 +48,10 @@
                     </div>
                     <div class="flex flex-col justify-around h-24 w-full">
                         <div class="flex justify-between">
-                            <div class="text-blue-700 text-2xl">Mask: {{ mask.maskID }}</div>
+                            <div class="text-blue-700 text-2xl flex items-center">
+                                Mask: {{ mask.maskID }}
+                                <i class="fa-solid fa-mask text-blue-700 ml-2 cursor-pointer" (click)="openMaskDetails(mask)"></i>
+                            </div>
                             <div class="flex space-x-2 justify-end text-blue-700">
                                 <div class="text-center">
                                   <i class="fa-solid fa-bolt-lightning text-yellow-600"></i>
@@ -150,6 +156,23 @@
     <div class="flex justify-end space-x-4 mt-4">
       <button (click)="confirmTargetSelection()" class="bg-green-500 text-white p-2 rounded">Yes</button>
       <button (click)="cancelTargetSelection()" class="bg-red-500 text-white p-2 rounded">No</button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showMaskDetailsModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+  <div class="mask-details-modal w-1/3 p-4 rounded border border-blue-700 bg-blue-900">
+    <h2 class="text-xl font-bold mb-4">Mask Details</h2>
+    <div *ngIf="selectedMaskDetails">
+      <p><strong>Attack Damage:</strong> {{ selectedMaskDetails.attackDamage }}</p>
+      <p><strong>Ability Damage:</strong> {{ selectedMaskDetails.abilityDamage }}</p>
+      <p><strong>Protections:</strong> {{ selectedMaskDetails.protections }}</p>
+      <p><strong>Magic Resist:</strong> {{ selectedMaskDetails.magicResist }}</p>
+      <p><strong>Health:</strong> {{ selectedMaskDetails.currentHealth }} / {{ selectedMaskDetails.health }}</p>
+      <p><strong>Speed:</strong> {{ selectedMaskDetails.currentSpeed }} / {{ selectedMaskDetails.speed }}</p>
+    </div>
+    <div class="flex justify-end space-x-4 mt-4">
+      <button (click)="closeMaskDetailsModal()" class="bg-red-500 text-white p-2 rounded">Close</button>
     </div>
   </div>
 </div>
