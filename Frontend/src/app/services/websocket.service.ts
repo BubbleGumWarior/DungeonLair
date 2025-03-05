@@ -163,4 +163,8 @@ export class WebSocketService {
   sendSkillAction(maskID: number, skillID: number, targetMaskIDs: number[]) {
     this.socket.emit('skillAction', { maskID, skillID, targetMaskIDs });
   }
+
+  updateTeams(teamChanges: { maskID: number, team: string }[]) {
+    this.socket.emit('updateTeams', teamChanges);
+  }
 }

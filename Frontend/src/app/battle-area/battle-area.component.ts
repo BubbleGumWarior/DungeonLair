@@ -22,6 +22,12 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   selectedSkill: any = null; // Add selectedSkill variable
   showTargetBanner: boolean = false; // Add showTargetBanner flag
   selectedTargets: any[] = []; // Add selectedTargets array
+  showAssignTeamsModal: boolean = false; // Add showAssignTeamsModal flag
+  allies: any[] = []; // Add allies array
+  neutral: any[] = []; // Add neutral array
+  enemies: any[] = []; // Add enemies array
+  showConfirmationModal: boolean = false; // Add showConfirmationModal flag
+  confirmationTarget: any = null; // Add confirmationTarget variable
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private router: Router) { // Add Router to constructor
     this.webSocketService.onMasksInBattleUpdate((masks) => {
@@ -33,10 +39,13 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadUserInformationFromToken();
     document.addEventListener('click', this.closeModalOnClickOutside.bind(this)); // Add event listener
+    this.neutral = [...this.masksInBattle]; // Initialize neutral array with masksInBattle
+    document.addEventListener('click', this.closeAssignTeamsModalOnClickOutside.bind(this)); // Add event listener for assign teams modal
   }
 
   ngOnDestroy() {
     document.removeEventListener('click', this.closeModalOnClickOutside.bind(this)); // Remove event listener
+    document.removeEventListener('click', this.closeAssignTeamsModalOnClickOutside.bind(this)); // Remove event listener for assign teams modal
   }
 
   loadUserInformationFromToken() {
@@ -153,16 +162,39 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
 
   selectTarget(mask: any) {
     if (this.selectedSkill) {
-      if (this.selectedSkill.isMultiTarget) {
-        this.selectedTargets.push(mask.maskID);
-        if (this.selectedTargets.length >= this.selectedSkill.amountOfStrikes) {
-          this.sendSkillAction();
-        }
+      const userMask = this.masksInBattle.find(m => m.maskID === this.userInformation.maskID);
+      if (userMask && userMask.team === mask.team) {
+        this.showConfirmationModal = true;
+        this.confirmationTarget = mask;
       } else {
-        this.selectedTargets = Array(this.selectedSkill.amountOfStrikes).fill(mask.maskID);
-        this.sendSkillAction();
+        this.processTargetSelection(mask);
       }
     }
+  }
+
+  processTargetSelection(mask: any) {
+    if (this.selectedSkill.isMultiTarget) {
+      this.selectedTargets.push(mask.maskID);
+      if (this.selectedTargets.length >= this.selectedSkill.amountOfStrikes) {
+        this.sendSkillAction();
+      }
+    } else {
+      this.selectedTargets = Array(this.selectedSkill.amountOfStrikes).fill(mask.maskID);
+      this.sendSkillAction();
+    }
+  }
+
+  confirmTargetSelection() {
+    if (this.confirmationTarget) {
+      this.processTargetSelection(this.confirmationTarget);
+      this.showConfirmationModal = false;
+      this.confirmationTarget = null;
+    }
+  }
+
+  cancelTargetSelection() {
+    this.showConfirmationModal = false;
+    this.confirmationTarget = null;
   }
 
   sendSkillAction() {
@@ -189,6 +221,13 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
     }
   }
 
+  closeAssignTeamsModalOnClickOutside(event: MouseEvent) {
+    const modal = document.querySelector('.assign-teams-modal');
+    if (this.showAssignTeamsModal && modal && !modal.contains(event.target as Node)) {
+      this.closeAssignTeamsModal();
+    }
+  }
+
   continue() {
     this.http.post(`https://${localIP}:8080/continue`, {}).subscribe(
       () => console.log('Continue request sent successfully'),
@@ -205,5 +244,54 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
       return 'border-red-700';
     }
     return mask.hover ? 'border-blue-400' : 'border-blue-700';
+  }
+
+  openAssignTeamsModal() {
+    this.showAssignTeamsModal = true;
+    this.updateColumns(); // Update columns when the modal is opened
+  }
+
+  closeAssignTeamsModal() {
+    this.showAssignTeamsModal = false;
+    this.pushTeamChangesToServer();
+  }
+
+  pushTeamChangesToServer() {
+    const teamChanges = this.masksInBattle.map(mask => ({
+      maskID: mask.maskID,
+      team: mask.team
+    }));
+    this.webSocketService.updateTeams(teamChanges);
+  }
+
+  moveMask(mask: any, team: string) {
+    mask.team = team;
+    this.updateColumns();
+  }
+
+  moveLeft(mask: any) {
+    if (mask.team === 'Enemy') {
+      this.moveMask(mask, 'Neutral');
+    } else if (mask.team === 'Neutral') {
+      this.moveMask(mask, 'Ally');
+    }
+  }
+
+  moveRight(mask: any) {
+    if (mask.team === 'Ally') {
+      this.moveMask(mask, 'Neutral');
+    } else if (mask.team === 'Neutral') {
+      this.moveMask(mask, 'Enemy');
+    }
+  }
+
+  updateColumns() {
+    this.allies = this.getMasksByTeam('Ally');
+    this.neutral = this.getMasksByTeam('Neutral');
+    this.enemies = this.getMasksByTeam('Enemy');
+  }
+
+  getMasksByTeam(team: string) {
+    return this.masksInBattle.filter(mask => mask.team === team);
   }
 }

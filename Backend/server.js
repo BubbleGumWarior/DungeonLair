@@ -782,7 +782,8 @@ io.on('connection', (socket) => {
                             buffStacks: 0, // Add buffStacks field
                             action: false, // Add action field
                             bonusAction: false, // Add bonusAction field
-                            movement: 0 // Add movement field
+                            movement: 0, // Add movement field
+                            team: 'Neutral' // Add team field
                         };
                         // Fetch mask skills and store them
                         MaskSkills.findAll({ where: { skillID: maskDetails.activeSkills } })
@@ -870,6 +871,16 @@ io.on('connection', (socket) => {
             console.log(`Total damage dealt by Mask ${maskID}: ${totalDamage}`); // Log totalDamage
             io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Emit updated masksInBattle to all users
         }
+    });
+
+    socket.on('updateTeams', (teamChanges) => {
+      teamChanges.forEach(change => {
+        if (masksInBattle[change.maskID]) {
+          masksInBattle[change.maskID].team = change.team;
+        }
+      });
+      console.log('Updated teams:', Object.values(masksInBattle).map(mask => ({ maskID: mask.maskID, team: mask.team })));
+      io.emit('masksInBattleUpdate', Object.values(masksInBattle));
     });
 
 });
@@ -1450,8 +1461,8 @@ app.post('/continue', async (req, res) => {
             console.log(`Mask ${mask.maskID} has skill: Petal Storm`);
             if (mask.buffStacks > 0) {
               Object.values(masksInBattle).forEach(targetMask => {
-                if (targetMask.maskID === mask.maskID) {
-                  targetMask.currentHealth = targetMask.health * 0.02 * targetMask.buffStacks;
+                if (targetMask.team === mask.team) {
+                  const heal = targetMask.health * 0.02 * mask.buffStacks;
                   targetMask.currentHealth = Math.min(targetMask.currentHealth + heal, targetMask.health); // Heal mask and cap at mask.health
                 }
               });
