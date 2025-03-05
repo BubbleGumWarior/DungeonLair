@@ -137,6 +137,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
           (skills: any) => {
             this.skills = skills;
             this.showSkillsModal = true; // Show the modal
+            this.checkSkillCooldowns();
           },
           (error) => {
             console.error('Error fetching mask skills:', error);
@@ -154,6 +155,9 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   }
 
   selectSkill(skill: any) {
+    if (skill.cooldown > 0) {
+      return; // Do nothing if the skill is on cooldown
+    }
     this.selectedSkill = skill;
     this.selectedTargets = []; // Reset selectedTargets
     this.showSkillsModal = false; // Close the modal
@@ -293,5 +297,16 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
 
   getMasksByTeam(team: string) {
     return this.masksInBattle.filter(mask => mask.team === team);
+  }
+  
+  checkSkillCooldowns() {
+    if (this.userInformation && this.userInformation.maskID) {
+      const mask = this.masksInBattle.find(mask => mask.maskID === this.userInformation.maskID);
+      if (mask && mask.cooldowns) {
+        this.skills.forEach(skill => {
+          skill.cooldown = mask.cooldowns[skill.skillID] || 0;
+        });
+      }
+    }
   }
 }

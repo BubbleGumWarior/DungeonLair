@@ -783,7 +783,8 @@ io.on('connection', (socket) => {
                             action: false, // Add action field
                             bonusAction: false, // Add bonusAction field
                             movement: 0, // Add movement field
-                            team: 'Neutral' // Add team field
+                            team: 'Neutral', // Add team field
+                            cooldowns: {}, // Initialize cooldowns field
                         };
                         // Fetch mask skills and store them
                         MaskSkills.findAll({ where: { skillID: maskDetails.activeSkills } })
@@ -819,6 +820,7 @@ io.on('connection', (socket) => {
         const skill = maskSkills[maskID].find(s => s.skillID === skillID);
 
         if (mask && skill) {
+            console.log(skill)
             let totalDamage = 0; // Initialize totalDamage
             targetMaskIDs.forEach(targetMaskID => {
                 const targetMask = masksInBattle[targetMaskID];
@@ -836,7 +838,6 @@ io.on('connection', (socket) => {
                     console.log(`Mask ${maskID} did ${damage} damage to Mask ${targetMaskID}, reduced by ${reduction}, final damage ${finalDamage}`);
                     totalDamage += finalDamage; // Add finalDamage to totalDamage
                     masksInBattle[targetMaskID].currentHealth = Math.max(masksInBattle[targetMaskID].currentHealth - finalDamage, 0); // Reduce target mask's currentHealth and cap at 0
-                    console.log(`Updated Mask ${targetMaskID} values:`, masksInBattle[targetMaskID]); // Log updated mask values
 
                     // Apply on-hit effects
                     switch (skill.onHitEffect) {
@@ -869,6 +870,7 @@ io.on('connection', (socket) => {
                 }
             });
             console.log(`Total damage dealt by Mask ${maskID}: ${totalDamage}`); // Log totalDamage
+            mask.cooldowns[skillID] = skill.cooldown + 1; // Apply cooldown to the used skill
             io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Emit updated masksInBattle to all users
         }
     });
@@ -883,7 +885,7 @@ io.on('connection', (socket) => {
       io.emit('masksInBattleUpdate', Object.values(masksInBattle));
     });
 
-});
+    });
 
 // Function to broadcast user updates
 function broadcastUserUpdate() {
@@ -1420,7 +1422,7 @@ app.post('/continue', async (req, res) => {
     } else {
       // If mask.activeSkills contains a skillID, find the skill name and run the if statements
       mask.activeSkills.forEach(skillID => {
-        const skillName = skillNames[skillID];
+        const skillName = skillNames[skillID]; // Correctly reference skillID
         if (skillName) {
           if (skillName === "Bide") {
             console.log(`Mask ${mask.maskID} has skill: Bide`);
@@ -1485,7 +1487,7 @@ app.post('/continue', async (req, res) => {
             console.log(`Mask ${mask.maskID} has skill: Nightmare`);
             const damage = mask.abilityDamage * 0.5 * mask.buffStacks;
             Object.values(masksInBattle).forEach(targetMask => {
-              if (targetMask.maskID !== mask.maskID) {
+              if (targetMask.maskID !== mask.maskID && targetMask.team !== mask.team) { // Ensure target is not on the same team
                 targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
                 const roll = Math.floor(Math.random() * 20) + 1;
                 if (roll < mask.buffStacks) {
@@ -1519,6 +1521,12 @@ app.post('/continue', async (req, res) => {
           mask.action = true; // Reset action to false
           mask.bonusAction = true; // Reset bonusAction to false
           mask.movement = mask.speed; // Reset movement to 0
+          // Decrease cooldowns
+          Object.keys(mask.cooldowns).forEach(skillID => {
+            if (mask.cooldowns[skillID] > 0) {
+              mask.cooldowns[skillID] -= 1;
+            }
+          });
         }
         return;
       }
@@ -1538,6 +1546,13 @@ app.post('/continue', async (req, res) => {
             mask.action = true; // Set action to true
             mask.bonusAction = true; // Set bonusAction to true
             mask.movement = mask.speed; // Set movement to mask.speed
+                
+            // Decrease cooldowns
+            Object.keys(mask.cooldowns).forEach(skillID => {
+              if (mask.cooldowns[skillID] > 0) {
+                mask.cooldowns[skillID] -= 1;
+              }
+            });
           } else {
             mask.action = false; // Reset action to false
             mask.bonusAction = false; // Reset bonusAction to false
@@ -1545,9 +1560,10 @@ app.post('/continue', async (req, res) => {
           }
         }
       }   
-    }     
+    } 
   });
   // console.log('Updated masksInBattle:', masksInBattle);
+  console.log(masksInBattle)
   io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Emit updated masksInBattle
   res.status(200).send('Continue request received');
 });
