@@ -1389,8 +1389,16 @@ app.get('/mask-skills/:maskID', async (req, res) => {
   }
 });
 
-app.post('/continue', (req, res) => {
+app.post('/continue', async (req, res) => {
   console.log('Continuing');
+  const skillNames = {};
+
+  // Fetch all skills once and store them in a dictionary
+  const skills = await MaskSkills.findAll();
+  skills.forEach(skill => {
+    skillNames[skill.skillID] = skill.skillName;
+  });
+
   Object.values(masksInBattle).forEach(mask => {
     if (mask.currentHealth === 0) {
       mask.action = false; // Reset action to false
@@ -1399,6 +1407,86 @@ app.post('/continue', (req, res) => {
       mask.currentSpeed = 0;
       return;
     } else {
+      // If mask.activeSkills contains a skillID, find the skill name and run the if statements
+      mask.activeSkills.forEach(skillID => {
+        const skillName = skillNames[skillID];
+        if (skillName) {
+          if (skillName === "Bide") {
+            console.log(`Mask ${mask.maskID} has skill: Bide`);
+            if (mask.currentHealth < mask.health) {
+              mask.currentHealth += mask.health * 0.1;
+              mask.currentHealth = Math.min(mask.currentHealth, mask.health);
+            }
+          }
+          if (skillName === "Momentum") {
+            console.log(`Mask ${mask.maskID} has skill: Momentum`);
+            if (mask.currentHealth < mask.health) {
+              mask.currentHealth += mask.health * 0.1;
+              mask.currentSpeed += mask.speed;
+              mask.currentHealth = Math.min(mask.currentHealth, mask.health);
+              if (mask.currentSpeed >= 100) {
+                mask.currentSpeed = 99;
+              }
+            }
+          }
+          if (skillName === "Thick Coat") {
+            console.log(`Mask ${mask.maskID} has skill: Thick Coat`);
+            mask.currentHealth += (mask.health - mask.currentHealth) * 0.3;
+          }
+          if (skillName === "Welcome the Dead") {
+            console.log(`Mask ${mask.maskID} has skill: Welcome the Dead`);
+            const deadMasksCount = Object.values(masksInBattle).filter(m => m.currentHealth === 0).length;
+            mask.currentHealth += mask.health * 0.03 * deadMasksCount;
+            mask.currentHealth = Math.min(mask.currentHealth, mask.health);
+          }
+          if (skillName === "Blinding Speed") {
+            console.log(`Mask ${mask.maskID} has skill: Blinding Speed`);
+            mask.currentSpeed += mask.speed * 2;
+            if (mask.currentSpeed >= 100) {
+              mask.currentSpeed = 99;
+            }
+          }
+          if (skillName === "Petal Storm") {
+            console.log(`Mask ${mask.maskID} has skill: Petal Storm`);
+            if (mask.buffStacks > 0) {
+              Object.values(masksInBattle).forEach(targetMask => {
+                if (targetMask.maskID === mask.maskID) {
+                  targetMask.currentHealth = targetMask.health * 0.02 * targetMask.buffStacks;
+                  targetMask.currentHealth = Math.min(targetMask.currentHealth + heal, targetMask.health); // Heal mask and cap at mask.health
+                }
+              });
+            }
+          }
+          if (skillName === "Black Hole") {
+            console.log(`Mask ${mask.maskID} has skill: Black Hole`);
+            if (mask.buffStacks > 0) {
+              const damage = mask.abilityDamage * 0.25;
+              const heal = mask.abilityDamage * 0.125;
+              Object.values(masksInBattle).forEach(targetMask => {
+                if (targetMask.maskID !== mask.maskID) {
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
+                  mask.currentHealth = Math.min(mask.currentHealth + heal, mask.health); // Heal mask and cap at mask.health
+                }
+              });
+            }
+          }
+          if (skillName === "Nightmare") {
+            console.log(`Mask ${mask.maskID} has skill: Nightmare`);
+            const damage = mask.abilityDamage * 0.5 * mask.buffStacks;
+            Object.values(masksInBattle).forEach(targetMask => {
+              if (targetMask.maskID !== mask.maskID) {
+                targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
+                const roll = Math.floor(Math.random() * 20) + 1;
+                if (roll < mask.buffStacks) {
+                  targetMask.stunStacks += 3;
+                  console.log(`Mask ${targetMask.maskID} was feared by Nightmare`);
+                }
+              }
+            });
+          }
+        }
+      });
+
       if (mask.burnStacks > 0) {
         mask.currentHealth -= mask.currentHealth * 0.1;
         mask.burnStacks -= 1;
@@ -1448,7 +1536,7 @@ app.post('/continue', (req, res) => {
       }   
     }     
   });
-  console.log('Updated masksInBattle:', masksInBattle);
+  // console.log('Updated masksInBattle:', masksInBattle);
   io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Emit updated masksInBattle
   res.status(200).send('Continue request received');
 });
