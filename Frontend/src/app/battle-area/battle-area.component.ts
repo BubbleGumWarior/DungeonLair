@@ -35,7 +35,9 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private router: Router) { // Add Router to constructor
     this.webSocketService.onMasksInBattleUpdate((masks) => {
       this.masksInBattle = masks.sort((a, b) => b.currentSpeed - a.currentSpeed);
-      this.fetchMaskPhotos(); // Fetch mask photos each time masksInBattle is updated
+      this.masksInBattle.forEach(mask => {
+        mask.photo = `https://${localIP}:8080${mask.photo}`;
+      });
     });
     this.webSocketService.onBattleMessage((message) => {
       this.battleMessages.push(message);
@@ -105,7 +107,8 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
             health: data.health,
             speed: data.speed,
             currentHealth: data.health,
-            currentSpeed: data.speed
+            currentSpeed: data.speed,
+            photo: `https://${localIP}:8080${data.photo}` // Add photo field
           };
           console.log('Mask info:', this.maskInformation);
         },
@@ -113,21 +116,6 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
           console.error('Error fetching mask info:', error);
         }
       );
-  }
-
-  fetchMaskPhotos() {
-    this.masksInBattle.forEach(mask => {
-      this.http.get(`https://${localIP}:8080/mask-details/${mask.maskID}`)
-        .subscribe(
-          (data: any) => {
-            mask.photo = `https://${localIP}:8080${data.photo}`;
-            console.log(mask.photo)
-          },
-          (error) => {
-            console.error('Error fetching mask photo:', error);
-          }
-        );
-    });
   }
 
   joinBattle() {
@@ -140,8 +128,11 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
     if (!this.canUseMainAction() || this.isUserStunned()) {
       return; // Do nothing if the main action cannot be used or user is stunned
     }
-    if (this.userInformation.maskID) {
-      this.http.get(`https://${localIP}:8080/mask-skills/${this.userInformation.maskID}`)
+
+    const userMask = this.masksInBattle.find(mask => mask.maskID === this.userInformation.maskID);
+    if (userMask && userMask.activeSkills) {
+      const skillIDs = userMask.activeSkills.join(',');
+      this.http.get(`https://${localIP}:8080/mask-skills?skillIDs=${skillIDs}`)
         .subscribe(
           (skills: any) => {
             this.skills = skills;
@@ -171,6 +162,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
       return; // Do nothing if the user mask is stunned
     }
     this.selectedSkill = skill;
+    console.log('Selected skill:', this.selectedSkill);
     this.selectedTargets = []; // Reset selectedTargets
     this.showSkillsModal = false; // Close the modal
     this.showTargetBanner = true; // Show banner
@@ -214,6 +206,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   }
 
   sendSkillAction() {
+    console.log('Sending skill action:', this.selectedSkill.skillID, this.selectedTargets);
     this.webSocketService.sendSkillAction(this.userInformation.maskID, this.selectedSkill.skillID, this.selectedTargets);
     this.selectedSkill = null; // Reset selectedSkill
     this.selectedTargets = []; // Reset selectedTargets

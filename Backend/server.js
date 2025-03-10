@@ -785,9 +785,10 @@ io.on('connection', (socket) => {
                             movement: 0, // Add movement field
                             team: 'Neutral', // Add team field
                             cooldowns: {}, // Initialize cooldowns field
+                            photo: maskDetails.photo // Add photo field
                         };
                         // Fetch mask skills and store them
-                        MaskSkills.findAll({ where: { skillID: maskDetails.activeSkills } })
+                        MaskSkills.findAll({ where: { skillID: [...maskDetails.activeSkills, 9999] } }) // Ensure skillID 9999 is always included
                             .then(skills => {
                                 maskSkills[maskID] = skills.map(skill => ({
                                     skillID: skill.skillID,
@@ -1385,7 +1386,7 @@ app.put('/masks/:maskID/add-skill', async (req, res) => {
       return res.status(404).send('Mask not found');
     }
     const updatedActiveSkills = mask.activeSkills ? [...mask.activeSkills, skillID] : [skillID];
-    await MaskList.update({ activeSkills: updatedActiveSkills }, { where: { maskID } });
+    await MaskList.update({ activeSkills: updatedActiveSkills.filter(skill => skill !== null) }, { where: { maskID } });
     res.status(200).json({ message: 'Skill added to mask successfully' });
   } catch (error) {
     console.error('Error adding skill to mask:', error);
@@ -1401,6 +1402,29 @@ app.get('/mask-skills/:maskID', async (req, res) => {
     if (!skills) {
       return res.status(404).send('Mask skills not found');
     }
+    res.json(skills);
+  } catch (error) {
+    console.error('Error fetching mask skills:', error);
+    res.status(500).send('Failed to fetch mask skills');
+  }
+});
+
+// Endpoint to fetch mask skills by a list of skill IDs
+app.get('/mask-skills', async (req, res) => {
+  const { skillIDs } = req.query;
+  if (!skillIDs) {
+    return res.status(400).send('skillIDs query parameter is required');
+  }
+
+  const skillIDArray = skillIDs.split(',').map(id => parseInt(id, 10));
+  try {
+    const skills = await MaskSkills.findAll({
+      where: {
+        skillID: {
+          [Op.in]: skillIDArray
+        }
+      }
+    });
     res.json(skills);
   } catch (error) {
     console.error('Error fetching mask skills:', error);
@@ -1605,7 +1629,7 @@ app.post('/continue', async (req, res) => {
           }
           if (skillName === "Balance To All") {
             console.log(`Mask ${mask.maskID} has skill: Balance To All`);
-            const healAmount = (mask.speed / 100) * mask.abilityDamage;
+            const healAmount = (mask.speed / 100) * mask.abilityDamage / 2;
             mask.currentHealth = Math.min(mask.currentHealth + healAmount, mask.health); // Heal mask and cap at mask.health
             battleMessage = `Mask ${mask.maskID} used Balance To All and healed for ${healAmount}`;
                       
@@ -1700,7 +1724,7 @@ app.post('/continue', async (req, res) => {
               if (enemies.length > 0) {
                 const randomIndex = Math.floor(Math.random() * enemies.length);
                 const targetMask = enemies[randomIndex];
-                const damage = targetMask.health * 0.025;
+                const damage = targetMask.health * 0.075;
                 targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
                 battleMessage = `Mask ${mask.maskID} used Stormrage and dealt ${damage} damage to mask ${targetMask.maskID}`;
                       
@@ -1718,7 +1742,8 @@ app.post('/continue', async (req, res) => {
               if (targetMask.team !== mask.team && targetMask.stunStacks > 0) {
                 const damage = mask.abilityDamage * 0.25;
                 targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
-                battleMessage = `Mask ${mask.maskID} used Shackle Bearer and dealt ${damage} damage to all stunned enemies`;
+                mask.currentHealth += damage; // Heal mask and cap at mask.health
+                battleMessage = `Mask ${mask.maskID} used Shackle Bearer and dealt ${damage} damage to all stunned enemies and healed because of it.`;
                       
                 if (battleMessage) {
                   console.log(battleMessage); // Log battleMessage if not empty
@@ -1726,6 +1751,66 @@ app.post('/continue', async (req, res) => {
                 }
               }
             });
+          }
+          if (skillName === "Growing Knowledge") {
+            mask.abilityDamage += 15;
+            
+            battleMessage = `Mask ${mask.maskID} used Growing Knowledge and grew it's ability power.`;
+            if (battleMessage) {
+              console.log(battleMessage); // Log battleMessage if not empty
+              io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+            }
+          }
+          
+          if (skillName === "Thunderstrike") {
+            console.log(`Mask ${mask.maskID} has skill: Thunderstrike`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+            if (enemies.length > 0) {
+              const randomIndex = Math.floor(Math.random() * enemies.length);
+              const targetMask = enemies[randomIndex];
+              let damage = mask.attackDamage * 0.5;
+              if (targetMask.stunStacks > 0) {
+                damage = mask.attackDamage * 1.5;
+              }
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
+              masksInBattle[targetMask.maskID] = targetMask; // Ensure the updated targetMask is added to masksInBattle
+              battleMessage = `Mask ${mask.maskID} used Thunderstrike and dealt ${damage} damage to mask ${targetMask.maskID}`;
+              if (battleMessage) {
+                console.log(battleMessage); // Log battleMessage if not empty
+                io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+              }
+            }
+          }
+          if (skillName === "Transform") {
+            if (mask.currentHealth > 0 && mask.currentHealth <= mask.health * 0.25) {
+              console.log(mask)
+              mask.attackDamage = mask.attackDamage * 4;
+              mask.abilityDamage = mask.abilityDamage * 4;
+              mask.magicResist = mask.magicResist * 4;
+              mask.protections = mask.protections * 4;
+              mask.health = mask.health * 4;
+              mask.speed = mask.speed * 4;
+              mask.currentHealth = mask.health;
+              mask.activeSkills = [9999];
+              mask.photo = "/assets/images/Wolfy.png"
+              
+              battleMessage = `Mask ${mask.maskID} has transformed and gained more stats!`;
+              if (battleMessage) {
+                console.log(battleMessage); // Log battleMessage if not empty
+                io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+              }
+            }
+          }
+          if (skillName === "Ravaging Strikes") {
+            console.log(`Mask ${mask.maskID} has skill: Ravaging Strikes`);
+            const masksBleeding = Object.values(masksInBattle).filter(targetMask => targetMask.bleedStacks > 0);
+            const healAmount = (mask.health - mask.currentHealth) * 0.2 * masksBleeding.length;
+            mask.currentHealth = Math.min(mask.currentHealth + healAmount, mask.health); // Heal mask and cap at mask.health
+            battleMessage = `Mask ${mask.maskID} used Ravaging Strikes and healed for ${healAmount} based on bleeding masks`;
+            if (battleMessage) {
+              console.log(battleMessage); // Log battleMessage if not empty
+              io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+            }
           }
         }
       });
