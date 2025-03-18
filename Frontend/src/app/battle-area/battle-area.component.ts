@@ -52,6 +52,20 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
     document.addEventListener('click', this.closeModalOnClickOutside.bind(this)); // Add event listener
     this.neutral = [...this.masksInBattle]; // Initialize neutral array with masksInBattle
     document.addEventListener('click', this.closeAssignTeamsModalOnClickOutside.bind(this)); // Add event listener for assign teams modal
+
+    // Fetch the current state of masksInBattle from the server
+    this.http.get(`https://${localIP}:8080/masks-in-battle`)
+      .subscribe(
+        (masks: any) => { // Change type to any
+          this.masksInBattle = masks.sort((a: any, b: any) => b.currentSpeed - a.currentSpeed); // Explicitly type parameters
+          this.masksInBattle.forEach(mask => {
+            mask.photo = `https://${localIP}:8080${mask.photo}`;
+          });
+        },
+        (error) => {
+          console.error('Error fetching masks in battle:', error);
+        }
+      );
   }
 
   ngOnDestroy() {
@@ -171,10 +185,14 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   selectTarget(mask: any) {
     if (this.selectedSkill && mask.stunStacks < 1 && !this.isUserStunned()) {
       const userMask = this.masksInBattle.find(m => m.maskID === this.userInformation.maskID);
-      if (userMask && userMask.team === mask.team) {
+      if (mask.untargetable || mask.currentHealth === 0) {
+        return; // Do nothing if the mask is untargetable or dead
+      }
+      else if (userMask && userMask.team === mask.team) {
         this.showConfirmationModal = true;
         this.confirmationTarget = mask;
-      } else {
+      } 
+      else {
         this.processTargetSelection(mask);
       }
     }
@@ -251,6 +269,9 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   getBorderColor(mask: any): string {
     if (mask.currentHealth === 0) {
       return 'border-red-700';
+    }
+    if (mask.untargetable) {
+      return 'border-gray-700'; // Return gray border if untargetable
     }
     return mask.hover ? 'border-blue-400' : 'border-blue-700';
   }
