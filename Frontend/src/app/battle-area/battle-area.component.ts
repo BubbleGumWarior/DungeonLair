@@ -34,16 +34,14 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private router: Router) { // Add Router to constructor
     this.webSocketService.onMasksInBattleUpdate((masks) => {
-      this.masksInBattle = masks.sort((a, b) => b.currentSpeed - a.currentSpeed);
-      this.masksInBattle.forEach(mask => {
-        mask.photo = `https://${localIP}:8080${mask.photo}`;
-      });
+      this.masksInBattle = masks.sort((a, b) => b.speed - a.speed);
+      this.updateMaskPhotos(); // Ensure photos are updated
     });
     this.webSocketService.onBattleMessage((message) => {
       this.battleMessages.push(message);
       setTimeout(() => {
         this.battleMessages.shift();
-      }, 5000); // Remove message after 3 seconds
+      }, 10000); // Remove message after 3 seconds
     });
   }
 
@@ -58,9 +56,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
       .subscribe(
         (masks: any) => { // Change type to any
           this.masksInBattle = masks.sort((a: any, b: any) => b.currentSpeed - a.currentSpeed); // Explicitly type parameters
-          this.masksInBattle.forEach(mask => {
-            mask.photo = `https://${localIP}:8080${mask.photo}`;
-          });
+          this.updateMaskPhotos(); // Ensure photos are updated
         },
         (error) => {
           console.error('Error fetching masks in battle:', error);
@@ -122,7 +118,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
             speed: data.speed,
             currentHealth: data.health,
             currentSpeed: data.speed,
-            photo: `https://${localIP}:8080${data.photo}` // Add photo field
+            photo: data.photo.startsWith('http') ? data.photo : `https://${localIP}:8080${data.photo}` // Ensure correct photo URL
           };
           console.log('Mask info:', this.maskInformation);
         },
@@ -135,6 +131,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   joinBattle() {
     if (this.userInformation.maskID) {
       this.webSocketService.joinBattle(this.userInformation.maskID);
+      this.updateMaskPhotos(); // Ensure photos are updated
     }
   }
 
@@ -356,5 +353,11 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   isUserStunned(): boolean {
     const userMask = this.masksInBattle.find(mask => mask.maskID === this.userInformation.maskID);
     return userMask ? userMask.stunStacks > 0 : false;
+  }
+
+  updateMaskPhotos() {
+    this.masksInBattle.forEach(mask => {
+      mask.photo = mask.photo.startsWith('http') ? mask.photo : `https://${localIP}:8080${mask.photo}`; // Ensure correct photo URL
+    });
   }
 }
