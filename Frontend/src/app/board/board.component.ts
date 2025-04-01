@@ -67,6 +67,8 @@ export class BoardComponent implements OnInit {
   maskStats: any = {};
   maskSkills: any = {};
   maskActiveSkillDetails: any[] = [];
+  maskMods: any[] = []; // Add this variable to store mods for the mask
+  hoveredMod: any = null; // Add this variable to track the hovered mod
 
   constructor(private http: HttpClient, private sanitizer: DomSanitizer, private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
 
@@ -137,11 +139,23 @@ export class BoardComponent implements OnInit {
           };
           console.log("Fetching")
           this.fetchActiveSkillDetails(data.activeSkills);
+          this.fetchModsForMask(maskID); // Fetch mods for the mask
         },
         (error) => {
           console.error('Error fetching mask details:', error);
         }
       );
+  }
+
+  fetchModsForMask(maskID: number) {
+    this.http.get<any[]>(`https://${localIP}:8080/masks/${maskID}/mods`).subscribe(
+      (data) => {
+        this.maskMods = data;
+      },
+      (error) => {
+        console.error('Error fetching mods for mask:', error);
+      }
+    );
   }
 
   fetchActiveSkillDetails(skillIDs: number[]) {

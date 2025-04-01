@@ -27,6 +27,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   neutral: any[] = []; // Add neutral array
   enemies: any[] = []; // Add enemies array
   showConfirmationModal: boolean = false; // Add showConfirmationModal flag
+  showHealConfirmationModal: boolean = false; // Add showHealConfirmationModal flag
   confirmationTarget: any = null; // Add confirmationTarget variable
   battleMessages: string[] = []; // Change battleMessage to an array
   selectedMaskDetails: any = null; // Add selectedMaskDetails variable
@@ -185,8 +186,12 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
       if (mask.untargetable || mask.currentHealth === 0) {
         return; // Do nothing if the mask is untargetable or dead
       }
-      else if (userMask && userMask.team === mask.team) {
+      else if (userMask && userMask.team === mask.team && this.selectedSkill.onHitEffect !== 'Heal') {
         this.showConfirmationModal = true;
+        this.confirmationTarget = mask;
+      } 
+      else if (userMask && userMask.team !== mask.team && this.selectedSkill.onHitEffect === 'Heal') {
+        this.showHealConfirmationModal = true;
         this.confirmationTarget = mask;
       } 
       else {
@@ -211,12 +216,14 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
     if (this.confirmationTarget) {
       this.processTargetSelection(this.confirmationTarget);
       this.showConfirmationModal = false;
+      this.showHealConfirmationModal = false;
       this.confirmationTarget = null;
     }
   }
 
   cancelTargetSelection() {
     this.showConfirmationModal = false;
+    this.showHealConfirmationModal = false;
     this.confirmationTarget = null;
   }
 

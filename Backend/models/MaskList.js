@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
+const ModList = require('./ModList'); // Import ModList model
 
 const MaskList = sequelize.define('MaskList', {
   maskID: {
@@ -12,10 +13,15 @@ const MaskList = sequelize.define('MaskList', {
     allowNull: false,
   },
   passiveSkill: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     allowNull: false,
   },
   activeSkills: {
+    type: DataTypes.ARRAY(DataTypes.INTEGER),
+    allowNull: true, // Allow NULL values
+    defaultValue: [], // Default value is an empty array
+  },
+  modList: {
     type: DataTypes.ARRAY(DataTypes.INTEGER),
     allowNull: true, // Allow NULL values
     defaultValue: [], // Default value is an empty array

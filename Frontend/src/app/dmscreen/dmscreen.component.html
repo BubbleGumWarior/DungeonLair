@@ -19,6 +19,7 @@
       <option>Manage Skills</option>
       <option>Manage Mask</option> <!-- Add this option -->
       <option>Manage Mask Skills</option> <!-- Add this option -->
+      <option value="Manage Mask Mods">Manage Mask Mods</option>
     </select>
 
     <div *ngIf="selectedView === 'Edit Stats'">
@@ -365,10 +366,22 @@
             <option>Poison</option>
             <option>Bleed</option>
             <option>Buff Stack</option>
+            <option>Heal</option>
           </select>
         </div>
       </div>
-      <button (click)="saveMaskSkill()" class="mt-4 p-2 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded">Submit</button>
+    <button (click)="saveMaskSkill()" class="mt-4 p-2 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded">Submit</button>
+    </div>
+
+    <div *ngIf="selectedView === 'Manage Mask Mods'" class="text-white">
+      <h3 class="text-xl font-bold mb-2">Manage Mask Mods</h3>
+      <div *ngIf="maskDetails.maskID">
+        <h4 class="text-lg font-bold mb-2">Add Mod to Mask</h4>
+        <input [(ngModel)]="newMaskMod.modType" placeholder="Mod Type" class="p-2 mb-2 bg-stone-900 text-white rounded w-full" />
+        <input [(ngModel)]="newMaskMod.modRarity" type="number" placeholder="Mod Rarity" class="p-2 mb-2 bg-stone-900 text-white rounded w-full" />
+        <textarea [(ngModel)]="newMaskMod.description" placeholder="Description" class="p-2 mb-2 bg-stone-900 text-white rounded w-full"></textarea>
+        <button (click)="saveMaskMod()" class="p-2 bg-blue-700 text-white rounded">Save Mod</button>
+      </div>
     </div>
 
     <div *ngIf="selectedView !== 'Edit Stats' && selectedView !== 'Manage Family Members' && selectedView !== 'Manage Friend Members' && selectedView !== 'Manage Inventory' && selectedView !== 'Manage Skills'" class="text-white">

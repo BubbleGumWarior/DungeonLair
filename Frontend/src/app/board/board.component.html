@@ -1,6 +1,6 @@
 <div [ngClass]="{'grid grid-cols-3 gap-6 p-6': !isMobile, 'flex flex-col gap-6 p-6': isMobile}">
     <!-- Column 2: Character Bio and Image -->
-    <div class="order-1 md:order-2 flex flex-col items-center p-4 text-blue-800 h-full w-full bg-blue-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-blue-800">
+    <div class="order-1 md:order-2 flex flex-col items-center p-4 text-blue-800 h-full w-full bg-blue-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-blue-800" style="z-index: 1;">
         <div class="bg-white w-full h-full mb-4 relative">
             <img *ngIf="photo && !showMask" [src]="photo" alt="Character Photo" class="w-full h-full" />
             <img *ngIf="maskPhoto && showMask" [src]="maskPhoto" alt="Mask Photo" class="w-full h-full" />
@@ -29,12 +29,12 @@
                     <p class="text-4xl font-bold">{{ strength }}</p>
                 </div>
                 <div class="flex justify-center">
-                    <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{strengthMod}})</p>
+                    <p class="text-2xl font-semibold cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">({{strengthMod}})</p>
                 </div>            
                 <ul class="text-sm">
                     <li class="flex justify-between">
                         <span>Athletics</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ athletics }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ athletics }}</span>
                     </li>
                 </ul>
             </div>
@@ -45,20 +45,20 @@
                     <p class="text-4xl font-bold">{{ dexterity }}</p>
                 </div>
                 <div class="flex justify-center">
-                    <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{dexterityMod}})</p>
+                    <p class="text-2xl font-semibold cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">({{dexterityMod}})</p>
                 </div>            
                 <ul class="text-sm">
                     <li class="flex justify-between">
                         <span>Acrobatics</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ acrobatics }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ acrobatics }}</span>
                     </li>
                     <li class="flex justify-between">
                         <span>Sleight of Hand</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ sleightOfHand }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ sleightOfHand }}</span>
                     </li>
                     <li class="flex justify-between">
                         <span>Stealth</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ stealth }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ stealth }}</span>
                     </li>
                 </ul>
             </div>
@@ -68,7 +68,7 @@
                     <p class="text-4xl font-bold">{{ constitution }}</p>
                 </div>
                 <div class="flex justify-center">
-                    <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{constitutionMod}})</p>
+                    <p class="text-2xl font-semibold cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">({{constitutionMod}})</p>
                 </div>            
                 <ul class="text-sm">
                     <li class="flex justify-between">
@@ -103,6 +103,33 @@
                 <h2 class="text-4xl font-bold">Speed</h2>
                 <p class="text-4xl font-bold">{{ maskStats.speed }}</p>
             </div>
+            <div class="mb-4">
+                <h2 class="text-4xl font-bold">Mods</h2>
+                <ul class="text-sm relative">
+                    <li *ngFor="let mod of maskMods" class="cursor-pointer relative" (mouseenter)="hoveredMod = mod" (mouseleave)="hoveredMod = null">
+                        <p [ngClass]="{
+                            'text-brown-500': mod.modRarity === 1,
+                            'text-gray-400': mod.modRarity === 2,
+                            'text-yellow-500': mod.modRarity === 3,
+                            'text-blue-400': mod.modRarity === 4,
+                            'text-purple-500': mod.modRarity === 5
+                        }">
+                            {{ mod.modType }}
+                        </p>
+                        <div *ngIf="hoveredMod === mod" class="absolute left-1/3 w-2/3 bg-stone-950 p-2 rounded shadow-lg z-[9999] border border-blue-700">
+                            <p [ngClass]="{
+                                'text-brown-500': mod.modRarity === 1,
+                                'text-gray-400': mod.modRarity === 2,
+                                'text-yellow-500': mod.modRarity === 3,
+                                'text-blue-400': mod.modRarity === 4,
+                                'text-purple-500': mod.modRarity === 5
+                            }">
+                            {{ mod.description }}
+                            </p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -115,20 +142,20 @@
                     <p class="text-4xl font-bold">{{ intelligence }}</p>
                 </div>
                 <div class="flex justify-center">
-                    <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{intelligenceMod}})</p>
+                    <p class="text-2xl font-semibold cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">({{intelligenceMod}})</p>
                 </div>            
                 <ul class="text-sm">
                     <li class="flex justify-between">
                         <span>History</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ history }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ history }}</span>
                     </li>
                     <li class="flex justify-between">
                         <span>Investigation</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ investigation }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ investigation }}</span>
                     </li>
                     <li class="flex justify-between">
                         <span>Nature</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ nature }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ nature }}</span>
                     </li>
                 </ul>
             </div>
@@ -139,28 +166,28 @@
                     <p class="text-4xl font-bold">{{ wisdom }}</p>
                 </div>
                 <div class="flex justify-center">
-                    <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{wisdomMod}})</p>
+                    <p class="text-2xl font-semibold cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">({{wisdomMod}})</p>
                 </div>            
                 <ul class="text-sm">
                     <li class="flex justify-between">
                         <span>Animal handling</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ animalHandling }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ animalHandling }}</span>
                     </li>
                     <li class="flex justify-between">
                         <span>Insight</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ insight }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ insight }}</span>
                     </li>
                     <li class="flex justify-between">
                         <span>Medicine</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ medicine }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ medicine }}</span>
                     </li>
                     <li class="flex justify-between">
                         <span>Perception</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ perception }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ perception }}</span>
                     </li>
                     <li class="flex justify-between">
                         <span>Survival</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ survival }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ survival }}</span>
                     </li>
                 </ul>
             </div>
@@ -171,24 +198,24 @@
                     <p class="text-4xl font-bold">{{ charisma }}</p>
                 </div>
                 <div class="flex justify-center">
-                    <p class="text-2xl font-semibold cursor-pointer hover:text-white" (click)="rollDice($event)">({{charismaMod}})</p>
+                    <p class="text-2xl font-semibold cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">({{charismaMod}})</p>
                 </div>            
                 <ul class="text-sm">
                     <li class="flex justify-between">
                         <span>Deception</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ deception }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ deception }}</span>
                     </li>
                     <li class="flex justify-between">
                         <span>Intimidation</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ intimidation }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ intimidation }}</span>
                     </li>
                     <li class="flex justify-between">
                         <span>Performance</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ performance }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ performance }}</span>
                     </li>
                     <li class="flex justify-between">
                         <span>Persuasion</span>
-                        <span class="cursor-pointer hover:text-white" (click)="rollDice($event)">{{ persuasion }}</span>
+                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">{{ persuasion }}</span>
                     </li>
                 </ul>
             </div>

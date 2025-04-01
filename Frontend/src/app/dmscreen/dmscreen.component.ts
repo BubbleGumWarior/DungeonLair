@@ -56,6 +56,7 @@ export class DMScreenComponent implements OnInit {
     onHitEffect: 'None', // Default value is 'None'
     isMultiTarget: false // Add this property
   }; // Initialize new mask skill
+  newMaskMod: any = { modType: '', modRarity: 0, description: '' }; // Add this variable to store new mod details
 
   constructor(private http: HttpClient) {}
 
@@ -101,7 +102,10 @@ export class DMScreenComponent implements OnInit {
   fetchMasks() {
     this.http.get<any[]>(`https://${localIP}:8080/masks`).subscribe(
       (data) => {
-        this.maskList = data;
+        this.maskList = data.map(mask => ({
+          ...mask,
+          characterName: this.allCharacters.find(character => character.id === mask.maskID)?.name || 'Unknown Character'
+        }));
       },
       (error) => {
         console.error('Error fetching masks:', error);
@@ -288,6 +292,37 @@ export class DMScreenComponent implements OnInit {
         }
       );
     }
+  }
+
+  saveMaskMod() {
+    const modData = { 
+      modType: this.newMaskMod.modType, 
+      modRarity: parseInt(this.newMaskMod.modRarity, 10), 
+      description: this.newMaskMod.description 
+    };
+
+    this.http.post(`https://${localIP}:8080/mods`, modData).subscribe(
+      (mod: any) => {
+        if (this.maskDetails.maskID) {
+          this.addModToMask(mod.modID, this.maskDetails.maskID); // Use the maskID of the currently selected character
+        }
+        this.newMaskMod = { modType: '', modRarity: 0, description: '' }; // Reset new mod form
+      },
+      (error) => {
+        console.error('Error saving mod:', error);
+      }
+    );
+  }
+
+  addModToMask(modID: number, maskID: number) {
+    this.http.put(`https://${localIP}:8080/masks/${maskID}/add-mod`, { modID }).subscribe(
+      () => {
+        console.log(`Mod ${modID} added to mask ${maskID}`);
+      },
+      (error) => {
+        console.error('Error adding mod to mask:', error);
+      }
+    );
   }
 
   objectKeys(obj: any): string[] {

@@ -21,6 +21,7 @@ const User = require('./models/User'); // Import the User model
 const Score = require('./models/Score'); // Import the Score model
 const MaskList = require('./models/MaskList'); // Import the MaskList model
 const MaskSkills = require('./models/MaskSkills'); // Import the MaskSkills model
+const ModList = require('./models/ModList'); // Import ModList model
 const { localIP, JWT_SECRET } = require('./config'); // Import the IP address and JWT secret
 const multer = require('multer');
 const path = require('path');
@@ -68,8 +69,114 @@ app.use(express.json());
 
 // Sync the database
 sequelize.sync({ force: false })
-    .then(() => {
+    .then(async () => {
         console.log('Database synced');
+        
+        // Ensure the default skills exist in the MaskSkills table
+        const defaultSkills = [
+            {
+                skillID: 8888,
+                skillName: 'Good Boy Strike',
+                description: 'Good Boy Attacks',
+                mainStat: 'Attack Damage',
+                mainStatPercentage: 100,
+                cooldown: 0,
+                amountOfStrikes: 1,
+                onHitEffect: 'None',
+                isMultiTarget: false,
+            },
+            {
+                skillID: 9999,
+                skillName: 'Ravaging Strikes',
+                description: 'Now that you are transformed you have shown your true strength and you are no longer holding back. Strike the target 4 times dealing Attack Damage to it and applying bleed stacks. At the start of the cycle for each mask that is bleeding heal yourself by 20% of your missing health.',
+                mainStat: 'Attack Damage',
+                mainStatPercentage: 100,
+                cooldown: 0,
+                amountOfStrikes: 4,
+                onHitEffect: 'Bleed',
+                isMultiTarget: false,
+            },
+            {
+                skillID: 10000,
+                skillName: 'Dragon Blast',
+                description: 'Blast Dragons',
+                mainStat: 'Ability Damage',
+                mainStatPercentage: 500,
+                cooldown: 0,
+                amountOfStrikes: 1,
+                onHitEffect: 'Burn',
+                isMultiTarget: false,
+            }
+        ];
+
+        for (const skill of defaultSkills) {
+            const [existingSkill, created] = await MaskSkills.findOrCreate({
+                where: { skillID: skill.skillID },
+                defaults: skill,
+            });
+
+            if (created) {
+                console.log('Default skill added to MaskSkills table:', existingSkill.skillName);
+            } else {
+                console.log('Default skill already exists in MaskSkills table:', existingSkill.skillName);
+            }
+        }
+
+        // Ensure the default masks exist in the MaskList table
+        const defaultMasks = [
+            {
+                maskID: 8888,
+                photo: '/assets/images/Skelly-Doggo.jpg',
+                passiveSkill: 'Good Boy',
+                activeSkills: [8888],
+                modList: [],
+                attackDamage: 10,
+                abilityDamage: 10,
+                magicResist: 5,
+                protections: 5,
+                health: 50,
+                speed: 100,
+            },
+            {
+                maskID: 8686,
+                photo: '/assets/images/Doggo.jpg',
+                passiveSkill: 'Pack Mentality',
+                activeSkills: [8888],
+                modList: [],
+                attackDamage: 15,
+                abilityDamage: 15,
+                magicResist: 10,
+                protections: 10,
+                health: 75,
+                speed: 100,
+            },
+            {
+                maskID: 10000,
+                photo: '/assets/images/Dragon.jpg',
+                passiveSkill: 'Pack Mentality',
+                activeSkills: [10000],
+                modList: [],
+                attackDamage: 15,
+                abilityDamage: 15,
+                magicResist: 10,
+                protections: 10,
+                health: 75,
+                speed: 100,
+            }
+        ];
+
+        for (const mask of defaultMasks) {
+            const [existingMask, created] = await MaskList.findOrCreate({
+                where: { maskID: mask.maskID },
+                defaults: mask,
+            });
+
+            if (created) {
+                console.log('Default mask added to MaskList table:', existingMask.maskID);
+            } else {
+                console.log('Default mask already exists in MaskList table:', existingMask.maskID);
+            }
+        }
     })
     .catch((error) => {
         console.error('Error syncing database:', error);
@@ -827,6 +934,7 @@ io.on('connection', (socket) => {
         if (mask && skill) {
             console.log(skill)
             let totalDamage = 0; // Initialize totalDamage
+            let totalHeal = 0; // Initialize totalHeal
             if (skill.skillName === 'Hidden Blade') {              
               targetMaskIDs.forEach(targetMaskID => {
                 const targetMask = masksInBattle[targetMaskID];
@@ -1019,6 +1127,30 @@ io.on('connection', (socket) => {
                 masksInBattle[mask.maskID].currentHealth = Math.min(masksInBattle[mask.maskID].currentHealth + totalDamage * masksInBattle[mask.maskID].buffStacks / 5, masksInBattle[mask.maskID].health); // Heal mask by totalDamage
                 console.log(`Total damage dealt by Mask ${maskID}: ${totalDamage}`); // Log totalDamage
                 battleMessage = `Mask ${maskID} dealt ${totalDamage} to Mask ${targetMaskID}`; // Add message to battleMessage
+                      
+                if (battleMessage) {
+                  console.log(battleMessage); // Log battleMessage if not empty
+                  io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+                }
+              });
+            }
+            else if (skill.onHitEffect === 'Heal') {
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                    let heal = 0;
+                    if (skill.mainStat === 'Ability Damage') {
+                      heal = mask.abilityDamage * (skill.mainStatPercentage / 100);
+                    } else if (skill.mainStat === 'Attack Damage') {
+                      heal = mask.attackDamage * (skill.mainStatPercentage / 100);
+                    }
+                    const finalHeal = Math.max(heal, 0); // Ensure heal is not negative
+                    console.log(`Mask ${maskID} healed for ${heal} to Mask ${targetMaskID}`);
+                    totalHeal += finalHeal; // Add finalDamage to totalDamage
+                    masksInBattle[targetMaskID].currentHealth = Math.min(masksInBattle[targetMaskID].currentHealth + finalHeal, masksInBattle[targetMaskID].health); // Reduce target mask's currentHealth and cap at 0
+                }
+                console.log(`Total healed by Mask ${maskID}: ${totalHeal}`); // Log totalDamage
+                battleMessage = `Mask ${maskID} healed ${totalHeal} to Mask ${targetMaskID}`; // Add message to battleMessage
                       
                 if (battleMessage) {
                   console.log(battleMessage); // Log battleMessage if not empty
@@ -2587,5 +2719,91 @@ app.get('/character-id-username/:username', async (req, res) => {
   } catch (error) {
     console.error('Error fetching character ID:', error);
     res.status(500).send('Failed to fetch character ID');
+  }
+});
+
+// Endpoint to fetch all mods
+app.get('/mods', async (req, res) => {
+  try {
+    const mods = await ModList.findAll();
+    res.json(mods);
+  } catch (error) {
+    console.error('Error fetching mods:', error);
+    res.status(500).send('Failed to fetch mods');
+  }
+});
+
+// Endpoint to create a new mod
+app.post('/mods', async (req, res) => {
+  const { modType, modRarity, description } = req.body;
+  try {
+    const newMod = await ModList.create({ modType, modRarity, description });
+    res.status(201).json(newMod);
+  } catch (error) {
+    console.error('Error creating mod:', error);
+    res.status(500).send('Failed to create mod');
+  }
+});
+
+// Endpoint to fetch mods by a list of mod IDs
+app.get('/mods-by-ids', async (req, res) => {
+  const { modIDs } = req.query;
+  if (!modIDs) {
+    return res.status(400).send('modIDs query parameter is required');
+  }
+
+  const modIDArray = modIDs.split(',').map(id => parseInt(id, 10));
+  try {
+    const mods = await ModList.findAll({
+      where: {
+        modID: {
+          [Op.in]: modIDArray
+        }
+      }
+    });
+    res.json(mods);
+  } catch (error) {
+    console.error('Error fetching mods:', error);
+    res.status(500).send('Failed to fetch mods');
+  }
+});
+
+// Endpoint to add a mod to a mask
+app.put('/masks/:maskID/add-mod', async (req, res) => {
+  const { maskID } = req.params;
+  const { modID } = req.body;
+  try {
+    const mask = await MaskList.findOne({ where: { maskID } });
+    if (!mask) {
+      return res.status(404).send('Mask not found');
+    }
+    const updatedModList = mask.modList ? [...mask.modList, modID] : [modID];
+    await MaskList.update({ modList: updatedModList.filter(mod => mod !== null) }, { where: { maskID } });
+    res.status(200).json({ message: 'Mod added to mask successfully' });
+  } catch (error) {
+    console.error('Error adding mod to mask:', error);
+    res.status(500).send('Failed to add mod to mask');
+  }
+});
+
+// Endpoint to fetch mods for a specific mask
+app.get('/masks/:maskID/mods', async (req, res) => {
+  const { maskID } = req.params;
+  try {
+    const mask = await MaskList.findOne({ where: { maskID } });
+    if (!mask) {
+      return res.status(404).send('Mask not found');
+    }
+    const mods = await ModList.findAll({
+      where: {
+        modID: {
+          [Op.in]: mask.modList
+        }
+      }
+    });
+    res.json(mods);
+  } catch (error) {
+    console.error('Error fetching mods for mask:', error);
+    res.status(500).send('Failed to fetch mods for mask');
   }
 });
