@@ -174,4 +174,20 @@ export class WebSocketService {
   onBattleMessage(callback: (message: string) => void) {
     this.socket.on('battleMessage', callback);
   }
+
+  emitMapChange(isUniversityMap: boolean) {
+    this.socket.emit('mapChange', isUniversityMap);
+  }
+
+  onMapChange(callback: (isUniversityMap: boolean) => void) {
+    this.socket.on('mapChange', callback);
+  }
+
+  onLiveUsersUpdate(callback: (users: { username: string }[]) => void) {
+    this.socket.on('liveUsersUpdate', callback);
+  }
+
+  requestLiveUsers() {
+    this.socket.emit('requestLiveUsers');
+  }
 }

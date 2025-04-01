@@ -668,6 +668,9 @@ io.on('connection', (socket) => {
         console.log('User logged in:', username, 'with socket ID:', socket.id);
         console.log('Current live users:', liveUsers);
 
+        // Emit the updated list of live users to all connected clients
+        io.emit('liveUsersUpdate', liveUsers.map(user => ({ username: user.username })));
+
         // Join the user to the 'dungeonMaster' room if they are a Dungeon Master
         if (role === 'Dungeon Master') {
             socket.join('dungeonMaster');
@@ -1094,12 +1097,21 @@ io.on('connection', (socket) => {
       io.emit('masksInBattleUpdate', Object.values(masksInBattle));
     });
 
+    socket.on('mapChange', (isUniversityMap) => {
+      io.emit('mapChange', isUniversityMap);
+    });
+
+    socket.on('requestLiveUsers', () => {
+      socket.emit('liveUsersUpdate', liveUsers.map(user => ({ username: user.username })));
+    });
+
     });
 
 // Function to broadcast user updates
 function broadcastUserUpdate() {
     const userUpdateMessage = { type: 'userUpdate', users: liveUsers.map(user => ({ username: user.username, role: user.role })) };
     io.emit('userUpdate', userUpdateMessage);
+    io.emit('liveUsersUpdate', liveUsers.map(user => ({ username: user.username }))); // Emit live users update
 }
 
 // Redirect HTTP to HTTPS
@@ -2561,4 +2573,19 @@ app.post('/end-battle', (req, res) => {
 // Endpoint to fetch the current state of masksInBattle
 app.get('/masks-in-battle', (req, res) => {
   res.json(Object.values(masksInBattle));
+});
+
+// Endpoint to fetch character ID by username
+app.get('/character-id-username/:username', async (req, res) => {
+  const { username } = req.params;
+  try {
+    const user = await User.findOne({ where: { username } });
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+    res.json({ characterID: user.characterID });
+  } catch (error) {
+    console.error('Error fetching character ID:', error);
+    res.status(500).send('Failed to fetch character ID');
+  }
 });

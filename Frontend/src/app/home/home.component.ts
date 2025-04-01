@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // Import FormsModule
 // Remove HttpClientModule import
+import { WorldMapComponent } from '../world-map/world-map.component';
 import { BoardComponent } from '../board/board.component';
 import { FamilyComponent } from '../family/family.component';
 import { FriendsComponent } from '../friends/friends.component';
@@ -25,6 +26,7 @@ import { ScoreComponent } from '../score/score.component';
   imports: [
     CommonModule,
     FormsModule,
+    WorldMapComponent,
     BoardComponent,
     FamilyComponent,
     FriendsComponent,

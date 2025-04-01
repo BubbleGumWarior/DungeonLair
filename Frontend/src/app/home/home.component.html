@@ -50,7 +50,7 @@
   </nav>
 
   <div class="container mx-auto mt-10">
-    <h1 class="text-3xl font-bold text-center text-blue-800" *ngIf="currentView === 'home'">Welcome to the Home Page!</h1>
+    <app-world-map *ngIf="currentView === 'home'"></app-world-map>
     <app-board *ngIf="currentView === 'board'" [characterID]="characterID" (resultRolled)="handleDiceResult($event)"></app-board>
     <app-family *ngIf="currentView === 'family'" [characterID]="characterID"></app-family>
     <app-friends *ngIf="currentView === 'friends'" [characterID]="characterID"></app-friends>

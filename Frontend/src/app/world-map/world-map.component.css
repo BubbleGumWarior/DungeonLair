@@ -1,0 +1,110 @@
+.toggleButton {
+    position: relative;
+    width: 40px;
+    height: 20px;
+    display: inline-block;
+  }
+  
+.toggleButton input {
+    display: none;
+  }
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px; /* Reduced width */
+  height: 20px; /* Reduced height */
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px; /* Reduced height */
+  width: 16px; /* Reduced width */
+  left: 2px; /* Adjusted position */
+  bottom: 2px; /* Adjusted position */
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #1D4ED8; /* Tailwind blue-700 */
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px); /* Adjusted translation */
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+span {
+  transition: color 0.4s ease; /* Add transition for color change */
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.centered-image {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+  height: auto; /* Maintain aspect ratio */
+}
+
+.my-4 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 600px; /* Adjust max-width as needed */
+  margin: 0 auto;
+}
+
+.move-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Ensure canvas does not block other interactions */
+}
+
+.absolute {
+  position: absolute;
+}
+
+.moveable {
+  border: 2px solid blue;
+}
