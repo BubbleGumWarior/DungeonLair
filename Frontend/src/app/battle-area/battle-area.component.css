@@ -26,3 +26,20 @@
 .scrollbar-track-stone-900::-webkit-scrollbar-track {
   background-color: #1c1c1e;
 }
+
+.animate-border {
+  border: 1px solid transparent;
+  animation: border-pulse 1s infinite;
+}
+
+@keyframes border-pulse {
+  0% {
+    border-color: blue;
+  }
+  50% {
+    border-color: lightblue;
+  }
+  100% {
+    border-color: blue;
+  }
+}

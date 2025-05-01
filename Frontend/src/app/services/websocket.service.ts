@@ -164,7 +164,7 @@ export class WebSocketService {
   }
 
   sendSkillAction(maskID: number, skillID: number, targetMaskIDs: number[]) {
-    this.socket.emit('skillAction', { maskID, skillID, targetMaskIDs });
+    this.socket.emit('skillAction', { maskID, skillID, targetMaskIDs }); // Ensure maskID is sent correctly
   }
 
   updateTeams(teamChanges: { maskID: number, team: string }[]) {
@@ -189,5 +189,9 @@ export class WebSocketService {
 
   requestLiveUsers() {
     this.socket.emit('requestLiveUsers');
+  }
+
+  removeMask(maskID: number) {
+    this.socket.emit('removeMask', maskID); // Emit the removeMask event with the maskID
   }
 }

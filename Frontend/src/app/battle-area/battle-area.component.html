@@ -2,11 +2,15 @@
     <button (click)="joinBattle()" class="m-2 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
         Join/Leave Battle
     </button>
-    <button (click)="useMainAction()" [ngClass]="canUseMainAction() ? 'bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900' : 'bg-gradient-to-r from-red-700 via-red-800 to-red-900'" class="m-2 add-npc-button text-stone-950 p-2 rounded-full flex items-center justify-center">
+    <button *ngIf="userInformation.role !== 'Dungeon Master'"  (click)="useMainAction()" [ngClass]="canUseMainAction() ? 'bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900' : 'bg-gradient-to-r from-red-700 via-red-800 to-red-900'" class="m-2 add-npc-button text-stone-950 p-2 rounded-full flex items-center justify-center">
        Use Main Action
+    </button><button *ngIf="userInformation.role === 'Dungeon Master'" (click)="openAddMaskModal()" class="m-2 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
+      Add a Mask
+    </button><button *ngIf="userInformation.role === 'Dungeon Master'" (click)="removeMask()" class="m-2 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
+      Remove a Mask
     </button>
-    <button class="m-2 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
-        Use Bonus Action
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="useMask()" class="m-2 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
+      Use a Mask
     </button>
     <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="continue()" class="m-2 add-npc-button bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 text-stone-950 p-2 rounded-full flex items-center justify-center">
         Continue
@@ -22,6 +26,10 @@
     </button>
 </div>
 
+<div *ngIf="showErrorBanner" class="fixed top-0 left-0 right-0 bg-red-500 text-white text-center p-2 h-20 flex items-center justify-center">
+  <span>{{ errorMessage }}</span>
+</div>
+
 <div *ngIf="showTargetBanner && selectedSkill?.isMultiTarget" class="fixed top-0 left-0 right-0 bg-yellow-500 text-black text-center p-2 h-20 flex items-center justify-center">
   <span>Choose target {{ selectedTargets.length + 1 }} of {{ selectedSkill?.amountOfStrikes || 1 }} of skill {{ selectedSkill?.skillName }}</span>
   <button (click)="cancelSkillSelection()" class="absolute right-4 bg-amber-600 text-white p-1 rounded">Cancel</button>
@@ -32,12 +40,22 @@
   <button (click)="cancelSkillSelection()" class="absolute right-4 bg-amber-600 text-white p-1 rounded">Cancel</button>
 </div>
 
-<div class="grid grid-cols-3 gap-4 p-4">
+<div *ngIf="showRemoveMaskBanner" class="fixed top-0 left-0 right-0 bg-red-500 text-white text-center p-2 h-20 flex items-center justify-center">
+  <span>Select a mask to remove</span>
+  <button (click)="cancelRemoveMaskSelection()" class="absolute right-4 bg-red-700 text-white p-1 rounded">Cancel</button>
+</div>
+
+<div *ngIf="showUseMaskBanner" class="fixed top-0 left-0 right-0 bg-green-500 text-white text-center p-2 h-20 flex items-center justify-center">
+  <span>Select a mask to use</span>
+  <button (click)="showUseMaskBanner = false" class="absolute right-4 bg-green-700 text-white p-1 rounded">Cancel</button>
+</div>
+
+<div class="grid grid-cols-3 gap-4 p-6">
   <div class="col-span-1">
     <ul>
       <ng-container *ngFor="let mask of masksInBattle">
-        <li *ngIf="mask.team === 'Ally'" (click)="selectTarget(mask)" (mouseover)="mask.hover = true" (mouseout)="mask.hover = false" class="transition-transform duration-500 ease-in-out transform hover:scale-105">
-          <div class="flex items-center space-x-2 p-4 my-2 border" [ngClass]="getBorderColor(mask)" rounded>
+        <li *ngIf="mask.team === 'Ally'" (click)="showUseMaskBanner ? selectMaskForUse(mask) : (showRemoveMaskBanner ? selectMaskForRemoval(mask) : selectTarget(mask))" (mouseover)="mask.hover = true" (mouseout)="mask.hover = false" class="transition-transform duration-500 ease-in-out transform hover:scale-105">
+          <div class="flex items-center space-x-2 p-4 my-2 border" [ngClass]="{'animate-border': mask.action && mask.currentSpeed >= 100}" [class]="getBorderColor(mask)" rounded>
             <div class="w-24 h-24">
               <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="w-full h-full rounded-full" />
             </div>
@@ -85,8 +103,8 @@
   <div class="col-span-1">
     <ul>
       <ng-container *ngFor="let mask of masksInBattle">
-        <li *ngIf="mask.team === 'Neutral'" (click)="selectTarget(mask)" (mouseover)="mask.hover = true" (mouseout)="mask.hover = false" class="transition-transform duration-500 ease-in-out transform hover:scale-105">
-          <div class="flex items-center space-x-2 p-4 my-2 border" [ngClass]="getBorderColor(mask)" rounded>
+        <li *ngIf="mask.team === 'Neutral'" (click)="showUseMaskBanner ? selectMaskForUse(mask) : (showRemoveMaskBanner ? selectMaskForRemoval(mask) : selectTarget(mask))" (mouseover)="mask.hover = true" (mouseout)="mask.hover = false" class="transition-transform duration-500 ease-in-out transform hover:scale-105">
+          <div class="flex items-center space-x-2 p-4 my-2 border" [ngClass]="{'animate-border': mask.action && mask.currentSpeed >= 100}" [class]="getBorderColor(mask)" rounded>
             <div class="w-24 h-24">
               <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="w-full h-full rounded-full" />
             </div>
@@ -134,8 +152,8 @@
   <div class="col-span-1">
     <ul>
       <ng-container *ngFor="let mask of masksInBattle">
-        <li *ngIf="mask.team === 'Enemy'" (click)="selectTarget(mask)" (mouseover)="mask.hover = true" (mouseout)="mask.hover = false" class="transition-transform duration-500 ease-in-out transform hover:scale-105">
-          <div class="flex items-center space-x-2 p-4 my-2 border" [ngClass]="getBorderColor(mask)" rounded>
+        <li *ngIf="mask.team === 'Enemy'" (click)="showUseMaskBanner ? selectMaskForUse(mask) : (showRemoveMaskBanner ? selectMaskForRemoval(mask) : selectTarget(mask))" (mouseover)="mask.hover = true" (mouseout)="mask.hover = false" class="transition-transform duration-500 ease-in-out transform hover:scale-105">
+          <div class="flex items-center space-x-2 p-4 my-2 border" [ngClass]="{'animate-border': mask.action && mask.currentSpeed >= 100}" [class]="getBorderColor(mask)" rounded>
             <div class="w-24 h-24">
               <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="w-full h-full rounded-full" />
             </div>
@@ -189,7 +207,7 @@
   <div class="skills-modal w-1/3 p-4 rounded border border-blue-700 bg-blue-900 scrollbar-thin scrollbar-thumb-blue-700 scrollbar-track-stone-900 overflow-y-auto max-h-96">
     <h2 class="text-xl font-bold mb-4">Skills</h2>
     <ul>
-      <li *ngFor="let skill of skills" class="mb-2" (click)="selectSkill(skill)" [ngClass]="{'border-red-700 cursor-not-allowed': skill.cooldown > 0}">
+      <li *ngFor="let skill of skills" class="mb-2" (click)="selectedMaskForUse ? selectSkillForMask(skill) : selectSkill(skill)" [ngClass]="{'border-red-700 cursor-not-allowed': skill.cooldown > 0}">
         <div class="p-2 border rounded" [ngClass]="skill.cooldown > 0 ? 'border-red-700 bg-stone-950 text-red-700' : 'border-blue-700 bg-stone-950 text-blue-700'">
           <div><strong>Name:</strong> {{ skill.skillName }}</div>
           <div><strong>Description:</strong> {{ skill.description }}</div>
@@ -239,6 +257,25 @@
           </li>
         </ul>
       </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showAddMaskModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" (click)="closeAddMaskModal()">
+  <div class="add-mask-modal w-2/3 p-4 rounded border border-blue-700 bg-blue-900 scrollbar-thin scrollbar-thumb-blue-700 scrollbar-track-stone-900 overflow-y-auto h-5/6" (click)="$event.stopPropagation()">
+    <h2 class="text-xl font-bold mb-4">Select a Mask</h2>
+    <input type="text" [(ngModel)]="searchQuery" (input)="filterMaskList()" placeholder="Search masks..." class="w-full p-2 mb-4 border rounded bg-stone-950 text-blue-700" />
+    <div class="grid grid-cols-3 gap-4">
+      <div *ngFor="let mask of filteredMaskList" class="p-4 border rounded bg-stone-950 text-blue-700">
+        <button (click)="selectMask(mask)" class="mt-2 bg-blue-600 text-white p-2 rounded w-full">Add Mask</button>
+        <div class="mt-2 text-center">
+          <p><strong>Mask ID:</strong> {{ mask.maskID }}</p>
+        </div>
+        <img [src]="mask.photo" alt="Mask Photo" class="w-full h-auto" />
+      </div>
+    </div>
+    <div class="flex justify-end mt-4">
+      <button (click)="closeAddMaskModal()" class="bg-red-500 text-white p-2 rounded">Close</button>
     </div>
   </div>
 </div>

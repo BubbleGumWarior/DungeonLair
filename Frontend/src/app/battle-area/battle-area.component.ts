@@ -5,18 +5,19 @@ import { Router } from '@angular/router'; // Import Router
 import { jwtDecode } from 'jwt-decode';
 import { localIP } from '../config'; // Import the IP address
 import { WebSocketService } from '../services/websocket.service'; // Import WebSocketService
+import { FormsModule } from '@angular/forms'; // Import FormsModule for two-way binding
 
 @Component({
   selector: 'app-battle-area',
   standalone: true,
-  imports: [CommonModule, HttpClientModule], // Add HttpClientModule to imports
+  imports: [CommonModule, HttpClientModule, FormsModule], // Add FormsModule to imports
   templateUrl: './battle-area.component.html',
   styleUrl: './battle-area.component.css'
 })
 export class BattleAreaComponent implements OnInit, OnDestroy {
   userInformation: any = null;
   maskInformation: any = null; // Add maskInformation variable
-  masksInBattle: any[] = []; // Add masksInBattle array
+  masksInBattle: any[] = []; // Ensure this array is populated with mask data
   skills: any[] = []; // Add skills array
   showSkillsModal: boolean = false; // Add showSkillsModal flag
   selectedSkill: any = null; // Add selectedSkill variable
@@ -32,6 +33,15 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   battleMessages: string[] = []; // Change battleMessage to an array
   selectedMaskDetails: any = null; // Add selectedMaskDetails variable
   showMaskDetailsModal: boolean = false; // Add showMaskDetailsModal flag
+  showAddMaskModal: boolean = false; // Add flag for Add Mask modal
+  maskList: any[] = []; // Add maskList array
+  searchQuery: string = ''; // Add searchQuery variable
+  filteredMaskList: any[] = []; // Add filteredMaskList array
+  showRemoveMaskBanner: boolean = false; // Add state for the remove mask banner
+  showUseMaskBanner: boolean = false; // Add state for the use mask banner
+  selectedMaskForUse: any = null; // Add variable to store the selected mask for use
+  showErrorBanner: boolean = false; // Add state for the error banner
+  errorMessage: string = ''; // Add variable to store the error message
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private router: Router) { // Add Router to constructor
     this.webSocketService.onMasksInBattleUpdate((masks) => {
@@ -42,7 +52,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
       this.battleMessages.push(message);
       setTimeout(() => {
         this.battleMessages.shift();
-      }, 10000); // Remove message after 3 seconds
+      }, 3000); // Remove message after 3 seconds
     });
   }
 
@@ -63,6 +73,10 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
           console.error('Error fetching masks in battle:', error);
         }
       );
+
+    this.webSocketService.onMasksInBattleUpdate((masks: any[]) => {
+      this.masksInBattle = masks;
+    });
   }
 
   ngOnDestroy() {
@@ -159,6 +173,9 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   }
 
   canUseMainAction(): boolean {
+    if (this.userInformation && this.userInformation.role === 'Dungeon Master') {
+      return true; // Dungeon Masters can always use actions
+    }
     if (this.userInformation && this.userInformation.maskID) {
       const mask = this.masksInBattle.find(mask => mask.maskID === this.userInformation.maskID);
       return mask ? mask.action : false;
@@ -170,9 +187,12 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
     if (skill.cooldown > 0 || this.isUserStunned()) {
       return; // Do nothing if the skill is on cooldown or user is stunned
     }
-    if (this.masksInBattle.find(mask => mask.maskID === this.userInformation.maskID).stunStacks > 0) {
+
+    const userMask = this.masksInBattle.find(mask => mask.maskID === this.userInformation.maskID);
+    if (userMask && userMask.stunStacks > 0) {
       return; // Do nothing if the user mask is stunned
     }
+
     this.selectedSkill = skill;
     console.log('Selected skill:', this.selectedSkill);
     this.selectedTargets = []; // Reset selectedTargets
@@ -183,7 +203,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   selectTarget(mask: any) {
     if (this.selectedSkill && mask.stunStacks < 1 && !this.isUserStunned()) {
       const userMask = this.masksInBattle.find(m => m.maskID === this.userInformation.maskID);
-      if (mask.untargetable || mask.currentHealth === 0) {
+      if (mask.untargetable || mask.currentHealth === 0 && this.selectedSkill.onHitEffect !== 'Heal') {
         return; // Do nothing if the mask is untargetable or dead
       }
       else if (userMask && userMask.team === mask.team && this.selectedSkill.onHitEffect !== 'Heal') {
@@ -228,11 +248,13 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   }
 
   sendSkillAction() {
-    console.log('Sending skill action:', this.selectedSkill.skillID, this.selectedTargets);
-    this.webSocketService.sendSkillAction(this.userInformation.maskID, this.selectedSkill.skillID, this.selectedTargets);
+    const maskIDToSend = this.selectedMaskForUse ? this.selectedMaskForUse.maskID : this.userInformation.maskID; // Use selected mask's ID if DM is using a mask
+    console.log('Sending skill action:', maskIDToSend, this.selectedSkill.skillID, this.selectedTargets);
+    this.webSocketService.sendSkillAction(maskIDToSend, this.selectedSkill.skillID, this.selectedTargets);
     this.selectedSkill = null; // Reset selectedSkill
     this.selectedTargets = []; // Reset selectedTargets
     this.showTargetBanner = false; // Hide banner
+    this.selectedMaskForUse = null; // Reset selectedMaskForUse
   }
 
   cancelSkillSelection() {
@@ -358,6 +380,9 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   }
 
   isUserStunned(): boolean {
+    if (this.userInformation && this.userInformation.role === 'Dungeon Master') {
+      return false; // Dungeon Masters are never stunned
+    }
     const userMask = this.masksInBattle.find(mask => mask.maskID === this.userInformation.maskID);
     return userMask ? userMask.stunStacks > 0 : false;
   }
@@ -366,5 +391,151 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
     this.masksInBattle.forEach(mask => {
       mask.photo = mask.photo.startsWith('http') ? mask.photo : `https://${localIP}:8080${mask.photo}`; // Ensure correct photo URL
     });
+  }
+
+  removeMask() {
+    this.showRemoveMaskBanner = true; // Show the banner
+  }
+
+  // Method to handle mask selection for removal
+  selectMaskForRemoval(mask: any) {
+    console.log('Mask selected for removal:', mask);
+    this.webSocketService.removeMask(mask.maskID); // Call WebSocket service to remove the mask
+    this.showRemoveMaskBanner = false; // Hide the banner after selection
+  }
+
+  // Method to cancel mask removal
+  cancelRemoveMaskSelection() {
+    this.showRemoveMaskBanner = false; // Hide the banner
+  }
+
+  openAddMaskModal() {
+    this.showAddMaskModal = true;
+    this.fetchMaskList(); // Fetch masks when modal is opened
+  }
+
+  closeAddMaskModal() {
+    this.showAddMaskModal = false;
+  }
+
+  fetchMaskList() {
+    this.http.get(`https://${localIP}:8080/mask-list`)
+      .subscribe(
+        (data: any) => {
+          this.maskList = data.map((mask: any) => ({
+            ...mask,
+            photo: mask.photo.startsWith('http') ? mask.photo : `https://${localIP}:8080${mask.photo}` // Ensure correct photo URL
+          }));
+          this.filteredMaskList = [...this.maskList]; // Initialize filteredMaskList
+        },
+        (error) => {
+          console.error('Error fetching mask list:', error);
+        }
+      );
+  }
+
+  filterMaskList() {
+    const query = this.searchQuery.toLowerCase();
+    if (!query) {
+      this.filteredMaskList = [...this.maskList]; // Show all masks if search bar is empty
+      return;
+    }
+    this.filteredMaskList = this.maskList
+      .filter(mask => mask.maskID.toString().includes(query)) // Match maskID containing the query
+      .sort((a, b) => {
+        const aExactMatch = a.maskID.toString() === query ? 0 : 1;
+        const bExactMatch = b.maskID.toString() === query ? 0 : 1;
+        return aExactMatch - bExactMatch; // Prioritize exact matches
+      });
+  }
+
+  selectMask(mask: any) {
+    this.webSocketService.joinBattle(mask.maskID); // Use WebSocket to add the mask to the battle
+    console.log('Mask added to battle via WebSocket:', mask);
+
+    // Fetch and load the skills for the added mask
+    if (mask.activeSkills) {
+      const skillIDs = mask.activeSkills.join(',');
+      this.http.get(`https://${localIP}:8080/mask-skills?skillIDs=${skillIDs}`)
+        .subscribe(
+          (skills: any) => {
+            mask.skills = skills; // Attach the fetched skills to the mask
+            console.log('Skills loaded for mask:', mask.maskID, skills);
+          },
+          (error) => {
+            console.error('Error fetching mask skills:', error);
+          }
+        );
+    }
+
+    this.closeAddMaskModal();
+  }
+
+  useMask() {
+    this.showUseMaskBanner = true; // Show the banner
+  }
+
+  selectMaskForUse(mask: any) {
+    if (mask.currentSpeed !== 100) {
+      this.errorMessage = 'The mask is not ready to move'; // Set error message
+      this.showUseMaskBanner = false;
+      this.showErrorBanner = true; // Show the error banner
+      setTimeout(() => {
+        this.showErrorBanner = false; // Hide the banner after 2 seconds
+      }, 2000);
+      return; // Cancel the selection
+    }
+
+    console.log('Mask selected for use:', mask);
+    this.selectedMaskForUse = mask; // Store the selected mask
+    this.showUseMaskBanner = false; // Hide the banner
+    this.fetchSkillsForMask(mask); // Fetch skills for the selected mask
+  }
+
+  fetchSkillsForMask(mask: any) {
+    if (mask && mask.activeSkills) {
+      const skillIDs = mask.activeSkills.join(',');
+      this.http.get(`https://${localIP}:8080/mask-skills?skillIDs=${skillIDs}`)
+        .subscribe(
+          (skills: any) => {
+            this.skills = skills;
+            this.showSkillsModal = true; // Show the skills modal
+            this.checkSkillCooldownsForMask(mask); // Check cooldowns for the selected mask
+          },
+          (error) => {
+            console.error('Error fetching mask skills:', error);
+          }
+        );
+    }
+  }
+
+  checkSkillCooldownsForMask(mask: any) {
+    if (mask && mask.cooldowns) {
+      this.skills.forEach(skill => {
+        skill.cooldown = mask.cooldowns[skill.skillID] || 0;
+      });
+    }
+  }
+
+  selectSkillForMask(skill: any) {
+    if (skill.cooldown > 0) {
+      return; // Do nothing if the skill is on cooldown
+    }
+    this.selectedSkill = skill;
+    console.log('Selected skill for mask:', this.selectedSkill);
+    this.selectedTargets = []; // Reset selectedTargets
+    this.showSkillsModal = false; // Close the modal
+    this.showTargetBanner = true; // Show banner
+  }
+
+  sendSkillActionForMask() {
+    if (this.selectedMaskForUse && this.selectedSkill) {
+      console.log('Sending skill action for mask:', this.selectedMaskForUse.maskID, this.selectedSkill.skillID, this.selectedTargets);
+      this.webSocketService.sendSkillAction(this.selectedMaskForUse.maskID, this.selectedSkill.skillID, this.selectedTargets); // Use selectedMaskForUse.maskID
+      this.selectedSkill = null; // Reset selectedSkill
+      this.selectedTargets = []; // Reset selectedTargets
+      this.showTargetBanner = false; // Hide banner
+      this.selectedMaskForUse = null; // Reset selectedMaskForUse
+    }
   }
 }
