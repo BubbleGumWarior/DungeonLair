@@ -33,10 +33,12 @@ export class WorldMapComponent implements OnInit {
     // Query server for live users
     this.webSocketService.requestLiveUsers();
     this.webSocketService.onLiveUsersUpdate((users: { username: string, photoPath?: string}[]) => {
-      this.liveUsers = users.map(user => ({
-        ...user,
-        photoPath: user.photoPath || this.getPhoto(user.username), // Provide a default photoPath if missing
-      }));
+      this.liveUsers = users
+        .map(user => ({
+          ...user,
+          photoPath: user.photoPath || this.getPhoto(user.username), // Provide a default photoPath if missing
+        }))
+        .sort((a, b) => a.username === 'BubbleGumWarior' ? -1 : b.username === 'BubbleGumWarior' ? 1 : 0); // Ensure Dungeon Master is first
       console.log('Live users:', this.liveUsers);
     });
   }

@@ -194,4 +194,21 @@ export class WebSocketService {
   removeMask(maskID: number) {
     this.socket.emit('removeMask', maskID); // Emit the removeMask event with the maskID
   }
+
+  // Add methods to handle masks in battle
+  addMaskToBattle(maskID: number) {
+    this.socket.emit('add-mask-to-battle', { maskID });
+  }
+
+  emitMasksInBattleUpdate(masksInBattle: any[]) {
+    this.socket.emit('masksInBattleUpdate', masksInBattle);
+  }
+
+  endBattle() {
+    this.socket.emit('end-battle');
+  }
+
+  onEndBattle(callback: () => void) {
+    this.socket.on('end-battle', callback);
+  }
 }

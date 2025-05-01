@@ -1,9 +1,9 @@
 <div class="grid grid-cols-4 gap-4 p-4">
-    <button (click)="joinBattle()" class="m-2 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
+    <button  *ngIf="userInformation.role !== 'Dungeon Master'" (click)="joinBattle()" class="m-2 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
         Join/Leave Battle
     </button>
     <button *ngIf="userInformation.role !== 'Dungeon Master'"  (click)="useMainAction()" [ngClass]="canUseMainAction() ? 'bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900' : 'bg-gradient-to-r from-red-700 via-red-800 to-red-900'" class="m-2 add-npc-button text-stone-950 p-2 rounded-full flex items-center justify-center">
-       Use Main Action
+       Use Skill
     </button><button *ngIf="userInformation.role === 'Dungeon Master'" (click)="openAddMaskModal()" class="m-2 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
       Add a Mask
     </button><button *ngIf="userInformation.role === 'Dungeon Master'" (click)="removeMask()" class="m-2 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">

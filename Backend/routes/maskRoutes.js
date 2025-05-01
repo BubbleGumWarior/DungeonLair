@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const MaskList = require('../models/MaskList');
-const WebSocketService = require('../services/websocketService'); // Import WebSocketService
 
 let masksInBattle = []; // In-memory array to store masks in battle
 
@@ -26,9 +25,6 @@ router.post('/add-mask-to-battle', async (req, res) => {
 
     // Add the mask to the in-memory array
     masksInBattle.push(mask);
-
-    // Emit the updated masksInBattle array to all connected clients
-    WebSocketService.emitMasksInBattleUpdate(masksInBattle);
 
     res.status(200).json({ message: 'Mask added to battle successfully' });
   } catch (error) {

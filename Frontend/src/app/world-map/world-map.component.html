@@ -1,4 +1,4 @@
-<div *ngIf="role === 'Dungeon Master'" class="flex justify-center items-center my-4">
+<div *ngIf="role === 'Dungeon Master'" class="flex justify-center items-center mb-4">
   <span [class.text-blue-700]="!isUniversityMap" [class.text-blue-950]="isUniversityMap" class="mr-2">City Map</span>
   <label class="switch">
     <input type="checkbox" (change)="toggleMap()">
@@ -6,20 +6,22 @@
   </label>
   <span [class.text-blue-700]="isUniversityMap" [class.text-blue-950]="!isUniversityMap" class="ml-2">University Map</span>
 </div>
-<div *ngIf="liveUsers.length > 0" class="mt-4 mb-10 border border-blue-700 rounded p-4 mx-auto w-full max-w-lg text-center">
-  <h3 class="text-blue-700 text-3xl mb-4">Live Users:</h3>
-  
-  <ul>
-    <li *ngFor="let user of liveUsers" class="text-blue-700 flex items-center justify-center">
-      <img [src]="user.photoPath" alt="User Photo" class="w-8 h-8 mr-2 rounded-full mb-4"/>
-      <p class="mb-4">{{ user.username }}</p>
-    </li>
-  </ul>
-</div>
+
 <div class="relative">
   <img *ngIf="!isUniversityMap" src="https://dungeonlair.ddns.net:8080/assets/images/CityMap.jpg" alt="City Map" class="fade-in city-map centered-image">
   <img *ngIf="isUniversityMap" src="https://dungeonlair.ddns.net:8080/assets/images/UniMap.jpg" alt="University Map" class="fade-in uni-map centered-image">
-  <div class="absolute top-0 left-0 flex space-x-2">
+  <!-- <div class="absolute top-0 left-0 flex space-x-2">
     <img *ngFor="let user of liveUsers" [src]="user.photoPath" alt="User Photo" class="w-8 h-8 rounded-full cursor-pointer">
-  </div>
+  </div> -->
+</div>
+
+<div *ngIf="liveUsers.length > 0" class="fixed top-1/2 right-4 transform -translate-y-1/2 border border-blue-700 rounded p-4 w-80 text-center bg-stone-950 shadow-lg">
+  <h3 class="text-blue-700 text-3xl mb-4">Live Users:</h3>
+  
+  <ul>
+    <li *ngFor="let user of liveUsers" class="flex items-center justify-center" [ngClass]="{'text-pink-500': user.username === 'BubbleGumWarior', 'text-blue-700': user.username !== 'BubbleGumWarior'}">
+      <img [src]="user.photoPath" alt="User Photo" class="w-8 h-8 mr-2 rounded-full mb-4"/>
+      <p class="mb-4">{{ user.username === 'BubbleGumWarior' ? 'Dungeon Master' : user.username }}</p>
+    </li>
+  </ul>
 </div>

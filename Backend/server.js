@@ -29,8 +29,6 @@ const http = require('http'); // Import http module
 const cron = require('node-cron');
 const { exec } = require('child_process');
 const maskRoutes = require('./routes/maskRoutes'); // Import maskRoutes
-const WebSocket = require('ws');
-const WebSocketService = require('./services/websocketService'); // Import WebSocketService
 
 const app = express();
 
@@ -40,7 +38,6 @@ const certificate = fs.readFileSync('d:/Coding/DungeonLair/DungeonLair/cert.pem'
 const credentials = { key: privateKey, cert: certificate };
 
 const server = https.createServer(credentials, app); // Ensure https.createServer is used
-const wss = new WebSocket.Server({ server });
 
 const allowedOrigins = [
   `https://${localIP}`, // No-IP hostname without port
@@ -758,6 +755,7 @@ app.put('/api/scores/:characterName', async (req, res) => {
 let vcMembers = [];
 let masksInBattle = {}; // Add masksInBattle object
 let maskSkills = {}; // Add maskSkills object
+let blindingStrikesTargets = []; // Initialize variable to track targets hit by Blinding Strikes
 
 io.on('connection', (socket) => {
     console.log('A user connected with socket ID:', socket.id);
@@ -1213,6 +1211,131 @@ io.on('connection', (socket) => {
               }
               });
               io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Emit updated masksInBattle
+            }
+            else if (skill.skillName === 'I am Death!') {
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                  let damage = mask.abilityDamage * (skill.mainStatPercentage / 100);
+                  const reduction = targetMask.magicResist;
+                  const finalDamage = Math.max(damage - reduction, 0); // Ensure damage is not negative
+            
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0); // Reduce target's health
+            
+                  let healAmount = 0;
+                  if (targetMask.bleedStacks > 0) {
+                    healAmount = finalDamage; // Heal for 100% of the damage dealt
+                    mask.currentHealth = Math.min(mask.currentHealth + healAmount, mask.health); // Cap healing at max health
+                  }
+                  targetMask.bleedStacks += 5; // Apply 5 bleed stacks
+            
+                  console.log(`Mask ${maskID} used I am Death! on Mask ${targetMaskID}, dealing ${finalDamage} damage and applying 5 bleed stacks.`);
+                  if (healAmount > 0) {
+                    console.log(`Mask ${maskID} healed for ${healAmount} due to attacking a bleeding target.`);
+                  }
+            
+                  battleMessage = `Mask ${maskID} used I am Death! on Mask ${targetMaskID}, dealing ${finalDamage} damage, applying 5 bleed stacks, and healing for ${healAmount}.`;
+                  if (battleMessage) {
+                    console.log(battleMessage); // Log battleMessage if not empty
+                    io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+                  }
+                }
+              });
+            }
+            else if (skill.skillName === 'Oath Bearer') {
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                  let damage = mask.attackDamage * (skill.mainStatPercentage / 100);
+                  const reduction = targetMask.protections;
+                  const finalDamage = Math.max(damage - reduction, 0); // Ensure damage is not negative
+            
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0); // Reduce target's health
+            
+                  const alliesAlive = Object.values(masksInBattle).filter(
+                    ally => ally.team === mask.team && ally.maskID !== mask.maskID && ally.currentHealth > 0
+                  );
+            
+                  if (alliesAlive.length > 0) {
+                    // Increase protections of all allies by 50% of the user's protections
+                    alliesAlive.forEach(ally => {
+                      ally.protections += mask.protections * 0.5;
+                    });
+                    console.log(`Mask ${maskID} used Oath Bearer, dealing ${finalDamage} damage to Mask ${targetMaskID} and increasing allies' protections.`);
+                    battleMessage = `Mask ${maskID} used Oath Bearer, dealing ${finalDamage} damage to Mask ${targetMaskID} and increasing allies' protections.`;
+                  } else {
+                    // Increase user's attack damage by 100%
+                    mask.attackDamage += mask.attackDamage;
+                    console.log(`Mask ${maskID} used Oath Bearer, dealing ${finalDamage} damage to Mask ${targetMaskID} and doubling its attack damage.`);
+                    battleMessage = `Mask ${maskID} used Oath Bearer, dealing ${finalDamage} damage to Mask ${targetMaskID} and doubling its attack damage.`;
+                  }
+            
+                  if (battleMessage) {
+                    console.log(battleMessage); // Log battleMessage if not empty
+                    io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+                  }
+                }
+              });
+            }
+            else if (skill.skillName === 'Painful Breath') {
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                    let damage = 0;
+                    damage = mask.abilityDamage * (skill.mainStatPercentage / 100);
+                    reduction = targetMask.magicResist;
+                    let finalDamage = Math.max(damage - reduction, 0); // Ensure damage is not negative
+                    console.log(`Mask ${maskID} did ${damage} damage to Mask ${targetMaskID}, reduced by ${reduction}, final damage ${finalDamage} and increased their poison stacks`);
+                    totalDamage += finalDamage; // Add finalDamage to totalDamage
+
+                    masksInBattle[targetMaskID].poisonStacks += 1; // Add poison stacks
+                    masksInBattle[targetMaskID].poisonStacks *= 2; // Add poison stacks
+                    masksInBattle[targetMaskID].currentHealth = Math.max(masksInBattle[targetMaskID].currentHealth - finalDamage, 0); // Reduce target mask's currentHealth and cap at 0
+                }
+                masksInBattle[mask.maskID].currentHealth = Math.min(masksInBattle[mask.maskID].currentHealth + totalDamage * masksInBattle[mask.maskID].buffStacks / 5, masksInBattle[mask.maskID].health); // Heal mask by totalDamage
+                console.log(`Total damage dealt by Mask ${maskID}: ${totalDamage}`); // Log totalDamage
+                battleMessage = `Mask ${maskID} dealt ${totalDamage} to Mask ${targetMaskID}`; // Add message to battleMessage
+                      
+                if (battleMessage) {
+                  console.log(battleMessage); // Log battleMessage if not empty
+                  io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+                }
+              });
+            }
+            else if (skill.skillName === 'Blinding Strikes') {
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                  let damage = mask.attackDamage * (skill.mainStatPercentage / 100);
+                  const reduction = targetMask.protections;
+                  const finalDamage = Math.max(damage - reduction, 0); // Ensure damage is not negative
+            
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0); // Reduce target's health
+                  console.log(`Mask ${maskID} used Blinding Strikes on Mask ${targetMaskID}, dealing ${finalDamage} damage.`);
+            
+                  // Add targetMaskID to the tracking array
+                  blindingStrikesTargets.push(targetMaskID);
+            
+                  // Check if 5 targets have been hit
+                  if (blindingStrikesTargets.length >= 5) {
+                    blindingStrikesTargets.forEach(hitMaskID => {
+                      const hitMask = masksInBattle[hitMaskID];
+                      if (hitMask && hitMask.currentHealth > 0) { // Ensure the mask is not dead
+                        const bonusDamage = mask.attackDamage * 10; // 1000% of attack damage
+                        hitMask.currentHealth = Math.max(hitMask.currentHealth - bonusDamage, 0); // Apply bonus damage
+                        console.log(`Mask ${maskID} dealt ${bonusDamage} bonus damage to Mask ${hitMaskID} due to Blinding Strikes.`);
+                      }
+                    });
+                    blindingStrikesTargets = []; // Clear the tracking array after applying bonus damage
+                  }
+            
+                  battleMessage = `Mask ${maskID} used Blinding Strikes on Mask ${targetMaskID}, dealing ${finalDamage} damage.`;
+                  if (battleMessage) {
+                    console.log(battleMessage); // Log battleMessage if not empty
+                    io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+                  }
+                }
+              });
             }
             else if (skill.onHitEffect === 'Heal') {
               targetMaskIDs.forEach(targetMaskID => {
@@ -2797,6 +2920,7 @@ app.post('/continue', async (req, res) => {
 
 app.post('/end-battle', (req, res) => {
   masksInBattle = {};
+  blindingStrikesTargets = []; // Clear the tracking array when the battle ends
   io.emit('masksInBattleUpdate', Object.values(masksInBattle));
   res.status(200).send('Battle ended and masksInBattle cleared');
 });
@@ -2908,8 +3032,3 @@ app.get('/masks/:maskID/mods', async (req, res) => {
 });
 
 app.use(maskRoutes); // Use maskRoutes
-
-// WebSocket connection handling
-wss.on('connection', (ws) => {
-  WebSocketService.addClient(ws);
-});
