@@ -122,4 +122,10 @@ export class HomeComponent implements OnInit {
   navigateToCharactersGallery() {
     this.router.navigate(['/characters-gallery']);
   }
+
+  openChatButton() {
+    // Logic to ensure the chat button component is visible
+    console.log('Opening chat button component...');
+    // Additional logic can be added here if needed
+  }
 }

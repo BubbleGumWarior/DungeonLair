@@ -62,7 +62,11 @@
   </div>
 
   <app-chat-button *ngIf="isHomeView() || !isMobile()" [newMessage]="diceResult" [username]="username || 'DefaultUser'"></app-chat-button>
-  <app-roll-button *ngIf="isHomeView() || !isMobile()" (resultRolled)="handleDiceResult($event)"></app-roll-button>
+  <app-roll-button 
+    *ngIf="isHomeView() || !isMobile()" 
+    (resultRolled)="handleDiceResult($event)" 
+    (openChat)="openChatButton()">
+  </app-roll-button>
   <app-vc-button *ngIf="isHomeView() || !isMobile()" [username]="username || 'DefaultUser'"></app-vc-button>
   <!-- <app-soundbar class="hidden md:block"></app-soundbar> -->
 

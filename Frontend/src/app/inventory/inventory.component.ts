@@ -164,7 +164,7 @@ export class InventoryComponent implements OnInit {
         resultMessage = 'Natural 1...';  // Ignore modifier
       } else {
         const finalResult = roll + modifier;
-        resultMessage = `You have rolled a ${roll} with a modifier of ${modifier >= 0 ? '+' + modifier : modifier} and got ${finalResult}`;
+        resultMessage = `has rolled a ${roll} with a modifier of ${modifier >= 0 ? '+' + modifier : modifier} and got ${finalResult}`;
       }
 
 

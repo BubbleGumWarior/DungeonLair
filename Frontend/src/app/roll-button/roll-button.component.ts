@@ -21,6 +21,7 @@ export class RollButtonComponent {
   isMobile: boolean = false;
   
   @Output() resultRolled = new EventEmitter<string>();
+  @Output() openChat = new EventEmitter<void>(); // Add an event to notify the parent to open the chat
 
   toggleRoll() {
     this.isOpen = !this.isOpen;
@@ -65,10 +66,36 @@ export class RollButtonComponent {
       resultMessage = 'Natural 1...';  // Ignore modifier
     } else {
       const finalResult = roll + modifier;
-      resultMessage = `You have rolled a ${roll} with a modifier of ${modifier >= 0 ? '+' + modifier : modifier} and got ${finalResult}`;
+      resultMessage = `has rolled a ${roll} with a modifier of ${modifier >= 0 ? '+' + modifier : modifier} and got ${finalResult}`;
     }
-    this.toggleRoll();
     this.resultRolled.emit(resultMessage);
+    this.closeRoll(); // Close the modal
+    this.openChat.emit(); // Notify the parent to open the chat
+  }
+
+  flipCoin() {
+    const coinElement = document.getElementById('coin');
+    if (!coinElement) return;
+
+    const flipResult = Math.random();
+    coinElement.className = ''; // Reset classes
+    setTimeout(() => {
+        if (flipResult <= 0.5) {
+            coinElement.classList.add('heads');
+            setTimeout(() => {
+                this.resultRolled.emit('flipped a coin and got Heads');
+                this.closeRoll(); // Close the modal
+                this.openChat.emit(); // Notify the parent to open the chat
+            }, 3000); // Emit after animation
+        } else {
+            coinElement.classList.add('tails');
+            setTimeout(() => {
+                this.resultRolled.emit('flipped a coin and got Tails');
+                this.closeRoll(); // Close the modal
+                this.openChat.emit(); // Notify the parent to open the chat
+            }, 3000); // Emit after animation
+        }
+    }, 100);
   }
 
   @HostListener('document:click', ['$event.target'])

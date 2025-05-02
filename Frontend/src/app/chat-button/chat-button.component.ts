@@ -37,7 +37,9 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
       if (this.isPublicRollsEnabled) {
         this.sendToChatHistory(message);
       } else {
-        this.addMessageToChat(this.username || 'User', message);
+        if (this.userRole !== 'Dungeon Master') {
+          this.addMessageToChat('System', "You " + message);
+        }
         this.sendToDMChatHistory(message);
       }
     }
@@ -203,8 +205,8 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
   async sendToChatHistory(message: string) {
     const sanitizedMessage = DOMPurify.sanitize(message);
     const newMessage: ChatMessage = {
-      username: this.username,
-      message: sanitizedMessage,
+      username: "System",
+      message: this.username + " " + sanitizedMessage,
       timestamp: new Date(),
     };
 
@@ -227,8 +229,8 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
   async sendToDMChatHistory(message: string) {
     const sanitizedMessage = DOMPurify.sanitize(message);
     const newMessage: ChatMessage = {
-      username: this.username,
-      message: sanitizedMessage,
+      username: "System",
+      message: this.username + " " + sanitizedMessage,
       timestamp: new Date(),
     };
 
