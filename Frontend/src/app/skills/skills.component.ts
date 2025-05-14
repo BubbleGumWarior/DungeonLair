@@ -153,12 +153,12 @@ export class SkillsComponent implements OnInit {
       const roll = Math.floor(Math.random() * diceRoll) + 1;  // Roll a dice
       
       if (roll === diceRoll) {
-        resultMessage = `Critical ${diceRoll}!!!`;  // Ignore modifier
+        resultMessage = `rolled a Critical ${diceRoll}!!!`;  // Ignore modifier
       } else if (roll === 1) {
-        resultMessage = 'Natural 1...';  // Ignore modifier
+        resultMessage = 'rolled a Natural 1...';  // Ignore modifier
       } else {
         const finalResult = roll + modifier;
-        resultMessage = `has rolled a ${roll} with a modifier of ${modifier >= 0 ? '+' + modifier : modifier} and got ${finalResult}`;
+        resultMessage = `rolled a ${roll} with a modifier of ${modifier >= 0 ? '+' + modifier : modifier} and got ${finalResult}`;
       } 
       this.resultRolled.emit(resultMessage);
     }

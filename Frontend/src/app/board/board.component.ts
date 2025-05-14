@@ -273,12 +273,12 @@ export class BoardComponent implements OnInit {
     
 
     if (roll === 20) {
-      resultMessage = 'Natural 20!';  // Ignore modifier
+      resultMessage = `rolled a Critical ${roll}!!!`;  // Ignore modifier
     } else if (roll === 1) {
-      resultMessage = 'Natural 1...';  // Ignore modifier
+      resultMessage = 'rolled a Natural 1...';  // Ignore modifier
     } else {
       const finalResult = roll + modifier;
-      resultMessage = `has rolled a ${roll} with a modifier of ${modifier >= 0 ? '+' + modifier : modifier} and got ${finalResult}`;
+      resultMessage = `rolled a ${roll} with a modifier of ${modifier >= 0 ? '+' + modifier : modifier} and got ${finalResult}`;
     }
 
 

@@ -38,7 +38,7 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
         this.sendToChatHistory(message);
       } else {
         if (this.userRole !== 'Dungeon Master') {
-          this.addMessageToChat('System', "You " + message);
+          this.addMessageToChat('System', "You have " + message);
         }
         this.sendToDMChatHistory(message);
       }

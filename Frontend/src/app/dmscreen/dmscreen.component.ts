@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // Import FormsModule
 import { localIP } from '../config'; // Import localIP from config
+import { WebSocketService } from '../services/websocket.service'; // Import WebSocketService
 
 @Component({
   selector: 'app-dmscreen',
@@ -58,7 +59,7 @@ export class DMScreenComponent implements OnInit {
   }; // Initialize new mask skill
   newMaskMod: any = { modType: '', modRarity: 0, description: '' }; // Add this variable to store new mod details
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private websocketService: WebSocketService) {} // Inject WebSocketService
 
   ngOnInit() {
     this.fetchCharacterNames();
@@ -393,9 +394,10 @@ export class DMScreenComponent implements OnInit {
       activeSkills: this.newMask.activeSkills.split(',').map((skill: string) => parseInt(skill.trim(), 10)), // Convert activeSkills to array of integers
       attackDamage: this.newMask.attackDamage,
       abilityDamage: this.newMask.abilityDamage,
-      magicResist: this.newMask.magicResist, // Corrected typo
+      magicResist: this.newMask.magicResist,
       protections: this.newMask.protections,
       health: this.newMask.health,
+      currentHealth: this.newMask.health, // Set currentHealth to health value
       speed: this.newMask.speed
     };
     this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacterID}/mask`, maskData).subscribe(
@@ -581,6 +583,14 @@ export class DMScreenComponent implements OnInit {
           console.error('Error deleting inventory item:', error);
         }
       );
+    }
+  }
+
+  removeMaskFromUser() {
+    if (this.currentlySelectedCharacterID) {
+      this.websocketService.removeMaskFromUser(this.maskDetails.maskID); // Use WebSocket to remove the mask
+      this.newMask = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magicResist: 0, protections: 0, health: 0, speed: 0 }; // Reset newMask
+      this.maskDetails = {}; // Clear mask details
     }
   }
 }

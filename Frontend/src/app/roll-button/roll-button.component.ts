@@ -61,12 +61,12 @@ export class RollButtonComponent {
 
     const roll = Math.floor(Math.random() * diceSize) + 1;  // Roll a dice
     if (roll === diceSize) {
-      resultMessage = `Critical ${diceSize}!!!`;  // Ignore modifier
+      resultMessage = `rolled a Critical ${diceSize}!!!`;  // Ignore modifier
     } else if (roll === 1) {
-      resultMessage = 'Natural 1...';  // Ignore modifier
+      resultMessage = 'rolled a Natural 1...';  // Ignore modifier
     } else {
       const finalResult = roll + modifier;
-      resultMessage = `has rolled a ${roll} with a modifier of ${modifier >= 0 ? '+' + modifier : modifier} and got ${finalResult}`;
+      resultMessage = `rolled a ${roll} with a modifier of ${modifier >= 0 ? '+' + modifier : modifier} and got ${finalResult}`;
     }
     this.resultRolled.emit(resultMessage);
     this.closeRoll(); // Close the modal

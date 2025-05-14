@@ -195,6 +195,10 @@ export class WebSocketService {
     this.socket.emit('removeMask', maskID); // Emit the removeMask event with the maskID
   }
 
+  removeMaskFromUser(maskID: number) {
+    this.socket.emit('removeMaskFromUser', maskID); // Emit the removeMask event with the maskID
+  }
+
   // Add methods to handle masks in battle
   addMaskToBattle(maskID: number) {
     this.socket.emit('add-mask-to-battle', { maskID });
@@ -210,5 +214,9 @@ export class WebSocketService {
 
   onEndBattle(callback: () => void) {
     this.socket.on('end-battle', callback);
+  }
+
+  resetHealth() {
+    this.socket.emit('resetHealth'); // Emit the resetHealth event
   }
 }

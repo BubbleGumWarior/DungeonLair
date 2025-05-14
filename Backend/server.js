@@ -87,6 +87,28 @@ sequelize.sync({ force: false })
                 isMultiTarget: false,
             },
             {
+                skillID: 9997,
+                skillName: 'Lurk in the Shadows Dog',
+                description: 'Strike the target dealing Attack Damage to them. If you are untargetable this does double damage. At the start of each cycle you have a 50% chance to become untargetable.',
+                mainStat: 'Attack Damage',
+                mainStatPercentage: 100,
+                cooldown: 0,
+                amountOfStrikes: 1,
+                onHitEffect: 'None',
+                isMultiTarget: false,
+            },
+            {
+                skillID: 9998,
+                skillName: 'Mounted Slash',
+                description: 'Slash at the target with you sword dealing Attack Damage to them. Because you are mounted you do not need to focus on your Stance as much and can strike freely now.',
+                mainStat: 'Attack Damage',
+                mainStatPercentage: 750,
+                cooldown: 0,
+                amountOfStrikes: 1,
+                onHitEffect: 'None',
+                isMultiTarget: false,
+            },
+            {
                 skillID: 9999,
                 skillName: 'Ravaging Strikes',
                 description: 'Now that you are transformed you have shown your true strength and you are no longer holding back. Strike the target 4 times dealing Attack Damage to it and applying bleed stacks. At the start of the cycle for each mask that is bleeding heal yourself by 20% of your missing health.',
@@ -756,6 +778,7 @@ let vcMembers = [];
 let masksInBattle = {}; // Add masksInBattle object
 let maskSkills = {}; // Add maskSkills object
 let blindingStrikesTargets = []; // Initialize variable to track targets hit by Blinding Strikes
+let blackHoleDamage = 0; // Initialize variable to track damage from Black Hole
 
 io.on('connection', (socket) => {
     console.log('A user connected with socket ID:', socket.id);
@@ -884,7 +907,7 @@ io.on('connection', (socket) => {
                             magicResist: maskDetails.magicResist,
                             health: maskDetails.health,
                             speed: maskDetails.speed,
-                            currentHealth: maskDetails.health,
+                            currentHealth: maskDetails.currentHealth,
                             currentSpeed: maskDetails.speed,
                             activeSkills: maskDetails.activeSkills,
                             stunStacks: 0, // Add stunStacks field
@@ -1249,7 +1272,6 @@ io.on('connection', (socket) => {
                   let damage = mask.attackDamage * (skill.mainStatPercentage / 100);
                   const reduction = targetMask.protections;
                   const finalDamage = Math.max(damage - reduction, 0); // Ensure damage is not negative
-            
                   targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0); // Reduce target's health
             
                   const alliesAlive = Object.values(masksInBattle).filter(
@@ -1336,6 +1358,152 @@ io.on('connection', (socket) => {
                   }
                 }
               });
+            }
+            else if (skill.skillName === 'Elusive Archer') {              
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                    let damage = 0;
+                    let reduction = 0;
+                    damage = mask.attackDamage * (skill.mainStatPercentage / 100);
+                    reduction = targetMask.protections;
+
+                    let finalDamage = Math.max(damage - reduction, 0); // Ensure damage is not negative
+
+                    totalDamage += finalDamage; // Add finalDamage to totalDamage
+                    masksInBattle[targetMaskID].currentHealth = Math.max(masksInBattle[targetMaskID].currentHealth - finalDamage, 0); // Reduce target mask's currentHealth and cap at 0
+
+                    if (masksInBattle[targetMaskID].currentHealth === 0) {
+                      masksInBattle[targetMaskID].action = false;
+                      masksInBattle[targetMaskID].bonusAction = false;
+                      masksInBattle[targetMaskID].movement = 0;
+                      masksInBattle[targetMaskID].currentSpeed = 0;
+                      masksInBattle[mask.maskID].untargetable = true;
+                    }
+
+                    masksInBattle[mask.maskID].untargetable = true; // Set mask to untargetable
+                    console.log(`Total damage dealt by Mask ${maskID}: ${totalDamage}`); // Log totalDamage
+                    battleMessage = `Mask ${maskID} used Elusive Archer on Mask ${targetMaskID}, dealing ${finalDamage} damage.`;
+                          
+                    if (battleMessage) {
+                      console.log(battleMessage); // Log battleMessage if not empty
+                      io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+                    }
+                }
+              });
+            }
+            else if (skill.skillName === 'Stand and Fight') {
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                  let damage = mask.abilityDamage * (skill.mainStatPercentage / 100);
+                  const reduction = targetMask.magicResist;
+                  const finalDamage = Math.max(damage - reduction, 0); // Ensure damage is not negative
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0); // Reduce target's health
+                  console.log(`Mask ${maskID} used Stand and Fight on Mask ${targetMaskID}, dealing ${finalDamage} damage.`);
+                }
+              });
+            
+              // Check for dead allies on the same team
+              const deadAllies = Object.values(masksInBattle).filter(
+                ally => ally.team === mask.team && ally.currentHealth === 0
+              );
+            
+              if (deadAllies.length > 0) {
+                const allyToRevive = deadAllies[0]; // Revive the first dead ally found
+                allyToRevive.currentHealth = allyToRevive.health; // Restore full health
+                allyToRevive.currentSpeed = allyToRevive.speed; // Restore speed
+                console.log(`Mask ${maskID} revived Mask ${allyToRevive.maskID} using Stand and Fight.`);
+                io.emit('battleMessage', `Mask ${maskID} revived Mask ${allyToRevive.maskID} using Stand and Fight.`);
+              }
+            }
+            else if (skill.skillName === 'Grounded Slash') {
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                  let damage = mask.attackDamage * (skill.mainStatPercentage / 100);
+                  const reduction = targetMask.protections;
+                  const finalDamage = Math.max(damage - reduction, 0); // Ensure damage is not negative
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0); // Reduce target's heanot found for maskID:lth
+                  mask.speed -= 10; // Reduce user's speed by 10
+                  mask.speed = Math.max(mask.speed, 5); // Ensure speed is not less than 5
+                  console.log(`Mask ${maskID} used Grounded Slash on Mask ${targetMaskID}, dealing ${finalDamage} damage and reducing its own speed.`);
+            
+                  if (targetMask.currentHealth === 0) {
+                    mask.speed = 100;
+                    // Add skill with ID 9998 to the user's active skills, skill list, and maskSkills
+                    if (!mask.activeSkills.includes(9998)) {
+                      // set this masks photo to MountedKnight.png
+                      mask.photo = '/assets/images/MountedKnight.png';
+                      mask.activeSkills.push(9998);
+                      if (!mask.skillList) mask.skillList = []; // Ensure skillList exists
+                      mask.skillList.push(9998);
+
+                      if (!maskSkills[maskID]) maskSkills[maskID] = [];
+                      maskSkills[maskID].push({
+                        skillID: 9998,
+                        skillName: 'Mounted Slash',
+                        description: 'Slash at the target with your sword dealing Attack Damage to them. Because you are mounted you do not need to focus on your Stance as much and can strike freely now.',
+                        mainStat: 'Attack Damage',
+                        mainStatPercentage: 750,
+                        cooldown: 0,
+                        amountOfStrikes: 1,
+                        onHitEffect: 'None',
+                        isMultiTarget: false,
+                      });
+
+                      console.log(`Mask ${maskID} has mounted and gained the skill with ID 9998.`);
+                      io.emit('battleMessage', `Mask ${maskID} has mounted and gained the skill Mounted Slash.`);
+                    }
+                  }
+                }
+              });
+            }
+            else if (skill.skillName === 'Vein Slash') {
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                  let damage = mask.attackDamage * (skill.mainStatPercentage / 100);
+                  if (targetMask.bleedStacks > 0) {
+                    damage *= 2; // Double damage if target has bleed stacks
+                  }
+                  targetMask.bleedStacks += 2;
+                  const reduction = targetMask.protections;
+                  const finalDamage = Math.max(damage - reduction, 0); // Ensure damage is not negative
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0); // Reduce target's health
+                  console.log(`Mask ${maskID} used Vein Slash on Mask ${targetMaskID}, dealing ${finalDamage} damage.`);
+                }
+              });
+            }
+            else if (skill.skillName === 'Lurk in the Shadows') {
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                  let damage = mask.attackDamage * (skill.mainStatPercentage / 100);
+                  if (mask.untargetable > 0) {
+                    damage *= 2; // Double damage if mask is untargetable
+                  }
+                  const reduction = targetMask.protections;
+                  const finalDamage = Math.max(damage - reduction, 0); // Ensure damage is not negative
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0); // Reduce target's health
+                  console.log(`Mask ${maskID} used Lurk in the Shadows on Mask ${targetMaskID}, dealing ${finalDamage} damage.`);
+                }
+              });
+            }
+            else if (skill.skillName == 'Command') {
+              //Set all allies action to true
+              const allies = Object.values(masksInBattle).filter(mask => mask.team === masksInBattle[maskID].team && mask.maskID !== maskID);
+              allies.forEach(ally => {
+                ally.action = true;
+                ally.bonusAction = true;
+                ally.movement = 1;
+                ally.currentSpeed = 100; // Reset speed to original value
+              });
+            }
+            else if (skill.skillName === 'Black Hole') {
+              // heal the user of the skill by 5 x blackHoleDamage
+              mask.currentHealth = Math.min(mask.currentHealth + (blackHoleDamage * 5), mask.health); // Heal the user of the skill
+
             }
             else if (skill.onHitEffect === 'Heal') {
               targetMaskIDs.forEach(targetMaskID => {
@@ -1449,6 +1617,39 @@ io.on('connection', (socket) => {
         } else {
             console.log(`Mask ${maskID} not found in battle`);
         }
+    });
+
+    socket.on('removeMaskFromUser', async (maskID) => {
+      try {
+        const characterInfo = await CharacterInfo.findOne({ where: { maskID } });
+        if (characterInfo) {
+          await CharacterInfo.update({ maskID: null }, { where: { maskID } });
+          console.log(`Mask ${maskID} removed from CharacterInfo`);
+        } else {
+          console.log(`No character found with maskID: ${maskID}`);
+        }
+      } catch (error) {
+        console.error('Error removing mask:', error);
+      }
+    });
+
+    socket.on('resetHealth', async () => {
+      try {
+        await MaskList.update(
+          { currentHealth: sequelize.col('health') }, // Set currentHealth to the value of health
+          { where: {} } // Apply to all rows
+        );
+        console.log('All masks have been reset to full health');
+        
+        
+        masksInBattle = {};
+        blindingStrikesTargets = []; // Clear the tracking array when the battle ends
+        blackHoleDamage = 0;
+
+        io.emit('masksInBattleUpdate', Object.values(masksInBattle));
+      } catch (error) {
+        console.error('Error resetting mask health:', error);
+      }
     });
 
 });
@@ -1866,6 +2067,7 @@ app.post('/character-info/:characterID/mask', async (req, res) => {
         magicResist,
         protections,
         health,
+        currentHealth: health, // Explicitly set currentHealth to health
         speed
       });
       await CharacterInfo.update({ maskID: newMask.maskID }, { where: { characterID } });
@@ -2006,6 +2208,8 @@ app.post('/continue', async (req, res) => {
   const defaultMaskIDs = [8888, 8686, 10000]; // Extract maskIDs from defaultMasks
 
   Object.values(masksInBattle).forEach(mask => {
+  
+    mask.untargetable = false; // Reset untargetable to false
     if (mask.currentHealth === 0) {
       mask.action = false; // Reset action to false
       mask.bonusAction = false; // Reset bonusAction to false
@@ -2102,9 +2306,12 @@ app.post('/continue', async (req, res) => {
           if (skillName === "Welcome the Dead") {
             console.log(`Mask ${mask.maskID} has skill: Welcome the Dead`);
             const deadMasksCount = Object.values(masksInBattle).filter(m => m.currentHealth === 0).length;
+            mask.health += deadMasksCount * 0.2 * mask.attackDamage; // Increase max health by 25% of attack damage for each dead mask
+            mask.currentHealth += deadMasksCount * 0.2 * mask.attackDamage; // Heal for 25% of attack damage for each dead mask
+            mask.currentHealth = Math.min(mask.currentHealth, mask.health); // Cap current health at max health
             mask.currentHealth += mask.health * 0.03 * deadMasksCount;
             mask.currentHealth = Math.min(mask.currentHealth, mask.health);
-            battleMessage = `Mask ${mask.maskID} used Welcome the Dead and healed for 3% of its max health for each dead mask`;
+            battleMessage = `Mask ${mask.maskID} used Welcome the Dead and healed for 3% of its max health and increased it's Max Health for each dead mask`;
                       
             if (battleMessage) {
               console.log(battleMessage); // Log battleMessage if not empty
@@ -2113,12 +2320,9 @@ app.post('/continue', async (req, res) => {
           }
           if (skillName === "Blinding Speed") {
             console.log(`Mask ${mask.maskID} has skill: Blinding Speed`);
-            mask.currentSpeed += mask.speed;
-            mask.currentSpeed += mask.speed;
-            if (mask.currentSpeed >= 100) {
-              mask.currentSpeed = 99;
-            }
-            battleMessage = `Mask ${mask.maskID} used Blinding Speed and tripled its speed`;
+            // Increase mask Attack Damage by 10% of mask.speed
+            mask.attackDamage += 0.1 * mask.speed; // Increase attack damage by 10% of speed
+            battleMessage = `Mask ${mask.maskID} used Blinding Speed and increased its attack damage by 10% of its speed`;
                       
             if (battleMessage) {
               console.log(battleMessage); // Log battleMessage if not empty
@@ -2159,21 +2363,23 @@ app.post('/continue', async (req, res) => {
           }
           if (skillName === "Black Hole") {
             console.log(`Mask ${mask.maskID} has skill: Black Hole`);
-            if (mask.buffStacks > 0) {
-              const damage = mask.abilityDamage * 0.15 * mask.buffStacks;
-              const heal = mask.abilityDamage * 0.075 * mask.buffStacks;
-              Object.values(masksInBattle).forEach(targetMask => {
-                if (targetMask.maskID !== mask.maskID && targetMask.team !== mask.team) {
-                  targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
-                  mask.currentHealth = Math.min(mask.currentHealth + heal, mask.health); // Heal mask and cap at mask.health
-                }
-              });
-              battleMessage = `Mask ${mask.maskID} used Black Hole, dealt damage to all enemies, and healed itself`;
-                      
-              if (battleMessage) {
-                console.log(battleMessage); // Log battleMessage if not empty
-                io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+            // Deal blackHoleDamage to all enemies and heal mask for the same amount
+            Object.values(masksInBattle).forEach(targetMask => {
+              if (targetMask.team !== mask.team && targetMask.currentHealth > 0) { // Ensure target is not on the same team and is alive
+                const damage = blackHoleDamage;
+                targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
+                mask.currentHealth = Math.min(mask.currentHealth + damage, mask.health); // Heal mask and cap at mask.health
               }
+            });
+            // Cap blackHoleDamage at 100% of mask.abilityDamage
+
+            blackHoleDamage += mask.abilityDamage * 0.05; // Increase blackHoleDamage by 5% of mask.abilityDamage
+            blackHoleDamage = Math.min(mask.abilityDamage, blackHoleDamage);
+            battleMessage = `Black Hole Damage: ${blackHoleDamage}`;
+                      
+            if (battleMessage) {
+              console.log(battleMessage); // Log battleMessage if not empty
+              io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
             }
           }
           if (skillName === "Nightmare") {
@@ -2182,7 +2388,7 @@ app.post('/continue', async (req, res) => {
             Object.values(masksInBattle).forEach(targetMask => {
               if (targetMask.maskID !== mask.maskID && targetMask.team !== mask.team) { // Ensure target is not on the same team
                 targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
-                const roll = Math.floor(Math.random() * 20) + 1;
+                const roll = Math.floor(Math.random() * 50) + 1;
                 if (roll < mask.buffStacks) {
                   targetMask.stunStacks += 3;
                   battleMessage = `Mask ${mask.maskID} used Nightmare and feared ${targetMask.maskID}`;
@@ -2219,7 +2425,7 @@ app.post('/continue', async (req, res) => {
           if (skillName === "Screw the Haters") {
             console.log(`Mask ${mask.maskID} has skill: Screw the Haters`);
             const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team);
-            const damage = mask.attackDamage * 0.25 * mask.buffStacks * enemies.length;
+            const damage = mask.abilityDamage * 0.25 * mask.buffStacks * enemies.length;
             enemies.forEach(targetMask => {
               targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
               masksInBattle[targetMask.maskID] = targetMask; // Ensure the updated targetMask is added to masksInBattle
@@ -2536,13 +2742,13 @@ app.post('/continue', async (req, res) => {
             if (!masksInBattle[8686]) {
               const dogStats = {
                 maskID: 8686,
-                attackDamage: mask.abilityDamage * 0.25,
-                abilityDamage: mask.abilityDamage * 0.25,
-                protections: mask.abilityDamage * 0.1,
-                magicResist: mask.abilityDamage * 0.1,
-                health: mask.abilityDamage * 5,
+                attackDamage: mask.attackDamage * 0.25,
+                abilityDamage: mask.attackDamage * 0.25,
+                protections: mask.attackDamage * 0.1,
+                magicResist: mask.attackDamage * 0.1,
+                health: mask.attackDamage * 5,
                 speed: 100,
-                currentHealth: mask.abilityDamage * 5,
+                currentHealth: mask.attackDamage * 5,
                 currentSpeed: 0,
                 activeSkills: [8888],
                 stunStacks: 0,
@@ -2829,17 +3035,166 @@ app.post('/continue', async (req, res) => {
               const damage = mask.abilityDamage * 100;
               targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
               masksInBattle[targetMask.maskID] = targetMask; // Ensure the updated targetMask is added to masksInBattle
-              battleMessage = `Mask ${mask.maskID} used Good Dragon Blast and dealt ${damage} damage to mask ${targetMask.maskID}`;
+              battleMessage = `Mask ${mask.maskID} used Dragon Blast and dealt ${damage} damage to mask ${targetMask.maskID}`;
               if (battleMessage) {
                 console.log(battleMessage); // Log battleMessage if not empty
                 io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
               }
             }
-          }        
+          }   
+          if (skillName === "Life of the Party") {
+            console.log(`Mask ${mask.maskID} has skill: Life of the Party`);
+            Object.values(masksInBattle).forEach(targetMask => {
+              if (targetMask.team === mask.team) {
+                if (targetMask.currentHealth <= 0) {
+                  targetMask.attackDamage *= mask.abilityDamage;
+                  targetMask.abilityDamage *= mask.abilityDamage;
+                  targetMask.protections *= mask.abilityDamage;
+                  targetMask.magicResist *= mask.abilityDamage;
+                  targetMask.health *= mask.abilityDamage;
+                  targetMask.speed *= mask.abilityDamage;
+                  targetMask.speed = Math.min(targetMask.speed, 100);
+                  targetMask.currentHealth = targetMask.health;
+                }
+              }
+              battleMessage = `Mask ${mask.maskID} used Life of the Party and revived ${targetMask.maskID} and made them stronger!`;
+              if (battleMessage) {
+                console.log(battleMessage); // Log battleMessage if not empty
+                io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+              }
+            });
+          }   
+          if (skillName === "Hack the Matrix") {
+            console.log(`Mask ${mask.maskID} has skill: Hack the Matrix`);
+            mask.attackDamage += mask.abilityDamage * 0.1;
+            mask.abilityDamage += mask.abilityDamage * 0.1;
+            mask.protections += mask.abilityDamage * 0.1;
+            mask.magicResist += mask.abilityDamage * 0.1;
+            mask.health += mask.abilityDamage;
+            mask.currentHealth += mask.abilityDamage;
+            mask.speed += mask.abilityDamage * 0.1;
+            mask.speed = Math.min(mask.speed, 100); // Cap speed at 100
+            mask.currentHealth += mask.health * 0.1;
+            mask.currentHealth = Math.min(mask.currentHealth, mask.health); // Heal mask and cap at mask.health
+            battleMessage = `Mask ${mask.maskID} used Hack the Matrix and increased all it's stats!`;
+            if (battleMessage) {
+              console.log(battleMessage); // Log battleMessage if not empty
+              io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+            }
+          } 
+          if (skillName === "Lurk in the Shadows") {
+            let isUntargetable = false; //make it a 50-50 chance to be untargetable
+            isUntargetable = Math.random() < 0.5; // 50% chance to be untargetable
+            mask.untargetable = isUntargetable; // Set the mask's untargetable property
+            battleMessage = `Mask ${mask.maskID} used Lurk in the Shadows and is now ${isUntargetable ? 'untargetable' : 'targetable'}`;
+            if (battleMessage) {
+              console.log(battleMessage); // Log battleMessage if not empty
+              io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+            }
+
+            if (!masksInBattle[9997]) {
+              const dogStats = {
+                maskID: 9997,
+                attackDamage: mask.abilityDamage * 0.5,
+                abilityDamage: mask.abilityDamage * 0.5,
+                protections: mask.abilityDamage * 0.2,
+                magicResist: mask.abilityDamage * 0.2,
+                health: mask.abilityDamage * 10,
+                speed: 100,
+                currentHealth: mask.abilityDamage * 10,
+                currentSpeed: 0,
+                activeSkills: [9997],
+                stunStacks: 0,
+                burnStacks: 0,
+                poisonStacks: 0,
+                bleedStacks: 0,
+                buffStacks: 0,
+                action: false,
+                bonusAction: false,
+                movement: 0,
+                team: mask.team,
+                cooldowns: {},
+                photo: "/assets/images/ShadowDoggo.jpg"
+              };
+              masksInBattle[9997] = dogStats;
+              console.log(`A Shadow Wolf was summoned!`);
+              battleMessage = `Mask ${mask.maskID} used Lurk in the Shadows and summoned a Shadow Wolf`;
+              if (battleMessage) {
+                console.log(battleMessage);
+                io.emit('battleMessage', battleMessage);
+              }
+            }
+          } 
+          if (skillName === "Lurk in the Shadows Dog") {
+            console.log(`Mask ${mask.maskID} has skill: Lurk in the Shadows Dog`);
+
+            
+            let isUntargetable = false; //make it a 50-50 chance to be untargetable
+            isUntargetable = Math.random() < 0.5; // 50% chance to be untargetable
+            mask.untargetable = isUntargetable; // Set the mask's untargetable property
+            battleMessage = `Mask ${mask.maskID} used Lurk in the Shadows and is now ${isUntargetable ? 'untargetable' : 'targetable'}`;
+            if (battleMessage) {
+              console.log(battleMessage); // Log battleMessage if not empty
+              io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+            }
+
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+            if (enemies.length > 0) {
+              const randomIndex = Math.floor(Math.random() * enemies.length);
+              const targetMask = enemies[randomIndex];
+              let damage = mask.attackDamage * 0.5;
+              if (isUntargetable) {
+                damage *= 2; // Double damage if the mask is untargetable
+              }
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
+              masksInBattle[targetMask.maskID] = targetMask; // Ensure the updated targetMask is added to masksInBattle
+              battleMessage = `Mask ${mask.maskID} used Lurk in the Shadows and dealt ${damage} damage to mask ${targetMask.maskID}`;
+              if (battleMessage) {
+                console.log(battleMessage); // Log battleMessage if not empty
+                io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+              }
+            }
+          }
+          if (skillName === "Poisoned Stone") {
+            console.log(`Mask ${mask.maskID} has skill: Poisoned Stone`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+            enemies.forEach(targetMask => {
+              if (targetMask.stunStacks > 0) {
+                targetMask.poisonStacks += 1;
+                console.log(`Mask ${mask.maskID} increased poison stacks of mask ${targetMask.maskID}`);
+              }
+            });
+            battleMessage = `Mask ${mask.maskID} used Poisoned Stone and increased poison stacks of all enemies that have been turned to stone`;
+            if (battleMessage) {
+              console.log(battleMessage); // Log battleMessage if not empty
+              io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+            }
+          } 
+          if (skillName === "Blind leading the Blind") {
+            // Loop through all enemy masks, if the enemy mask has more current Speed than this mask, their current Speed is reduced by their mask.speed and action is set to false.
+            console.log(`Mask ${mask.maskID} has skill: Blind leading the Blind`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+            enemies.forEach(targetMask => {
+              if (targetMask.currentSpeed -targetMask.speed > mask.currentSpeed - mask.speed) {
+                if (targetMask.currentSpeed = 100) {
+                  // Increase cooldowns again
+                  Object.keys(targetMask.cooldowns).forEach(skillID => {
+                    if (targetMask.cooldowns[skillID] > 0) {
+                      targetMask.cooldowns[skillID] += 1;
+                    }
+                  });
+                }
+                targetMask.currentSpeed -= targetMask.speed;
+                targetMask.currentSpeed = Math.max(targetMask.currentSpeed, 0); // Ensure currentSpeed is capped at 0
+                targetMask.action = false; // Set action to false
+                targetMask.bonusAction = false; // Set bonusAction to false
+                targetMask.movement = 0; // Set movement to 0
+              }
+            });
+            battleMessage = `Mask ${mask.maskID} used Blind leading the Blind and reduced the current Speed of all enemies that have more current Speed than it`;
+          }
         }
       });
-
-      mask.untargetable = false; // Reset untargetable to false
 
       if (mask.burnStacks > 0) {
         if (mask.burnStacks >= 50) {
@@ -2915,14 +3270,32 @@ app.post('/continue', async (req, res) => {
     } 
   });
   io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Emit updated masksInBattle
+  console.log('Masks in battle updated:', masksInBattle);
   res.status(200).send('Continue request received');
 });
 
-app.post('/end-battle', (req, res) => {
-  masksInBattle = {};
-  blindingStrikesTargets = []; // Clear the tracking array when the battle ends
-  io.emit('masksInBattleUpdate', Object.values(masksInBattle));
-  res.status(200).send('Battle ended and masksInBattle cleared');
+app.post('/end-battle', async (req, res) => {
+  try {
+    // Save currentHealth fields to the database
+    const maskUpdates = Object.values(masksInBattle).map(mask => {
+      return MaskList.update(
+        { currentHealth: Math.floor(mask.currentHealth) },
+        { where: { maskID: mask.maskID } }
+      );
+    });
+    await Promise.all(maskUpdates); // Wait for all updates to complete
+
+    // Clear masksInBattle and related variables
+    masksInBattle = {};
+    blindingStrikesTargets = []; // Clear the tracking array when the battle ends
+    blackHoleDamage = 0;
+
+    io.emit('masksInBattleUpdate', Object.values(masksInBattle));
+    res.status(200).send('Battle ended, masksInBattle saved, and cleared');
+  } catch (error) {
+    console.error('Error saving masksInBattle:', error);
+    res.status(500).send('Failed to save masksInBattle');
+  }
 });
 
 // Endpoint to fetch the current state of masksInBattle
@@ -3032,3 +3405,23 @@ app.get('/masks/:maskID/mods', async (req, res) => {
 });
 
 app.use(maskRoutes); // Use maskRoutes
+
+app.post('/reset-health', async (req, res) => {
+  try {
+    // Update currentHealth in the database
+    await MaskList.update(
+      { currentHealth: sequelize.col('health') }, // Set currentHealth to the value of health
+      { where: {} } // Apply to all rows
+    );
+    masksInBattle = {};
+    blindingStrikesTargets = []; // Clear the tracking array when the battle ends
+    blackHoleDamage = 0;
+
+    io.emit('masksInBattleUpdate', Object.values(masksInBattle));
+
+    res.status(200).send('All masks have been reset to full health');
+  } catch (error) {
+    console.error('Error resetting mask health:', error);
+    res.status(500).send('Failed to reset mask health');
+  }
+});

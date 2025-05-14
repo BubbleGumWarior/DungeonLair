@@ -42,6 +42,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   selectedMaskForUse: any = null; // Add variable to store the selected mask for use
   showErrorBanner: boolean = false; // Add state for the error banner
   errorMessage: string = ''; // Add variable to store the error message
+  showJoinLeaveConfirmationModal: boolean = false; // Add flag for join/leave confirmation modal
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private router: Router) { // Add Router to constructor
     this.webSocketService.onMasksInBattleUpdate((masks) => {
@@ -201,7 +202,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   }
 
   selectTarget(mask: any) {
-    if (this.selectedSkill && mask.stunStacks < 1 && !this.isUserStunned()) {
+    if (this.selectedSkill && mask.stunStacks < 1 && !this.isUserStunned() && mask.currentHealth > 0) {
       const userMask = this.masksInBattle.find(m => m.maskID === this.userInformation.maskID);
       if (mask.untargetable || mask.currentHealth === 0 && this.selectedSkill.onHitEffect !== 'Heal') {
         return; // Do nothing if the mask is untargetable or dead
@@ -426,7 +427,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
             ...mask,
             photo: mask.photo.startsWith('http') ? mask.photo : `https://${localIP}:8080${mask.photo}` // Ensure correct photo URL
           }));
-          this.filteredMaskList = [...this.maskList]; // Initialize filteredMaskList
+          this.filteredMaskList = [...this.maskList].sort((a, b) => a.maskID - b.maskID); // Sort by maskID as integers
         },
         (error) => {
           console.error('Error fetching mask list:', error);
@@ -537,5 +538,22 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
       this.showTargetBanner = false; // Hide banner
       this.selectedMaskForUse = null; // Reset selectedMaskForUse
     }
+  }
+
+  confirmJoinLeaveBattle() {
+    this.showJoinLeaveConfirmationModal = true; // Show the confirmation modal
+  }
+
+  cancelJoinLeaveBattle() {
+    this.showJoinLeaveConfirmationModal = false; // Hide the confirmation modal
+  }
+
+  proceedJoinLeaveBattle() {
+    this.showJoinLeaveConfirmationModal = false; // Hide the confirmation modal
+    this.joinBattle(); // Proceed with joining/leaving the battle
+  }
+  clearHealth() {
+    this.webSocketService.resetHealth(); // Use WebSocket service to emit resetHealth event
+    console.log('Reset health request sent via WebSocket');
   }
 }

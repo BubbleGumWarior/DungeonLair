@@ -46,6 +46,10 @@ const MaskList = sequelize.define('MaskList', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  currentHealth: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
   speed: {
     type: DataTypes.INTEGER,
     allowNull: false,
