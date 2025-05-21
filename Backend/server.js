@@ -129,6 +129,28 @@ sequelize.sync({ force: false })
                 amountOfStrikes: 1,
                 onHitEffect: 'Burn',
                 isMultiTarget: false,
+            },
+            {
+                skillID: 100000,
+                skillName: 'Archer Shot',
+                description: 'Blast Dragons',
+                mainStat: 'Attack Damage',
+                mainStatPercentage: 100,
+                cooldown: 0,
+                amountOfStrikes: 1,
+                onHitEffect: 'None',
+                isMultiTarget: false,
+            },
+            {
+                skillID: 1000000,
+                skillName: 'Warrior Strike',
+                description: 'Blast Dragons',
+                mainStat: 'Attack Damage',
+                mainStatPercentage: 100,
+                cooldown: 0,
+                amountOfStrikes: 1,
+                onHitEffect: 'None',
+                isMultiTarget: false,
             }
         ];
 
@@ -158,6 +180,7 @@ sequelize.sync({ force: false })
                 magicResist: 5,
                 protections: 5,
                 health: 50,
+                currentHealth: 50,
                 speed: 100,
             },
             {
@@ -171,6 +194,7 @@ sequelize.sync({ force: false })
                 magicResist: 10,
                 protections: 10,
                 health: 75,
+                currentHealth: 75,
                 speed: 100,
             },
             {
@@ -184,6 +208,35 @@ sequelize.sync({ force: false })
                 magicResist: 10,
                 protections: 10,
                 health: 75,
+                currentHealth: 75,
+                speed: 100,
+            },
+            {
+                maskID: 100000,
+                photo: '/assets/images/SkellyArcher.jpg',
+                passiveSkill: 'Pack Mentality',
+                activeSkills: [100000],
+                modList: [],
+                attackDamage: 50,
+                abilityDamage: 15,
+                magicResist: 10,
+                protections: 10,
+                health: 100,
+                currentHealth: 100,
+                speed: 100,
+            },
+            {
+                maskID: 1000000,
+                photo: '/assets/images/SkellyWarrior.jpg',
+                passiveSkill: 'Pack Mentality',
+                activeSkills: [1000000],
+                modList: [],
+                attackDamage: 15,
+                abilityDamage: 15,
+                magicResist: 10,
+                protections: 10,
+                health: 500,
+                currentHealth: 500,
                 speed: 100,
             }
         ];
@@ -779,6 +832,9 @@ let masksInBattle = {}; // Add masksInBattle object
 let maskSkills = {}; // Add maskSkills object
 let blindingStrikesTargets = []; // Initialize variable to track targets hit by Blinding Strikes
 let blackHoleDamage = 0; // Initialize variable to track damage from Black Hole
+let stormSize = 0; // Initialize variable to track storm size
+let infectedByPlague = []; // Initialize variable to track infected masks
+let forestsTiming = 0; // Initialize variable to track forests timing
 
 io.on('connection', (socket) => {
     console.log('A user connected with socket ID:', socket.id);
@@ -1502,8 +1558,33 @@ io.on('connection', (socket) => {
             }
             else if (skill.skillName === 'Black Hole') {
               // heal the user of the skill by 5 x blackHoleDamage
-              mask.currentHealth = Math.min(mask.currentHealth + (blackHoleDamage * 5), mask.health); // Heal the user of the skill
+              mask.currentHealth = Math.min(mask.currentHealth + (blackHoleDamage * 3), mask.health); // Heal the user of the skill
 
+            }
+            else if (skill.skillName === 'The Black Plague') {
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                  let damage = mask.attackDamage * (skill.mainStatPercentage / 100);
+                  const reduction = targetMask.protections;
+                  const finalDamage = Math.max(damage - reduction, 0); // Ensure damage is not negative
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0); // Reduce target mask's currentHealth and cap at 0
+                  battleMessage = `Mask ${maskID} dealt ${finalDamage} damage to Mask ${targetMaskID} but did not infect it with the plague.`;
+
+                  if (!infectedByPlague.includes(targetMaskID)) {
+                    if (Math.random() < 0.5) { // 50% chance to infect
+                      infectedByPlague.push(targetMaskID); // Add target mask's maskID to infectedByPlague
+                      console.log(`Mask ${maskID} dealt ${finalDamage} damage to Mask ${targetMaskID} and infected it with the Black Plague.`);
+                      battleMessage = `Mask ${maskID} dealt ${finalDamage} damage to Mask ${targetMaskID} and infected it with the Black Plague.`;
+                    }
+                  }
+
+                  if (battleMessage) {
+                    console.log(battleMessage); // Log battleMessage if not empty
+                    io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+                  }
+                }
+              });
             }
             else if (skill.onHitEffect === 'Heal') {
               targetMaskIDs.forEach(targetMaskID => {
@@ -2210,6 +2291,20 @@ app.post('/continue', async (req, res) => {
   Object.values(masksInBattle).forEach(mask => {
   
     mask.untargetable = false; // Reset untargetable to false
+    mask.action = false; // Reset action to false
+    mask.bonusAction = false; // Reset bonusAction to false
+    mask.movement = 0; // Reset movement to 0
+    // If a default mask is dead, remove it from masksInBattle
+    if (defaultMaskIDs.includes(mask.maskID) && mask.currentHealth === 0) {
+      delete masksInBattle[mask.maskID]; // Remove the mask from masksInBattle
+    }
+    
+    //Remove all masks with maskID higher than 9999 if they are dead
+    if (mask.maskID > 9999 && mask.currentHealth === 0) {
+      delete masksInBattle[mask.maskID]; // Remove the mask from masksInBattle
+    }
+    
+    
     if (mask.currentHealth === 0) {
       mask.action = false; // Reset action to false
       mask.bonusAction = false; // Reset bonusAction to false
@@ -2348,7 +2443,7 @@ app.post('/continue', async (req, res) => {
             }
             if (mask.buffStacks > 0) {
               Object.values(masksInBattle).forEach(targetMask => {
-                if (targetMask.team === mask.team) {
+                if (targetMask.team === mask.team && targetMask.currentHealth > 0) { // Ensure target is on the same team and is alive
                   const heal = targetMask.health * 0.005 * mask.buffStacks;
                   targetMask.currentHealth = Math.min(targetMask.currentHealth + heal, targetMask.health); // Heal mask and cap at mask.health
                 }
@@ -2368,12 +2463,12 @@ app.post('/continue', async (req, res) => {
               if (targetMask.team !== mask.team && targetMask.currentHealth > 0) { // Ensure target is not on the same team and is alive
                 const damage = blackHoleDamage;
                 targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
-                mask.currentHealth = Math.min(mask.currentHealth + damage, mask.health); // Heal mask and cap at mask.health
+                mask.currentHealth = Math.min(mask.currentHealth + (damage / 4), mask.health); // Heal mask and cap at mask.health
               }
             });
             // Cap blackHoleDamage at 100% of mask.abilityDamage
 
-            blackHoleDamage += mask.abilityDamage * 0.05; // Increase blackHoleDamage by 5% of mask.abilityDamage
+            blackHoleDamage += mask.abilityDamage * 0.025; // Increase blackHoleDamage by 5% of mask.abilityDamage
             blackHoleDamage = Math.min(mask.abilityDamage, blackHoleDamage);
             battleMessage = `Black Hole Damage: ${blackHoleDamage}`;
                       
@@ -2425,7 +2520,7 @@ app.post('/continue', async (req, res) => {
           if (skillName === "Screw the Haters") {
             console.log(`Mask ${mask.maskID} has skill: Screw the Haters`);
             const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team);
-            const damage = mask.abilityDamage * 0.25 * mask.buffStacks * enemies.length;
+            const damage = mask.abilityDamage * 0.05 * mask.buffStacks * enemies.length;
             enemies.forEach(targetMask => {
               targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
               masksInBattle[targetMask.maskID] = targetMask; // Ensure the updated targetMask is added to masksInBattle
@@ -2463,18 +2558,20 @@ app.post('/continue', async (req, res) => {
               io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
             }
           }
-          if (skillName === "Toxic Atmosphere") {
+            if (skillName === "Toxic Atmosphere") {
             console.log(`Mask ${mask.maskID} has skill: Toxic Atmosphere`);
-            const totalPoisonStacks = Object.values(masksInBattle).reduce((sum, targetMask) => sum + targetMask.poisonStacks, 0);
-            const healAmount = totalPoisonStacks * 0.0025 * mask.health;
+            const uniqueEnemiesWithPoison = Object.values(masksInBattle).filter(
+              targetMask => targetMask.team !== mask.team && targetMask.poisonStacks > 1
+            );
+            const healAmount = uniqueEnemiesWithPoison.length * 0.0025 * mask.health;
             mask.currentHealth = Math.min(mask.currentHealth + healAmount, mask.health); // Heal mask and cap at mask.health
-            battleMessage = `Mask ${mask.maskID} used Toxic Atmosphere and healed for ${healAmount} based on poison stacks`;
-                      
+            battleMessage = `Mask ${mask.maskID} used Toxic Atmosphere and healed for ${healAmount} based on unique enemies with poison stacks`;
+
             if (battleMessage) {
               console.log(battleMessage); // Log battleMessage if not empty
               io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
             }
-          }
+            }
           if (skillName === "Blinded Rage") {
             console.log(`Mask ${mask.maskID} has skill: Blinded Rage`);
             const teamMembers = Object.values(masksInBattle).filter(targetMask => targetMask.team === mask.team && targetMask.maskID !== mask.maskID);
@@ -2548,19 +2645,37 @@ app.post('/continue', async (req, res) => {
           }
           if (skillName === "Shackle Bearer") {
             console.log(`Mask ${mask.maskID} has skill: Shackle Bearer`);
-            Object.values(masksInBattle).forEach(targetMask => {
-              if (targetMask.team !== mask.team && targetMask.stunStacks > 0) {
-                const damage = mask.abilityDamage * 0.25;
+
+            // Find the two enemy masks with the highest currentHealth
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+            const sortedEnemies = enemies.sort((a, b) => b.currentHealth - a.currentHealth).slice(0, 2);
+
+            // Increase stun stacks of the two enemy masks with the highest currentHealth
+            sortedEnemies.forEach(targetMask => {
+              targetMask.stunStacks += 1;
+              console.log(`Increased stun stacks of mask ${targetMask.maskID} by 1`);
+            });
+
+            // Deal 50% of mask.AttackDamage as damage to all enemy masks that are currently stunned
+            let totalHeal = 0;
+            enemies.forEach(targetMask => {
+              if (targetMask.stunStacks > 0) {
+                const damage = mask.attackDamage * 0.5;
                 targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
-                mask.currentHealth += damage; // Heal mask and cap at mask.health
-                battleMessage = `Mask ${mask.maskID} used Shackle Bearer and dealt ${damage} damage to all stunned enemies and healed because of it.`;
-                      
-                if (battleMessage) {
-                  console.log(battleMessage); // Log battleMessage if not empty
-                  io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
-                }
+                totalHeal += mask.attackDamage * 0.25; // Heal for 25% of mask.AttackDamage
+                console.log(`Dealt ${damage} damage to mask ${targetMask.maskID}`);
               }
             });
+
+            // Heal the mask for the total heal amount
+            mask.currentHealth = Math.min(mask.currentHealth + totalHeal, mask.health);
+            console.log(`Mask ${mask.maskID} healed for ${totalHeal}`);
+
+            battleMessage = `Mask ${mask.maskID} used Shackle Bearer, increased stun stacks, dealt damage to stunned enemies, and healed for ${totalHeal}`;
+            if (battleMessage) {
+              console.log(battleMessage); // Log battleMessage if not empty
+              io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+            }
           }
           if (skillName === "Growing Knowledge") {
             mask.abilityDamage += 15;
@@ -2621,13 +2736,33 @@ app.post('/continue', async (req, res) => {
               io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
             }
           }
-          if (skillName === "The Black Plague") {
-            console.log(`Mask ${mask.maskID} has skill: The Black Plague`);
-            Object.values(masksInBattle).forEach(targetMask => {
-              if (targetMask.team !== mask.team && targetMask.poisonStacks > 0) {
-                targetMask.currentHealth -= (targetMask.currentHealth * 0.005) * targetMask.poisonStacks;
+            if (skillName === "The Black Plague") {
+            infectedByPlague.forEach(maskID => {
+              const infectedMask = masksInBattle[maskID];
+              if (infectedMask) {
+              const damage = infectedMask.health * 0.1; // 10% of health as damage
+              infectedMask.currentHealth = Math.max(infectedMask.currentHealth - damage, 0); // Reduce currentHealth and cap at 0
+              infectedMask.stunStacks += 1; // Increase stun stacks
+              console.log(`Mask ${maskID} took ${damage} damage from Black Plague.`);
               }
             });
+
+            //Attempt ot sprea dthe plague to other masks
+            Object.values(masksInBattle).forEach(targetMask => {
+              if (targetMask.team !== mask.team && !infectedByPlague.includes(targetMask.maskID)) {
+                const roll = Math.floor(Math.random() * 100) + 1; // Random number between 1 and 100
+                if (roll <= 10) { // 25% chance to infect
+                  infectedByPlague.push(targetMask.maskID);
+                  console.log(`Mask ${targetMask.maskID} has been infected by the plague.`);
+                  battleMessage = `Mask ${mask.maskID} used The Black Plague and infected ${targetMask.maskID}`;
+                }
+                if (battleMessage) { 
+                  console.log(battleMessage); // Log battleMessage if not empty
+                  io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+                }
+              }
+            });
+            
           }
           if (skillName === "Destroy Magic") {
             console.log(`Mask ${mask.maskID} has skill: Destroy Magic`);
@@ -2648,15 +2783,45 @@ app.post('/continue', async (req, res) => {
           }
           if (skillName === "Too old for this") {
             console.log(`Mask ${mask.maskID} has skill: Too old for this`);
+            let totalDecreasedHealth = 0;
+            let enemyCombinedHealth = 0;
+
+            // Loop through all enemy masks
             Object.values(masksInBattle).forEach(targetMask => {
-              if (targetMask.team !== mask.team) {
-                const reduction = targetMask.health * 0.05;
-                targetMask.health -= reduction;
-                targetMask.currentHealth = Math.min(targetMask.currentHealth, targetMask.health);
+              if (targetMask.team !== mask.team && targetMask.currentHealth > 0) {
+                const decreaseAmount = targetMask.health * 0.01; // Decrease health by 1%
+                targetMask.health = Math.max(targetMask.health - decreaseAmount, 0); // Reduce current health and cap at 0
+                targetMask.currentHealth = Math.min(targetMask.currentHealth, targetMask.health); // Ensure current health is not more than max health
+                totalDecreasedHealth += decreaseAmount; // Add to total decreased health
+                enemyCombinedHealth += targetMask.health; // Add to combined enemy health
               }
             });
-            
-            battleMessage = `Mask ${mask.maskID} used Too old for this and reduced enemies' Max Health by 5%`;
+
+            // Add the total decreased amount to this mask's health and current health
+            mask.health += totalDecreasedHealth;
+            mask.currentHealth = Math.min(mask.currentHealth + totalDecreasedHealth, mask.health); // Cap current health at max health
+
+            // Check if the entire enemy team's combined health is less than this mask's health
+            if (enemyCombinedHealth < mask.health) {
+              // Kill all enemy masks
+              Object.values(masksInBattle).forEach(targetMask => {
+                if (targetMask.team !== mask.team) {
+                  targetMask.currentHealth = 0;
+                }
+              });
+
+              // Set all friendly masks' current health to their max health
+              Object.values(masksInBattle).forEach(targetMask => {
+                if (targetMask.team === mask.team) {
+                  targetMask.currentHealth = targetMask.health;
+                }
+              });
+
+              battleMessage = `Mask ${mask.maskID} is fighting against a bunch of todlers and has reaped their souls and gave it to his allies!`;
+            } else {
+              battleMessage = `Mask ${mask.maskID} used Too old for this, decreasing enemy health and healing itself.`;
+            }
+
             if (battleMessage) {
               console.log(battleMessage); // Log battleMessage if not empty
               io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
@@ -2792,7 +2957,7 @@ app.post('/continue', async (req, res) => {
               }
             }
           }          
-          if (skillName === "Good Boy Strike") {
+          if (skillName === "Good Boy Strike" && mask.currentSpeed === 100) {
             console.log(`Mask ${mask.maskID} has skill: Good Boy Strike`);
             const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
             if (enemies.length > 0) {
@@ -3026,7 +3191,7 @@ app.post('/continue', async (req, res) => {
               io.emit('battleMessage', battleMessage);
             }
           }        
-          if (skillName === "Dragon Blast") {
+          if (skillName === "Dragon Blast" && mask.currentSpeed === 100) {
             console.log(`Mask ${mask.maskID} has skill: Dragon Blast`);
             const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
             if (enemies.length > 0) {
@@ -3175,24 +3340,204 @@ app.post('/continue', async (req, res) => {
             console.log(`Mask ${mask.maskID} has skill: Blind leading the Blind`);
             const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
             enemies.forEach(targetMask => {
-              if (targetMask.currentSpeed -targetMask.speed > mask.currentSpeed - mask.speed) {
+              if (targetMask.currentSpeed > mask.currentSpeed) {
                 if (targetMask.currentSpeed = 100) {
-                  // Increase cooldowns again
-                  Object.keys(targetMask.cooldowns).forEach(skillID => {
-                    if (targetMask.cooldowns[skillID] > 0) {
-                      targetMask.cooldowns[skillID] += 1;
-                    }
-                  });
+                  targetMask.stunStacks += 1; // Stun for 1 turn
                 }
-                targetMask.currentSpeed -= targetMask.speed;
-                targetMask.currentSpeed = Math.max(targetMask.currentSpeed, 0); // Ensure currentSpeed is capped at 0
                 targetMask.action = false; // Set action to false
                 targetMask.bonusAction = false; // Set bonusAction to false
                 targetMask.movement = 0; // Set movement to 0
               }
             });
-            battleMessage = `Mask ${mask.maskID} used Blind leading the Blind and reduced the current Speed of all enemies that have more current Speed than it`;
+            battleMessage = `Mask ${mask.maskID} used Blind leading the Blind stunned all enemies that have more current Speed than it`;
           }
+          if (skillName === "Septic Strike") {
+            const enemiesWithPoison = Object.values(masksInBattle).filter(
+              targetMask => targetMask.team !== mask.team && targetMask.poisonStacks > 0 && targetMask.currentHealth > 0
+            );
+
+            if (enemiesWithPoison.length > 0) {
+              const randomTarget = enemiesWithPoison[Math.floor(Math.random() * enemiesWithPoison.length)];
+              const damage = mask.attackDamage * 1.5;
+              randomTarget.currentHealth = Math.max(randomTarget.currentHealth - damage, 0); // Deal damage and cap at 0
+              mask.currentHealth = Math.min(mask.currentHealth + randomTarget.poisonStacks, mask.health); // Heal and cap at max health
+
+              battleMessage = `Mask ${mask.maskID} used Septic Strike on Mask ${randomTarget.maskID}, dealing ${damage} damage and healing for ${randomTarget.poisonStacks}`;
+              if (battleMessage) {
+                console.log(battleMessage); // Log battleMessage if not empty
+                io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+              }
+            }
+          } 
+          if (skillName === "Ice Hammer") {
+            stormSize += mask.attackDamage;
+
+            const stormPercentage = Math.min((stormSize / 2500) * 100, 100); // Calculate storm percentage and cap at 100
+            battleMessage = `Mask ${mask.maskID} is building an icy storm (${Math.floor(stormPercentage)}% complete).`;
+            console.log(battleMessage); // Log battleMessage
+            io.emit('battleMessage', battleMessage); // Emit battleMessage
+
+            if (stormSize >= 2500) {
+              const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+              enemies.forEach(targetMask => {
+              targetMask.stunStacks += 5; // Stun for 5 turns
+              const damage = mask.attackDamage * 5; // 500% of attackDamage
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
+              });
+              stormSize = 0; // Reset stormSize after triggering the effect
+              battleMessage = `Mask ${mask.maskID} has summoned an icy storm, stunning all enemies for 5 turns and dealing massive damage!`;
+              console.log(battleMessage); // Log battleMessage
+              io.emit('battleMessage', battleMessage); // Emit battleMessage
+            }
+          }  
+          if (skillName === "Magic Missiles") {
+            console.log(`Mask ${mask.maskID} has skill: Magic Missiles`);
+            mask.buffStacks += 1;
+
+            if (mask.buffStacks >= 10) {
+              mask.buffStacks = 0; // Reset buffStacks to 0
+
+              for (let i = 0; i < 10; i++) {
+                const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+                if (enemies.length > 0) {
+                  const randomIndex = Math.floor(Math.random() * enemies.length);
+                  const targetMask = enemies[randomIndex];
+                  const damage = mask.abilityDamage * 0.5; // 50% of AbilityDamage
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
+                  targetMask.burnStacks += 1; // Increase burn stacks by 1
+                  console.log(`Magic Missiles hit Mask ${targetMask.maskID}, dealing ${damage} damage and increasing burn stacks.`);
+                  battleMessage = `Magic Missiles hit Mask ${targetMask.maskID}, dealing ${damage} damage and increasing burn stacks.`;
+                  if (battleMessage) {
+                    console.log(battleMessage); // Log battleMessage if not empty
+                    io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+                  }
+                }
+              }
+            }
+          }
+          if (skillName === "Do not anger the Forest") {
+            forestsTiming += 1;
+            if (forestsTiming < 10) {
+              mask.attackDamage *= 1.1;
+              mask.abilityDamage *= 1.1;
+              mask.magicResist *= 1.1;
+              mask.protections *= 1.1;
+              mask.health *= 1.1;
+              mask.currentHealth *= 1.1;
+              battleMessage = `Mask ${mask.maskID} is growing in the forest (${Math.floor(forestsTiming * 10)}% complete).`;
+            } else {
+              mask.speed = 100;
+              battleMessage = `Mask ${mask.maskID} has awakened from its slumber in the forest`;
+            }
+            if (battleMessage) {
+              console.log(battleMessage); // Log battleMessage if not empty
+              io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+            }
+          }
+          if (skillName === "Death Cleaver" && mask.currentSpeed === 100) {
+            console.log(`Mask ${mask.maskID} has skill: Death Cleaver`);
+            // let skeleton have a 50% chance of the maskID being 10000 and the other 50% being 100000
+            let skeletonID = Math.random() < 0.5 ? 100000 : 1000000;
+            let skeletonSkillID = skeletonID;
+            while (masksInBattle[skeletonID]) {
+              skeletonID++;
+            }
+            let skeletonStats = {};
+            console.log(skeletonID);
+            if (skeletonID < 1000000) {
+              skeletonStats = {
+                maskID: skeletonID,
+                attackDamage: mask.attackDamage * 0.1,
+                abilityDamage: mask.attackDamage * 0.1,
+                protections: mask.attackDamage * 0.1,
+                magicResist: mask.attackDamage * 0.1,
+                health: mask.attackDamage * 0.5,
+                speed: 100,
+                currentHealth: mask.attackDamage * 0.5,
+                currentSpeed: 0,
+                activeSkills: [skeletonSkillID],
+                stunStacks: 0,
+                burnStacks: 0,
+                poisonStacks: 0,
+                bleedStacks: 0,
+                buffStacks: 0,
+                action: false,
+                bonusAction: false,
+                movement: 0,
+                team: mask.team,
+                cooldowns: {},
+                photo: "/assets/images/SkellyArcher.jpg"
+              };
+            }
+            else {
+              skeletonStats = {
+                maskID: skeletonID,
+                attackDamage: mask.attackDamage * 0.025,
+                abilityDamage: mask.attackDamage * 0.025,
+                protections: mask.attackDamage * 0.1,
+                magicResist: mask.attackDamage * 0.1,
+                health: mask.attackDamage * 1,
+                speed: 100,
+                currentHealth: mask.attackDamage * 1,
+                currentSpeed: 0,
+                activeSkills: [skeletonSkillID],
+                stunStacks: 0,
+                burnStacks: 0,
+                poisonStacks: 0,
+                bleedStacks: 0,
+                buffStacks: 0,
+                action: false,
+                bonusAction: false,
+                movement: 0,
+                team: mask.team,
+                cooldowns: {},
+                photo: "/assets/images/SkellyWarrior.jpg"
+              };
+            }
+            console.log(skeletonStats);
+            while (masksInBattle[skeletonID]) {
+              skeletonID++;
+            }
+            masksInBattle[skeletonID] = skeletonStats;
+            console.log(`A Skeletong was summoned with ID ${skeletonID}!`);
+            battleMessage = `Mask ${mask.maskID} used Death Cleaver and summoned a Skeleton with ID ${skeletonID}`;
+            if (battleMessage) {
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }           
+          if (skillName === "Archer Shot" && mask.currentSpeed === 100) {
+            console.log(`Mask ${mask.maskID} has skill: Archer Shot`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+            if (enemies.length > 0) {
+              const randomIndex = Math.floor(Math.random() * enemies.length);
+              const targetMask = enemies[randomIndex];
+              const damage = mask.attackDamage * 1;
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
+              masksInBattle[targetMask.maskID] = targetMask; // Ensure the updated targetMask is added to masksInBattle
+              battleMessage = `Mask ${mask.maskID} used Archer Shot and dealt ${damage} damage to mask ${targetMask.maskID}`;
+              if (battleMessage) {
+                console.log(battleMessage); // Log battleMessage if not empty
+                io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+              }
+            }
+          }          
+          if (skillName === "Warrior Strike" && mask.currentSpeed === 100) {
+            console.log(`Mask ${mask.maskID} has skill: Warrior Strike`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+            if (enemies.length > 0) {
+              const randomIndex = Math.floor(Math.random() * enemies.length);
+              const targetMask = enemies[randomIndex];
+              const damage = mask.attackDamage * 1;
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
+              masksInBattle[targetMask.maskID] = targetMask; // Ensure the updated targetMask is added to masksInBattle
+              battleMessage = `Mask ${mask.maskID} used Warrior Strike and dealt ${damage} damage to mask ${targetMask.maskID}`;
+              if (battleMessage) {
+                console.log(battleMessage); // Log battleMessage if not empty
+                io.emit('battleMessage', battleMessage); // Emit battleMessage if not empty
+              }
+            }
+          }    
         }
       });
 
@@ -3201,17 +3546,19 @@ app.post('/continue', async (req, res) => {
           mask.currentHealth -= 20 * mask.burnStacks;
           mask.currentHealth = Math.max(mask.currentHealth, 0);
         }
-        mask.currentHealth -= mask.currentHealth * 0.05;
+        mask.currentHealth -= mask.health * 0.025;
         mask.burnStacks -= 1;
       }
       if (mask.poisonStacks > 0) {
-        mask.currentHealth -= mask.currentHealth * 0.005 * mask.poisonStacks;
-        mask.poisonStacks += 1;
+        mask.currentHealth -= mask.health * 0.0001 * mask.poisonStacks;
+        mask.poisonStacks = Math.ceil(mask.poisonStacks * 1.25);
+        if (mask.currentHealth < mask.poisonStacks / 10) {
+          mask.currentHealth = 0;
+        }
       }
       if (mask.bleedStacks > 0) {
-        mask.currentHealth -= (mask.currentHealth * 0.05);
-        mask.bleedStacks -= 1;
-        if(mask.currentHealth / mask.health * 100 <= mask.bleedStacks * 2) {
+        mask.currentHealth -= (mask.health * 0.005 * mask.bleedStacks);
+        if(mask.currentHealth / mask.health * 100 <= mask.bleedStacks) {
           mask.currentHealth = 0;
         }
       }
@@ -3231,46 +3578,43 @@ app.post('/continue', async (req, res) => {
             });
         }
         return;
-    } else {
-        if (mask.currentSpeed >= 100 && mask.speed != 100) {
-            mask.currentSpeed = mask.speed; // Ensure currentSpeed is capped at 100
+      } else {
+        if (mask.currentSpeed === 100) {
+          mask.currentSpeed = 0; // Reset currentSpeed to 0
+          mask.action = false;
+          mask.bonusAction = false; // Reset bonusAction to false
+          mask.movement = 0; // Reset movement to 0
+          // Decrease cooldowns
+          Object.keys(mask.cooldowns).forEach(skillID => {
+            if (mask.cooldowns[skillID] > 0) {
+              mask.cooldowns[skillID] -= 1;
+            }
+          });
+        } else {
+          mask.currentSpeed += mask.speed; // Increase currentSpeed by speed value
+          if (mask.currentSpeed >= 100) {
+            mask.currentSpeed = 100; // Ensure currentSpeed is capped at 100
             if (!defaultMaskIDs.includes(mask.maskID)) {
-                mask.action = true; // Set action to true
+              mask.action = true; // Set action to true
             }
             mask.bonusAction = true; // Set bonusAction to true
             mask.movement = mask.speed; // Set movement to mask.speed
             // Decrease cooldowns
             Object.keys(mask.cooldowns).forEach(skillID => {
-                if (mask.cooldowns[skillID] > 0) {
-                    mask.cooldowns[skillID] -= 1;
-                }
+              if (mask.cooldowns[skillID] > 0) {
+                mask.cooldowns[skillID] -= 1;
+              }
             });
-        } else {
-            mask.currentSpeed += mask.speed;
-            if (mask.currentSpeed >= 100) {
-                mask.currentSpeed = 100; // Ensure currentSpeed is capped at 100
-                if (!defaultMaskIDs.includes(mask.maskID)) {
-                    mask.action = true; // Set action to true
-                }
-                mask.bonusAction = true; // Set bonusAction to true
-                mask.movement = mask.speed; // Set movement to mask.speed
-                // Decrease cooldowns
-                Object.keys(mask.cooldowns).forEach(skillID => {
-                    if (mask.cooldowns[skillID] > 0) {
-                        mask.cooldowns[skillID] -= 1;
-                    }
-                });
-            } else {
-                mask.action = false; // Reset action to false
-                mask.bonusAction = false; // Reset bonusAction to false
-                mask.movement = 0; // Reset movement to 0
-            }
+          } else {
+            mask.action = false; // Reset action to false
+            mask.bonusAction = false; // Reset bonusAction to false
+            mask.movement = 0; // Reset movement to 0
+          }
         }
-    }
+      }
     } 
   });
   io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Emit updated masksInBattle
-  console.log('Masks in battle updated:', masksInBattle);
   res.status(200).send('Continue request received');
 });
 
@@ -3289,6 +3633,9 @@ app.post('/end-battle', async (req, res) => {
     masksInBattle = {};
     blindingStrikesTargets = []; // Clear the tracking array when the battle ends
     blackHoleDamage = 0;
+    infectedByPlague = [];
+    stormSize = 0;
+    forestsTiming = 0;
 
     io.emit('masksInBattleUpdate', Object.values(masksInBattle));
     res.status(200).send('Battle ended, masksInBattle saved, and cleared');
@@ -3416,6 +3763,9 @@ app.post('/reset-health', async (req, res) => {
     masksInBattle = {};
     blindingStrikesTargets = []; // Clear the tracking array when the battle ends
     blackHoleDamage = 0;
+    infectedByPlague = [];
+    stormSize = 0;
+    forestsTiming = 0;
 
     io.emit('masksInBattleUpdate', Object.values(masksInBattle));
 

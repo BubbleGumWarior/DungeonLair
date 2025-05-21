@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms'; // Import FormsModule for two-way 
   styleUrl: './battle-area.component.css'
 })
 export class BattleAreaComponent implements OnInit, OnDestroy {
+  Math = Math; // Add Math as a property
   userInformation: any = null;
   maskInformation: any = null; // Add maskInformation variable
   masksInBattle: any[] = []; // Ensure this array is populated with mask data
@@ -202,7 +203,8 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   }
 
   selectTarget(mask: any) {
-    if (this.selectedSkill && mask.stunStacks < 1 && !this.isUserStunned() && mask.currentHealth > 0) {
+    
+    if (this.selectedSkill && !this.isUserStunned() && mask.currentHealth > 0) {
       const userMask = this.masksInBattle.find(m => m.maskID === this.userInformation.maskID);
       if (mask.untargetable || mask.currentHealth === 0 && this.selectedSkill.onHitEffect !== 'Heal') {
         return; // Do nothing if the mask is untargetable or dead
@@ -283,10 +285,11 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   }
 
   continue() {
-          this.http.post(`https://${localIP}:8080/continue`, {}).subscribe(
+      this.http.post(`https://${localIP}:8080/continue`, {}).subscribe(
         () => console.log('Continue request sent successfully'),
         (error) => console.error('Error sending continue request:', error)
       );
+      console.log(`Masks in battle: ${this.masksInBattle.map(mask => mask.action).join(', ')}`);
       }
 
   leaveBattle() {
@@ -371,7 +374,17 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
       }
 
   openMaskDetails(mask: any) {
-    this.selectedMaskDetails = mask;
+    this.selectedMaskDetails = {
+      ...mask,
+      attackDamage: Math.ceil(mask.attackDamage),
+      abilityDamage: Math.ceil(mask.abilityDamage),
+      protections: Math.ceil(mask.protections),
+      magicResist: Math.ceil(mask.magicResist),
+      health: Math.ceil(mask.health),
+      currentHealth: Math.ceil(mask.currentHealth),
+      speed: Math.ceil(mask.speed),
+      currentSpeed: Math.ceil(mask.currentSpeed)
+    };
     this.showMaskDetailsModal = true;
   }
 
