@@ -19,26 +19,26 @@ export class BoardComponent implements OnInit {
   rollResult: number = 0;
   
   strength: number = 0;
-  strengthMod: string = "";
+  strengthMod: number = 0;
   athletics: number = 0;
 
   dexterity: number = 0;
-  dexterityMod: string = "";
+  dexterityMod: number = 0;
   acrobatics: number = 0;
   sleightOfHand: number = 0;
   stealth: number = 0;
 
   constitution: number = 0;
-  constitutionMod: string = "";
+  constitutionMod: number = 0;
 
   intelligence: number = 0;
-  intelligenceMod: string = "";
+  intelligenceMod: number = 0;
   history: number = 0;
   investigation: number = 0;
   nature: number = 0;
 
   wisdom: number = 0;
-  wisdomMod: string = "";
+  wisdomMod: number = 0;
   animalHandling: number = 0;
   insight: number = 0;
   medicine: number = 0;
@@ -46,7 +46,7 @@ export class BoardComponent implements OnInit {
   survival: number = 0;
 
   charisma: number = 0;
-  charismaMod: string = "";
+  charismaMod: number = 0;
   deception: number = 0;
   intimidation: number = 0;
   performance: number = 0;
@@ -215,41 +215,17 @@ export class BoardComponent implements OnInit {
     let calc = 0;
 
     calc = Math.floor(this.strength / 2 - 5)
-    if (calc > 0) {
-      this.strengthMod = "+" + calc
-    } else {
-      this.strengthMod = "" + calc
-    }
+    this.strengthMod = calc;
     calc = Math.floor(this.dexterity / 2 - 5)
-    if (calc > 0) {
-      this.dexterityMod = "+" + calc
-    } else {
-      this.dexterityMod = "" + calc
-    }
+    this.dexterityMod = calc;
     calc = Math.floor(this.constitution / 2 - 5)
-    if (calc > 0) {
-      this.constitutionMod = "+" + calc
-    } else {
-      this.constitutionMod = "" + calc
-    }
+    this.constitutionMod = calc;
     calc = Math.floor(this.intelligence / 2 - 5)
-    if (calc > 0) {
-      this.intelligenceMod = "+" + calc
-    } else {
-      this.intelligenceMod = "" + calc
-    }
+    this.intelligenceMod = calc;
     calc = Math.floor(this.wisdom / 2 - 5)
-    if (calc > 0) {
-      this.wisdomMod = "+" + calc
-    } else {
-      this.wisdomMod = "" + calc
-    }
+    this.wisdomMod = calc;
     calc = Math.floor(this.charisma / 2 - 5)
-    if (calc > 0) {
-      this.charismaMod = "+" + calc
-    } else {
-      this.charismaMod = "" + calc
-    }
+    this.charismaMod = calc;
   }
 
   updateCharacterInfo(stats: any) {
@@ -288,6 +264,14 @@ export class BoardComponent implements OnInit {
   onImageUpload(event: any) {
     const file = event.target.files[0];
     if (file && this.characterID) {
+      // Only allow image files by extension
+      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
+      const fileName = file.name.toLowerCase();
+      const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+      if (!hasValidExtension) {
+        console.error('Selected file does not have a valid image extension.');
+        return;
+      }
       const formData = new FormData();
       formData.append('image', file);
       formData.append('characterID', this.characterID);

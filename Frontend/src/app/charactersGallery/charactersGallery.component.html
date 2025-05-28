@@ -27,20 +27,10 @@
 
     <div class="bg-stone-950 h-full max-w-screen">
         <div class="flex py-32">
-            <div *ngIf="!isMobile" class="w-1/4 h-full mx-4 border-2 border-blue-800 rounded-lg p-4">
-                <p class="text-blue-800">Newest Character:</p>
-                <img 
-                    *ngIf="latestImage"
-                    [src]="latestImage.photo" 
-                    alt="{{ latestImage.imageName }}" 
-                    class="max-h-52 h-auto w-full object-contain rounded-md pt-4" 
-                    style="max-height: 300px;"
-                >
-            </div>
-            <div [ngClass]="{'w-full': isMobile, 'w-3/4': !isMobile}" class="h-full mx-4 border-2 border-blue-800 rounded-lg p-4">
+            <div class="w-full h-full mx-4 border-2 border-blue-800 rounded-lg p-4">
                 <p class="text-blue-800">All Characters:</p>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
-                    <div *ngFor="let image of images" class="flex-grow flex flex-col border-2 border-blue-800 rounded-lg p-4">
+                    <div *ngFor="let image of images" class="flex-grow flex flex-col border-2 rounded-lg p-4" [ngClass]="{'border-red-700': image.imageName?.endsWith('(Deceased)'), 'border-blue-800': !image.imageName?.endsWith('(Deceased)')}">
                         <div class="flex-grow flex items-center justify-center mb-4">
                             <img 
                                 [src]="image.photo" 
@@ -50,7 +40,9 @@
                             >
                         </div>
                         <div class="text-center">
-                            <h2 class="text-3xl font-bold text-blue-800">{{ image.imageName }}</h2>
+                            <h2 class="text-3xl font-bold" [ngClass]="{'text-red-700': image.imageName?.endsWith('(Deceased)'), 'text-blue-800': !image.imageName?.endsWith('(Deceased)')}">
+                                {{ image.imageName }}
+                            </h2>
                         </div>
                     </div>
                 </div>             

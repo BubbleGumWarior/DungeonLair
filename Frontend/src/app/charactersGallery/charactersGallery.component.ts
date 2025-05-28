@@ -105,7 +105,7 @@ export class CharactersGalleryComponent implements OnInit {
         (response: any) => {
           console.log('Characters fetched:', response); // Log all character objects
           this.images = response
-            .filter((character: any) => character.characterName !== null)
+            .filter((character: any) => character.characterName !== null && character.characterName !== 'Dungeon Master')
             .map((character: any) => ({
               imageName: character.characterName,
               photo: `https://${localIP}:8080${character.photo}` // Ensure correct photo URL

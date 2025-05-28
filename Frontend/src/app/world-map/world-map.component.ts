@@ -32,12 +32,19 @@ export class WorldMapComponent implements OnInit {
 
     // Query server for live users
     this.webSocketService.requestLiveUsers();
-    this.webSocketService.onLiveUsersUpdate((users: { username: string, photoPath?: string}[]) => {
-      this.liveUsers = users
-        .map(user => ({
+    this.webSocketService.onLiveUsersUpdate(async (users: { username: string, photoPath?: string}[]) => {
+      // Fetch photoPath for each user asynchronously
+      const updatedUsers = await Promise.all(users.map(async user => {
+        let photoPath = user.photoPath;
+        if (!photoPath) {
+          photoPath = await this.fetchPhotoPath(user.username);
+        }
+        return {
           ...user,
-          photoPath: user.photoPath || this.getPhoto(user.username), // Provide a default photoPath if missing
-        }))
+          photoPath: photoPath || 'default/path/to/photo.jpg'
+        };
+      }));
+      this.liveUsers = updatedUsers
         .sort((a, b) => a.username === 'BubbleGumWarior' ? -1 : b.username === 'BubbleGumWarior' ? 1 : 0); // Ensure Dungeon Master is first
       console.log('Live users:', this.liveUsers);
     });
@@ -61,30 +68,25 @@ export class WorldMapComponent implements OnInit {
     this.webSocketService.emitMapChange(this.isUniversityMap);
   }
 
-  getPhoto(username: string) {
-    const user = this.liveUsers.find(user => user.username === username);
-    if (user) {
-      // Query for characterID in the user table of the database
-      fetch(`https://dungeonlair.ddns.net:8080/character-id-username/${username}`)
-        .then(response => response.json())
-        .then(data => {
-          // Query for photoPath in the character table of the database
-          fetch(`https://dungeonlair.ddns.net:8080/character-info/${data.characterID}`)
-            .then(response => response.json())
-            .then(characterData => {
-              // Assign photo path to the live users object
-              this.liveUsers = this.liveUsers.map(u => 
-                u.username === username ? { ...u, photoPath: `https://${localIP}:8080${characterData.photo}` } : u
-              );
-            })
-            .catch(error => {
-              console.error('Error fetching photo path:', error);
-            });
-        })
-        .catch(error => {
-          console.error('Error fetching character ID:', error);
-        });
+  async fetchPhotoPath(username: string): Promise<string> {
+    try {
+      const characterIdRes = await fetch(`https://dungeonlair.ddns.net:8080/character-id-username/${username}`);
+      const characterIdData = await characterIdRes.json();
+      if (!characterIdData.characterID) return 'default/path/to/photo.jpg';
+      const characterRes = await fetch(`https://dungeonlair.ddns.net:8080/character-info/${characterIdData.characterID}`);
+      const characterData = await characterRes.json();
+      if (characterData.photo) {
+        return `https://${localIP}:8080${characterData.photo}`;
+      }
+    } catch (error) {
+      console.error('Error fetching photo path:', error);
     }
-    return user ? user.photoPath : 'default/path/to/photo.jpg'; // Provide a default photoPath if missing
+    return 'default/path/to/photo.jpg';
+  }
+
+  getPhoto(username: string) {
+    // No longer needed for initial fetch, but keep for fallback
+    const user = this.liveUsers.find(user => user.username === username);
+    return user ? user.photoPath : 'default/path/to/photo.jpg';
   }
 }

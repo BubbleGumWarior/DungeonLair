@@ -59,6 +59,9 @@ export class DMScreenComponent implements OnInit {
   }; // Initialize new mask skill
   newMaskMod: any = { modType: '', modRarity: 0, description: '' }; // Add this variable to store new mod details
 
+  maskUsers: { name: string, photo: string }[] = [];
+  civilians: { name: string, photo: string }[] = [];
+
   constructor(private http: HttpClient, private websocketService: WebSocketService) {} // Inject WebSocketService
 
   ngOnInit() {
@@ -68,15 +71,26 @@ export class DMScreenComponent implements OnInit {
   }
 
   fetchCharacterNames() {
-    this.http.get<{ characterName: string, photo: string }[]>(`https://${localIP}:8080/character-names`).subscribe(
+    this.http.get<{ characterName: string, photo: string, maskID: number | null }[]>(`https://${localIP}:8080/character-names`).subscribe(
       (data) => {
-        this.characters = data
-          .map(character => ({
+        // Separate mask users and civilians based on maskID
+        const maskUsers: { name: string, photo: string }[] = [];
+        const civilians: { name: string, photo: string }[] = [];
+        data.forEach(character => {
+          const charObj = {
             name: character.characterName,
             photo: character.photo ? `https://${localIP}:8080${character.photo}` : ''
-          }))
-          .filter(character => character.name) // Add null check
-          .sort((a, b) => a.name.localeCompare(b.name)); // Sort characters alphabetically by name
+          };
+          if (character.maskID !== null && character.maskID !== undefined) {
+            maskUsers.push(charObj);
+          } else {
+            civilians.push(charObj);
+          }
+        });
+        this.maskUsers = maskUsers.sort((a, b) => a.name.localeCompare(b.name));
+        this.civilians = civilians.sort((a, b) => a.name.localeCompare(b.name));
+        // Keep original characters for compatibility
+        this.characters = [...this.maskUsers, ...this.civilians];
       },
       (error) => {
         console.error('Error fetching character names:', error);
