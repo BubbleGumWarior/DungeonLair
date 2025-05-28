@@ -25,6 +25,11 @@ export class WorldMapComponent implements OnInit {
   modalVisible: boolean = false;
   modalPosition = { top: 0, left: 0 };
   selectedUser: { username: string, characterID: string } | null = null;
+  hoveredCharacter: {
+    characterName: string;
+    photo: string;
+    equippedItemPath: string;
+  } | null = null;
 
   constructor(
     private webSocketService: WebSocketService, 
@@ -91,13 +96,7 @@ export class WorldMapComponent implements OnInit {
     }
     return 'default/path/to/photo.jpg';
   }
-
-  getPhoto(username: string) {
-    // No longer needed for initial fetch, but keep for fallback
-    const user = this.liveUsers.find(user => user.username === username);
-    return user ? user.photoPath : 'default/path/to/photo.jpg';
-  }
-
+  
   // Show modal on hover
   async onUserHover(user: { username: string }, event: MouseEvent) {
     try {
@@ -127,11 +126,31 @@ export class WorldMapComponent implements OnInit {
         left = event.clientX - 340;
         top = event.clientY - 40;
       }
+
+      // Fetch character details from backend and save to hoveredCharacter
+      const detailsRes = await fetch('https://dungeonlair.ddns.net:8080/hover-character-id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ characterID: data.characterID })
+      });
+      if (detailsRes.ok) {
+        const details = await detailsRes.json();
+        this.hoveredCharacter = {
+          characterName: details.characterName,
+          photo: `https://${localIP}:8080${details.photo}`,
+          equippedItemPath: `https://${localIP}:8080${details.equippedItemPath}`
+        };
+        console.log('Hovered character details:', this.hoveredCharacter);
+      } else {
+        this.hoveredCharacter = null;
+      }
+
       this.modalPosition = { top, left };
       this.modalVisible = true;
     } catch (error) {
       this.modalVisible = false;
       this.selectedUser = null;
+      this.hoveredCharacter = null;
     }
   }
 
@@ -139,9 +158,6 @@ export class WorldMapComponent implements OnInit {
   onUserLeave() {
     this.modalVisible = false;
     this.selectedUser = null;
-  }
-
-  sendCharacterIDToServer(characterID: string) {
-    this.http.post('https://dungeonlair.ddns.net:8080/log-character-id', { characterID }).subscribe();
+    this.hoveredCharacter = null;
   }
 }

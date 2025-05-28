@@ -3501,3 +3501,45 @@ app.post('/equip-item', async (req, res) => {
   }
 });
 
+app.post('/hover-character-id', async (req, res) => {
+  const { characterID } = req.body;
+  if (!characterID) {
+    return res.status(400).json({ message: 'characterID is required' });
+  }
+
+  try {
+    // Get character info
+    const characterInfo = await CharacterInfo.findOne({ where: { characterID } });
+    if (!characterInfo) {
+      return res.status(404).json({ message: 'Character not found' });
+    }
+
+    // Find equipped item in the character's inventory
+
+    let equippedItemPath = null;
+    if (Array.isArray(characterInfo.itemInventory) && characterInfo.itemInventory.length > 0) {
+      const equippedItem = await ItemList.findOne({
+      where: {
+        itemID: { [Op.in]: characterInfo.itemInventory },
+        equipped: true
+      }
+      });
+      if (equippedItem) {
+      equippedItemPath = equippedItem.photo; // Get the path (photo) value
+      } else {
+      console.log('No equipped item found for character.');
+      }
+    } else {
+      console.log('Character has no itemInventory or it is empty.');
+    }
+
+    res.json({
+      characterName: characterInfo.characterName,
+      photo: characterInfo.photo,
+      equippedItemPath
+    });
+    } catch (error) {
+    console.error('Error in /hover-character-id:', error);
+    res.status(500).json({ message: 'Failed to log character ID' });
+  }
+});

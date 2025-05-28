@@ -30,11 +30,32 @@
   </ul>
 </div>
 
-<!-- Modal for characterID on hover -->
-<div *ngIf="modalVisible && selectedUser"
-     class="fixed z-50 bg-stone-900 border border-blue-700 rounded-lg shadow-lg p-4 flex flex-col items-center"
-     [ngStyle]="{'top.px': modalPosition.top, 'left.px': modalPosition.left, 'min-width': '320px', 'max-width': '90vw'}">
-  <div class="text-blue-300 text-xl font-bold">
-    CharacterID of hovered character is: {{ selectedUser.characterID }}
+<!-- Modal for character info on hover -->
+<div *ngIf="modalVisible && hoveredCharacter"
+  class="fixed z-50 bg-stone-900 border border-blue-700 rounded-lg shadow-lg p-8 flex flex-col items-center"
+  style="top: 0; left: 0; min-width: 33vw; max-width: 50vw; max-height: 66vh; overflow-y: auto;">
+  <div class="flex items-center justify-center w-full mb-4">
+    <ng-container *ngIf="hoveredCharacter.equippedItemPath !== 'https://dungeonlair.ddns.net:8080null'; else singleImage">
+      <img *ngIf="hoveredCharacter.characterName"
+        [src]="hoveredCharacter.photo"
+        alt="Character Photo"
+        class="max-h-[50vh] w-auto h-auto mb-0 border border-blue-700 object-cover mr-6 rounded-none"
+        style="max-width: 50%;"/>
+      <img *ngIf="hoveredCharacter.equippedItemPath"
+        [src]="hoveredCharacter.equippedItemPath"
+        alt="Equipped Item"
+        class="max-h-[50vh] w-auto h-auto mb-0 border border-blue-700 object-cover ml-6 rounded-none"
+        style="max-width: 50%;"/>
+    </ng-container>
+    <ng-template #singleImage>
+      <img *ngIf="hoveredCharacter.equippedItemPath"
+        [src]="hoveredCharacter.photo"
+        alt="Character Photo"
+        class="max-h-[50vh] w-auto h-auto mb-0 border border-blue-700 object-cover rounded-none mx-auto"
+        style="max-width: 50%;"/>
+    </ng-template>
+  </div>
+  <div class="text-blue-300 text-2xl font-bold mx-4 text-center">
+    {{ hoveredCharacter.characterName }}
   </div>
 </div>
