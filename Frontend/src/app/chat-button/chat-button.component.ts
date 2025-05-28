@@ -164,6 +164,7 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
     this.chatHistory = chat.sort((a: ChatMessage, b: ChatMessage) => {
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     });
+    console.log('Chat history loaded:', this.chatHistory);
 
     if (this.chatHistory.length > 0) {
       const latestMessage = this.chatHistory[0];

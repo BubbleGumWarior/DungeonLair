@@ -19,9 +19,22 @@
   <h3 class="text-blue-700 text-3xl mb-4">Live Users:</h3>
   
   <ul>
-    <li *ngFor="let user of liveUsers" class="flex items-center justify-center" [ngClass]="{'text-pink-500': user.username === 'BubbleGumWarior', 'text-blue-700': user.username !== 'BubbleGumWarior'}">
+    <li *ngFor="let user of liveUsers"
+        class="flex items-center justify-center"
+        [ngClass]="{'text-pink-500': user.username === 'BubbleGumWarior', 'text-blue-700': user.username !== 'BubbleGumWarior'}"
+        (mouseenter)="onUserHover(user, $event)"
+        (mouseleave)="onUserLeave()">
       <img [src]="user.photoPath" alt="User Photo" class="w-8 h-8 mr-2 rounded-full mb-4"/>
       <p class="mb-4">{{ user.username === 'BubbleGumWarior' ? 'Dungeon Master' : user.username }}</p>
     </li>
   </ul>
+</div>
+
+<!-- Modal for characterID on hover -->
+<div *ngIf="modalVisible && selectedUser"
+     class="fixed z-50 bg-stone-900 border border-blue-700 rounded-lg shadow-lg p-4 flex flex-col items-center"
+     [ngStyle]="{'top.px': modalPosition.top, 'left.px': modalPosition.left, 'min-width': '320px', 'max-width': '90vw'}">
+  <div class="text-blue-300 text-xl font-bold">
+    CharacterID of hovered character is: {{ selectedUser.characterID }}
+  </div>
 </div>

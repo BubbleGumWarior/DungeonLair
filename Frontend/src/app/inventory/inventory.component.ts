@@ -12,6 +12,7 @@ interface Item {
   modifier: string;
   description: string;
   photo: string; // This will now hold Base64 strings
+  equipped?: boolean; // Add equipped property (optional)
 }
 
 interface StatsSheet {
@@ -52,6 +53,7 @@ export class InventoryComponent implements OnInit {
   searchQuery: string = ''; // Add searchQuery property
   sortCriteria: string = 'alphabetically'; // Add sortCriteria property
   statsSheet: StatsSheet | null = null; // Add statsSheet property
+  
 
   @Input() characterID: string | null = '';
   @Output() resultRolled = new EventEmitter<string>();
@@ -86,6 +88,7 @@ export class InventoryComponent implements OnInit {
         }));
         this.assignModifiers(); // Assign modifiers after fetching items
         this.sortItems(); // Sort items after fetching
+        this.sortClothing(); // Always sort clothing alphabetically
       },
       (error) => {
         console.error('Error fetching inventory items:', error);
@@ -111,9 +114,21 @@ export class InventoryComponent implements OnInit {
     }
   }
 
+  get ItemFiltered() {
+    // Filter items based on search query
+    if (this.sortCriteria === 'clothing') {
+      return this.Item.filter(item => item.type === 'Clothing');
+    }
+    // Exclude clothing items by default
+    return this.Item.filter(item => item.type !== 'Clothing');
+  }
+
   setSortCriteria(criteria: string) {
     this.sortCriteria = criteria;
-    this.sortItems(); // Sort items when criteria changes
+    if (criteria !== 'clothing') {
+      this.sortItems(); // Sort items when criteria changes, except for clothing filter
+    }
+    this.sortClothing(); // Always sort clothing alphabetically
   }
 
   sortItems() {
@@ -137,6 +152,14 @@ export class InventoryComponent implements OnInit {
       default:
         break;
     }
+    this.sortClothing(); // Always sort clothing alphabetically after any sort
+  }
+
+  sortClothing() {
+    // Sort clothing items alphabetically within the Item array
+    const clothing = this.Item.filter(item => item.type === 'Clothing').sort((a, b) => a.itemName.localeCompare(b.itemName));
+    const nonClothing = this.Item.filter(item => item.type !== 'Clothing');
+    this.Item = [...nonClothing, ...clothing];
   }
 
   rollDice(event: Event) {
@@ -175,6 +198,25 @@ export class InventoryComponent implements OnInit {
 
   formatDescription(description: string): string {
     return description.replace(/\\n/g, '<br>');
+  }
+
+  onEquipClick(item: Item) {
+    if (!this.characterID) return;
+    // Assuming item has an 'itemID' property. Adjust if the property name is different.
+    const payload = {
+      characterID: this.characterID,
+      itemID: (item as any).itemID // Cast to any if itemID is not in the Item interface
+    };
+    this.http.post(`https://${localIP}:8080/equip-item`, payload).subscribe({
+      next: (response) => {
+        // Refresh inventory after equipping item
+        this.fetchInventoryItems(this.characterID!);
+        this.sortClothing(); // Ensure clothing is sorted after equipping
+      },
+      error: (error) => {
+        console.error('Error equipping item:', error);
+      }
+    });
   }
 
 }

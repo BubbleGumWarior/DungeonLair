@@ -5,10 +5,14 @@
     <button (click)="setSortCriteria('damage')" [class.bg-blue-900]="sortCriteria === 'damage'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Damage</button>
     <button (click)="setSortCriteria('type')" [class.bg-blue-900]="sortCriteria === 'type'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Type</button>
     <button (click)="setSortCriteria('mainStat')" [class.bg-blue-900]="sortCriteria === 'mainStat'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Main Stat</button>
+    <button (click)="setSortCriteria('clothing')" [class.bg-blue-900]="sortCriteria === 'clothing'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Clothing</button>
   </div>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
-    <div *ngFor="let item of Item" class="flex flex-col justify-between p-4 text-blue-800 h-full w-full bg-blue-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-blue-800 mb-4">
+    <div *ngFor="let item of ItemFiltered"
+         class="flex flex-col justify-between p-4 h-full w-full bg-blue-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 mb-4"
+         [ngClass]="item.equipped ? 'border-yellow-400 text-yellow-400' : 'border-blue-800 text-blue-800'"
+         style="border-width: 1px;">
         <div class="flex-grow flex flex-col">
             <div class="flex-grow flex items-center justify-center mb-4">
                 <img 
@@ -30,6 +34,11 @@
                 <p class="text-3xl">d{{ item.damage }}</p>
                 <p class="text-3xl">{{ +item.modifier >= 0 ? '+' + item.modifier : item.modifier }}</p>
             </div>
+            <button *ngIf="item.type === 'Clothing' && !item.equipped"
+                    class="mt-4 px-4 py-2 bg-blue-700 text-stone-950 rounded-md font-bold hover:bg-blue-800"
+                    (click)="onEquipClick(item)">
+                Equip?
+            </button>
         </div>
     </div>    
 </div>

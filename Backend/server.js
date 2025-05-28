@@ -1528,7 +1528,7 @@ io.on('connection', (socket) => {
                   const reduction = targetMask.protections;
                   const finalDamage = Math.max(damage - reduction, 0); // Ensure damage is not negative
                   targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0); // Reduce target's health
-                  console.log(`Mask ${maskID} used Vein Slash on Mask ${targetMaskID}, dealing ${finalDamage} damage.`);
+                  console.log(`Mask ${mask.maskID} used Vein Slash on Mask ${targetMaskID}, dealing ${finalDamage} damage.`);
                 }
               });
             }
@@ -2006,6 +2006,12 @@ app.get('/get-notes/:username', async (req, res) => {
   const { username } = req.params;
 
   try {
+    if (username === "Dungeon Master") {
+      // Fetch all notes if the user is Dungeon Master
+      const notes = await Note.findAll();
+      return res.json(notes);
+    }
+
     const userInfo = await User.findOne({ where: { username: username } });
     if (!userInfo) {
       return res.status(404).send('User info not found');
@@ -2035,7 +2041,8 @@ app.post('/add-note/:username', async (req, res) => {
       description,
     });
 
-    const updatedNoteList = [...userInfo.noteList, newNote.noteID];
+    const currentNoteList = Array.isArray(userInfo.noteList) ? userInfo.noteList : [];
+    const updatedNoteList = [...currentNoteList, newNote.noteID];
     await User.update({ noteList: updatedNoteList }, { where: { username: username } });
 
     res.status(201).json(newNote);
@@ -2048,6 +2055,16 @@ app.post('/add-note/:username', async (req, res) => {
 app.put('/update-note/:username/:noteId', async (req, res) => {
   const { username, noteId } = req.params;
   const { title, description } = req.body;
+  const parsedNoteId = parseInt(noteId, 10);
+
+  if (isNaN(parsedNoteId)) {
+    return res.status(400).send('Invalid noteId');
+  }
+
+  // If Dungeon Master, do not update, just return 200
+  if (username === "Dungeon Master") {
+    return res.status(200).json({ message: 'Note update skipped for Dungeon Master' });
+  }
 
   try {
     const userInfo = await User.findOne({ where: { username: username } });
@@ -2055,7 +2072,7 @@ app.put('/update-note/:username/:noteId', async (req, res) => {
       return res.status(404).send('User info not found');
     }
 
-    await Note.update({ title, description }, { where: { noteID: noteId } });
+    await Note.update({ title, description }, { where: { noteID: parsedNoteId } });
 
     res.status(200).json({ message: 'Note updated successfully' });
   } catch (error) {
@@ -2066,6 +2083,11 @@ app.put('/update-note/:username/:noteId', async (req, res) => {
 
 app.delete('/delete-note/:username/:noteId', async (req, res) => {
   const { username, noteId } = req.params;
+
+  // If Dungeon Master, do not update, just return 200
+  if (username === "Dungeon Master") {
+    return res.status(200).json({ message: 'Note delete skipped for Dungeon Master' });
+  }
 
   try {
     const userInfo = await User.findOne({ where: { username: username } });
@@ -3446,17 +3468,36 @@ app.post('/reset-health', async (req, res) => {
   }
 });
 
-app.get('/character-names', async (req, res) => {
+app.post('/equip-item', async (req, res) => {
+  const { characterID, itemID } = req.body;
+
+  if (!characterID || !itemID) {
+    return res.status(400).json({ message: 'characterID and itemID are required' });
+  }
+
   try {
-    const characterInfos = await CharacterInfo.findAll({ attributes: ['characterName', 'photo', 'maskID'] });
-    const characterNames = characterInfos.map(info => ({
-      characterName: info.characterName,
-      photo: info.photo,
-      maskID: info.maskID // Include maskID in the response
-    }));
-    res.json(characterNames);
+    // Get the character's itemInventory (array of itemIDs)
+    const characterInfo = await CharacterInfo.findOne({ where: { characterID } });
+    if (!characterInfo || !Array.isArray(characterInfo.itemInventory)) {
+      return res.status(404).json({ message: 'Character or item inventory not found' });
+    }
+
+    // Set all items in the inventory to equipped: false
+    await ItemList.update(
+      { equipped: false },
+      { where: { itemID: characterInfo.itemInventory } }
+    );
+
+    // Set the selected item to equipped: true
+    await ItemList.update(
+      { equipped: true },
+      { where: { itemID } }
+    );
+
+    res.status(200).json({ message: 'Item equipped successfully' });
   } catch (error) {
-    console.error('Error fetching character names:', error);
-    res.status(500).send('Failed to fetch character names');
+    console.error('Error equipping item:', error);
+    res.status(500).json({ message: 'Failed to equip item' });
   }
 });
+

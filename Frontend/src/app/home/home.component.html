@@ -56,7 +56,7 @@
     <app-friends *ngIf="currentView === 'friends'" [characterID]="characterID"></app-friends>
     <app-inventory *ngIf="currentView === 'inventory'" (resultRolled)="handleDiceResult($event)" [characterID]= "characterID"></app-inventory>
     <app-skills *ngIf="currentView === 'skills'" (resultRolled)="handleDiceResult($event)" [characterID]= "characterID"></app-skills>
-    <app-notes *ngIf="currentView === 'notes'" [username]="username"></app-notes>
+    <app-notes *ngIf="currentView === 'notes'" [username]="username" [role]="role"></app-notes>
     <app-score *ngIf="currentView === 'score'" [characterID]="characterName || ''" [role]="role || ''"></app-score>
     <app-dmscreen *ngIf="currentView === 'dm-screen'"></app-dmscreen>
   </div>

@@ -125,7 +125,8 @@
               <div class="text-center">
                 <h2 class="text-3xl font-bold">{{ inventoryItem.itemName }}</h2>
                 <p class="text-sm">Type: {{ inventoryItem.type }}</p>
-                <p class="text-sm">Main Stat: {{ inventoryItem.mainStat }}</p>                
+                <p class="text-sm">Main Stat: {{ inventoryItem.mainStat }}</p>  
+                <p class="text-sm">Equipped: {{ inventoryItem.equipped }}</p>                
                 <p [innerHTML]="formatDescription(inventoryItem.description)" class="text-sm"></p>
               </div>
             </div>
@@ -155,12 +156,10 @@
             <select [(ngModel)]="newInventoryItem.mainStat" class="p-2 border rounded w-full bg-stone-900 text-white">
               <option>Strength</option>
               <option>Athletics</option>
-              <option>Swordsmanship</option>
               <option>Dexterity</option>
               <option>Acrobatics</option>
               <option>Sleight Of Hand</option>
               <option>Stealth</option>
-              <option>Marksmanship</option>
               <option>Pilot</option>
               <option>Constitution</option>
               <option>Intelligence</option>
@@ -182,13 +181,20 @@
               <option>Persuasion</option>
             </select>
           </div>
-          <div class="col-span-1 row-span-3">
-            <p class="font-semibold text-blue-700">Description</p>
-            <textarea [(ngModel)]="newInventoryItem.description" class="p-2 border rounded w-full bg-stone-900 text-white h-full"></textarea>
-          </div>
           <div class="col-span-1">
             <p class="font-semibold text-blue-700">Damage</p>
             <input [(ngModel)]="newInventoryItem.damage" class="p-2 border rounded w-full bg-stone-900 text-white" />
+          </div>
+          <div class="col-span-1">
+            <p class="font-semibold text-blue-700">Equipped</p>
+            <select [(ngModel)]="newInventoryItem.equipped" class="p-2 border rounded w-full bg-stone-900 text-white">
+              <option [ngValue]="true">True</option>
+              <option [ngValue]="false" selected>False</option>
+            </select>
+          </div>
+          <div class="col-span-1 row-span-3">
+            <p class="font-semibold text-blue-700">Description</p>
+            <textarea [(ngModel)]="newInventoryItem.description" class="p-2 border rounded w-full bg-stone-900 text-white h-full"></textarea>
           </div>
           <div class="col-span-1">
             <p class="font-semibold text-blue-700">Photo</p>
@@ -246,12 +252,10 @@
             <select [(ngModel)]="newSkill.mainStat" class="p-2 border rounded w-full bg-stone-900 text-white">
               <option>Strength</option>
               <option>Athletics</option>
-              <option>Swordsmanship</option>
               <option>Dexterity</option>
               <option>Acrobatics</option>
               <option>Sleight Of Hand</option>
               <option>Stealth</option>
-              <option>Marksmanship</option>
               <option>Pilot</option>
               <option>Constitution</option>
               <option>Intelligence</option>

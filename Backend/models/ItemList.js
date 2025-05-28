@@ -14,6 +14,10 @@ const ItemList = sequelize.define('ItemList', {
   mainStat: DataTypes.STRING,
   description: DataTypes.TEXT,
   damage: DataTypes.INTEGER,
+  equipped: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
 }, {
     tableName: 'item_lists', // Explicitly define table name in lowercase
 });

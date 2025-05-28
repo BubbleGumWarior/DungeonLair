@@ -19,6 +19,8 @@ interface Note {
 })
 export class NotesComponent implements OnInit {
   @Input() username: string | null = null; // Change Input property to username
+  
+  @Input() role: string | null = null; // Change Input property to username
   notes: Note[] = [];
   nextId: number = 1;
   showAddNoteModal: boolean = false;
@@ -36,7 +38,9 @@ export class NotesComponent implements OnInit {
 
   async loadNotes() {
     try {
-      const response = await fetch(`https://${localIP}:8080/get-notes/${this.username}`);
+      // If the user is Dungeon Master, use 'DungeonMaster' as the username
+      const user = this.role === 'Dungeon Master' ? 'Dungeon Master' : this.username;
+      const response = await fetch(`https://${localIP}:8080/get-notes/${user}`);
       const notes = await response.json();
       this.notes = notes.map((note: { noteID: number; title: string; description: string }) => ({
         id: note.noteID,
@@ -51,9 +55,10 @@ export class NotesComponent implements OnInit {
 
   async addNote() {
     if (this.username) {
+      const user = this.role === 'Dungeon Master' ? 'Dungeon Master' : this.username;
       const newNote = { title: DOMPurify.sanitize(this.newNoteName), description: '' };
       try {
-        const response = await fetch(`https://${localIP}:8080/add-note/${this.username}`, {
+        const response = await fetch(`https://${localIP}:8080/add-note/${user}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -64,8 +69,8 @@ export class NotesComponent implements OnInit {
           const errorText = await response.text();
           throw new Error(errorText);
         }
-        const note = await response.json();
-        this.notes.push({ id: note.id, name: DOMPurify.sanitize(note.title), description: DOMPurify.sanitize(note.description) });
+        // Refresh notes after adding
+        await this.loadNotes();
         this.newNoteName = '';
         this.showAddNoteModal = false;
       } catch (error) {
@@ -81,9 +86,10 @@ export class NotesComponent implements OnInit {
 
   async closeNoteModal() {
     if (this.selectedNote && this.username) {
+      const user = this.role === 'Dungeon Master' ? 'Dungeon Master' : this.username;
       const updatedNote = { title: DOMPurify.sanitize(this.selectedNote.name), description: DOMPurify.sanitize(this.selectedNote.description) };
       try {
-        const response = await fetch(`https://${localIP}:8080/update-note/${this.username}/${this.selectedNote.id}`, {
+        const response = await fetch(`https://${localIP}:8080/update-note/${user}/${this.selectedNote.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
@@ -107,8 +113,10 @@ export class NotesComponent implements OnInit {
 
   async deleteNote() {
     if (this.selectedNote && this.username) {
+      
+      const user = this.role === 'Dungeon Master' ? 'Dungeon Master' : this.username;
       try {
-        const response = await fetch(`https://${localIP}:8080/delete-note/${this.username}/${this.selectedNote.id}`, {
+        const response = await fetch(`https://${localIP}:8080/delete-note/${user}/${this.selectedNote.id}`, {
           method: 'DELETE'
         });
         if (!response.ok) {
