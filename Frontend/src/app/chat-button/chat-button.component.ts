@@ -345,6 +345,45 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
     return new Date(incomingTimestamp).getTime() > new Date(stored).getTime();
   }
 
+  async onImageUpload(event: any) {
+    const file = event.target.files[0];
+    if (file && this.username) {
+      // Only allow image files by extension
+      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
+      const fileName = file.name.toLowerCase();
+      const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+      if (!hasValidExtension) {
+        console.error('Selected file does not have a valid image extension.');
+        return;
+      }
+      const formData = new FormData();
+      formData.append('image', file);
+
+      try {
+        const response = await fetch(`https://${localIP}:8080/save-image`, {
+          method: 'POST',
+          body: formData
+        });
+        if (!response.ok) throw new Error('Failed to upload image');
+        const data = await response.json();
+        // Send chat message with username "Photo - X" and message as the image path
+        const newMessage = {
+          username: `Photo - ${this.username}`,
+          message: data.filePath,
+          timestamp: new Date()
+        };
+        await fetch(`https://${localIP}:8080/chat-history/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newMessage)
+        });
+        setTimeout(() => this.scrollToBottom(), 100);
+      } catch (error) {
+        console.error('Error uploading image:', error);
+      }
+    }
+  }
+
   ngOnDestroy() {
     if (this.socket) {
       this.socket.disconnect(); // Clean up socket connection on component destroy

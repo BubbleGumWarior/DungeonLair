@@ -36,9 +36,23 @@
             style="min-width: 4rem;"
           >
             <div>
-              <span class="block underline font-bold">{{ chat.username }}</span>
+              <ng-container *ngIf="chat.username.startsWith('Photo - '); else normalSender">
+                <span class="block underline font-bold">{{ chat.username.split('Photo - ')[1] }}</span>
+              </ng-container>
+              <ng-template #normalSender>
+                <span class="block underline font-bold">{{ chat.username }}</span>
+              </ng-template>
             </div>
-            {{ chat.message }}
+            <ng-container *ngIf="chat.username.startsWith('Photo - '); else normalMessage">
+              <img 
+                [src]="'https://dungeonlair.ddns.net:8080' + chat.message"
+                alt="Photo Message"
+                class="max-h-40 w-auto rounded border border-blue-700 my-2"
+              />
+            </ng-container>
+            <ng-template #normalMessage>
+              {{ chat.message }}
+            </ng-template>
             <div class="flex justify-end">
               <span class="text-xs text-gray-500 whitespace-nowrap mt-1 block flex items-center">
                 <i class="fas fa-arrow-right mr-1"></i>
@@ -60,9 +74,13 @@
         [ngClass]="{'mr-2': !isMobile, 'mr-1': isMobile}"
       />
       <button type="submit" class="send-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-black rounded p-2"
-        [ngClass]="{'p-2': !isMobile, 'p-1': isMobile}"> <!-- Adjust padding based on device -->
+        [ngClass]="{'p-2': !isMobile, 'p-1': isMobile}">
         Send
       </button>
+      <label class="ml-2 cursor-pointer flex items-center text-blue-700">
+        <i class="fas fa-upload"></i>
+        <input type="file" accept="image/*" (change)="onImageUpload($event)" class="hidden" />
+      </label>
     </form>
   </div>
 </div>
