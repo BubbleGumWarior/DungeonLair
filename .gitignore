@@ -1,7 +1,7 @@
 # ...existing code...
 Frontend/src/app/config.ts
 Backend/config.js
-Backend\assets
 # ...existing code...
 Backend/config.js
 Frontend/src/app/config.ts
+/Backend/assets/images
