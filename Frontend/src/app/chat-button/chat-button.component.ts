@@ -49,7 +49,20 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
 
   ngOnInit() {
     this.loadUserRole();
-    this.loadChatHistory();
+    this.loadChatHistory().then(() => {
+      // After chat history is loaded, compare timestamps
+      if (this.chatHistory.length > 0) {
+        const latestTimestamp = this.chatHistory[0].timestamp;
+        if (this.isMessageNewer(latestTimestamp)) {
+          this.isNewMessage = true;
+          this.changeButtonColor();
+        }
+      }
+      // Save latest timestamp if chat is open on load
+      if (this.isOpen && this.chatHistory.length > 0) {
+        this.saveLatestMessageTimestamp(this.chatHistory[0].timestamp);
+      }
+    });
     this.setupSocketConnection();
     this.loadPublicRollsState(); // Load the public rolls state from local storage
     this.isMobile = window.innerWidth <= 768; // Check if the user is on a mobile device
@@ -88,14 +101,18 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
 
     // Listen for new messages
     this.socket.on('newMessage', (message: ChatMessage) => {
-      this.addMessageToChat(message.username, message.message);
-      
-      // Change button color only if the sender is not the current user
-      if (message.username !== this.username) {
-        this.isNewMessage = true; // Set new message flag
-        this.changeButtonColor(); // Call method to change the button color
-        if (this.isOpen) {
-          setTimeout(() => this.scrollToBottom(), 100); // Delay to ensure DOM update
+      this.addMessageToChat(message.username, message.message, message.timestamp);
+
+      // Save or compare timestamp logic
+      if (this.isOpen) {
+        this.saveLatestMessageTimestamp(message.timestamp);
+        this.isNewMessage = false;
+        this.resetButtonColor();
+        setTimeout(() => this.scrollToBottom(), 100);
+      } else {
+        if (this.isMessageNewer(message.timestamp)) {
+          this.isNewMessage = true;
+          this.changeButtonColor();
         }
       }
     });
@@ -103,13 +120,18 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
     // Listen for new DM messages only if the user is a Dungeon Master
     if (this.userRole === 'Dungeon Master') {
       this.socket.on('newDMMessage', (message: ChatMessage) => {
-        // Only add the message if the sender is not the current user
         if (message.username !== this.username) {
-          this.addMessageToChat(message.username, message.message);
-          this.isNewMessage = true; // Set new message flag
-          this.changeButtonColor(); // Call method to change the button color
+          this.addMessageToChat(message.username, message.message, message.timestamp);
           if (this.isOpen) {
-            setTimeout(() => this.scrollToBottom(), 100); // Delay to ensure DOM update
+            this.saveLatestMessageTimestamp(message.timestamp);
+            this.isNewMessage = false;
+            this.resetButtonColor();
+            setTimeout(() => this.scrollToBottom(), 100);
+          } else {
+            if (this.isMessageNewer(message.timestamp)) {
+              this.isNewMessage = true;
+              this.changeButtonColor();
+            }
           }
         }
       });
@@ -126,6 +148,10 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
     if (this.isOpen) {
       this.isNewMessage = false; // Reset the new message flag when chat is opened
       this.resetButtonColor(); // Reset button color when chat is opened
+      // Save latest message timestamp when chat is opened
+      if (this.chatHistory.length > 0) {
+        this.saveLatestMessageTimestamp(this.chatHistory[0].timestamp);
+      }
       setTimeout(() => this.scrollToBottom(), 100); // Scroll to bottom when chat is opened
     }
   }
@@ -166,13 +192,7 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
     });
     console.log('Chat history loaded:', this.chatHistory);
 
-    if (this.chatHistory.length > 0) {
-      const latestMessage = this.chatHistory[0];
-      if (latestMessage.username !== this.username) {
-        this.isNewMessage = true; // Set new message flag if the latest message is from a different user
-        this.changeButtonColor(); // Change button color for new messages from other users
-      }
-    }
+    // Remove old logic for isNewMessage here, handled by socket events
   }
 
   async sendMessage() {
@@ -251,12 +271,12 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
     }
   }
 
-  addMessageToChat(username: string, message: string) {
+  addMessageToChat(username: string, message: string, timestamp?: Date) {
     const sanitizedMessage = DOMPurify.sanitize(message);
     const newChatMessage: ChatMessage = {
       username,
       message: sanitizedMessage,
-      timestamp: new Date(),
+      timestamp: timestamp ? new Date(timestamp) : new Date(),
     };
 
     this.chatHistory.push(newChatMessage);
@@ -264,14 +284,7 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     });
 
-    // Check if the message is from another user
-    if (this.chatHistory.length > 1 && this.chatHistory[0].username !== username) {
-      this.isNewMessage = true; // Flag for new messages from other users
-      this.changeButtonColor(); // Change button color if the new message is from another user
-      if (this.isOpen) {
-        setTimeout(() => this.scrollToBottom(), 100); // Delay to ensure DOM update
-      }
-    }
+    // No isNewMessage logic here, handled in socket event
   }
 
   changeButtonColor() {
@@ -318,6 +331,18 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
     if (savedState !== null) {
       this.isPublicRollsEnabled = JSON.parse(savedState);
     }
+  }
+
+  // Save the latest message timestamp to localStorage
+  saveLatestMessageTimestamp(timestamp: Date | string) {
+    localStorage.setItem('latestChatTimestamp', new Date(timestamp).toISOString());
+  }
+
+  // Compare the incoming message timestamp with the one in localStorage
+  isMessageNewer(incomingTimestamp: Date | string): boolean {
+    const stored = localStorage.getItem('latestChatTimestamp');
+    if (!stored) return true;
+    return new Date(incomingTimestamp).getTime() > new Date(stored).getTime();
   }
 
   ngOnDestroy() {

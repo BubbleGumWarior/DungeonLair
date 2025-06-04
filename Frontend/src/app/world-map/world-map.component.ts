@@ -59,7 +59,6 @@ export class WorldMapComponent implements OnInit {
       }));
       this.liveUsers = updatedUsers
         .sort((a, b) => a.username === 'BubbleGumWarior' ? -1 : b.username === 'BubbleGumWarior' ? 1 : 0); // Ensure Dungeon Master is first
-      console.log('Live users:', this.liveUsers);
     });
   }
 
@@ -140,7 +139,6 @@ export class WorldMapComponent implements OnInit {
           photo: `https://${localIP}:8080${details.photo}`,
           equippedItemPath: `https://${localIP}:8080${details.equippedItemPath}`
         };
-        console.log('Hovered character details:', this.hoveredCharacter);
       } else {
         this.hoveredCharacter = null;
       }
