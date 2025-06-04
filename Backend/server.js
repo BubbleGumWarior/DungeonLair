@@ -1778,8 +1778,8 @@ app.get('/character-id/:characterName', async (req, res) => {
     }
     res.json({ characterID: characterInfo.characterID, maskID: characterInfo.maskID });
   } catch (error) {
-    console.error('Error fetching character ID:', error);
-    res.status(500).send('Failed to fetch character ID');
+    console.error('Error fetching character with that Name:', error);
+    res.status(500).send('Failed to fetch character with that Name');
   }
 });
 
