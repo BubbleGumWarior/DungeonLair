@@ -219,4 +219,8 @@ export class WebSocketService {
   resetHealth() {
     this.socket.emit('resetHealth'); // Emit the resetHealth event
   }
+
+  onTimeUpdate(callback: (time: string) => void) {
+    this.socket.on('timeUpdate', callback);
+  }
 }

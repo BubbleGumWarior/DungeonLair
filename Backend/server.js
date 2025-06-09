@@ -22,6 +22,7 @@ const Score = require('./models/Score'); // Import the Score model
 const MaskList = require('./models/MaskList'); // Import the MaskList model
 const MaskSkills = require('./models/MaskSkills'); // Import the MaskSkills model
 const ModList = require('./models/ModList'); // Import ModList model
+const TimeKeeper = require('./models/TimeKeeper'); // Import TimeKeeper model
 const { localIP, JWT_SECRET } = require('./config'); // Import the IP address and JWT secret
 const multer = require('multer');
 const path = require('path');
@@ -1345,7 +1346,7 @@ io.on('connection', (socket) => {
                   } else {
                     // Increase user's attack damage by 100%
                     mask.attackDamage += mask.attackDamage;
-                    console.log(`Mask ${maskID} used Oath Bearer, dealing ${finalDamage} damage to Mask ${targetMaskID} and doubling its attack damage.`);
+                    console.log(`Mask ${mask.maskID} used Oath Bearer, dealing ${finalDamage} damage to Mask ${targetMaskID} and doubling its attack damage.`);
                     battleMessage = `Mask ${maskID} used Oath Bearer, dealing ${finalDamage} damage to Mask ${targetMaskID} and doubling its attack damage.`;
                   }
             
@@ -1644,6 +1645,7 @@ io.on('connection', (socket) => {
                             masksInBattle[targetMaskID].poisonStacks += 1;
                             break;
                         case 'Bleed':
+                           
                             masksInBattle[targetMaskID].bleedStacks += 1;
                             break;
                         case 'Buff Stack':
@@ -2987,7 +2989,7 @@ app.post('/continue', async (req, res) => {
             if (enemies.length > 0) {
               const randomIndex = Math.floor(Math.random() * enemies.length);
               const targetMask = enemies[randomIndex];
-              const damage = mask.attackDamage * 0.5;
+              const damage = mask.attackDamage * 1;
               targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0); // Deal damage and cap at 0
               masksInBattle[targetMask.maskID] = targetMask; // Ensure the updated targetMask is added to masksInBattle
               battleMessage = `Mask ${mask.maskID} used Good Boy Strike and dealt ${damage} damage to mask ${targetMask.maskID}`;
@@ -3511,7 +3513,7 @@ app.post('/hover-character-id', async (req, res) => {
     // Get character info
     const characterInfo = await CharacterInfo.findOne({ where: { characterID } });
     if (!characterInfo) {
-      return res.status(404).json({ message: 'Character not found' });
+      return res.status(404).send('Character not found');
     }
 
     // Find equipped item in the character's inventory
@@ -3541,5 +3543,55 @@ app.post('/hover-character-id', async (req, res) => {
     } catch (error) {
     console.error('Error in /hover-character-id:', error);
     res.status(500).json({ message: 'Failed to log character ID' });
+  }
+});
+
+// Ensure a row exists in time_keeper table
+TimeKeeper.findOrCreate({
+  where: {},
+  defaults: { time: '00:00' }
+}).then(() => {
+  console.log('TimeKeeper initialized');
+}).catch(err => {
+  console.error('Error initializing TimeKeeper:', err);
+});
+
+// API endpoint to get current time
+app.get('/api/time', async (req, res) => {
+  try {
+    const tk = await TimeKeeper.findOne();
+    res.json({ time: tk ? tk.time : '00:00' });
+  } catch (err) {
+    res.status(500).json({ time: '00:00' });
+  }
+});
+
+// API endpoint to increment hour
+app.post('/api/time/increment', async (req, res) => {
+  try {
+    const tk = await TimeKeeper.findOne();
+    let [hour, minute] = (tk?.time || '00:00').split(':').map(Number);
+    hour = (hour + 1) % 24;
+    const newTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    await TimeKeeper.update({ time: newTime }, { where: {} });
+    io.emit('timeUpdate', newTime);
+    res.json({ time: newTime });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to increment time' });
+  }
+});
+
+// API endpoint to decrement hour
+app.post('/api/time/decrement', async (req, res) => {
+  try {
+    const tk = await TimeKeeper.findOne();
+    let [hour, minute] = (tk?.time || '00:00').split(':').map(Number);
+    hour = (hour - 1 + 24) % 24;
+    const newTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    await TimeKeeper.update({ time: newTime }, { where: {} });
+    io.emit('timeUpdate', newTime);
+    res.json({ time: newTime });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to decrement time' });
   }
 });

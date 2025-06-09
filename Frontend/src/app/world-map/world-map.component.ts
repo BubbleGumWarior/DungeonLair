@@ -30,6 +30,10 @@ export class WorldMapComponent implements OnInit {
     photo: string;
     equippedItemPath: string;
   } | null = null;
+  currentTime: string = '00:00';
+  isDaytime: boolean = true;
+  sunOpacity: number = 0;
+  moonOpacity: number = 0;
 
   constructor(
     private webSocketService: WebSocketService, 
@@ -59,6 +63,14 @@ export class WorldMapComponent implements OnInit {
       }));
       this.liveUsers = updatedUsers
         .sort((a, b) => a.username === 'BubbleGumWarior' ? -1 : b.username === 'BubbleGumWarior' ? 1 : 0); // Ensure Dungeon Master is first
+    });
+
+    // Fetch time from backend on init
+    this.fetchTimeFromServer();
+
+    // Listen for time updates from server
+    this.webSocketService.onTimeUpdate((time: string) => {
+      this.setTime(time);
     });
   }
 
@@ -157,5 +169,57 @@ export class WorldMapComponent implements OnInit {
     this.modalVisible = false;
     this.selectedUser = null;
     this.hoveredCharacter = null;
+  }
+
+  fetchTimeFromServer() {
+    this.http.get<{ time: string }>(`https://${localIP}:8080/api/time`).subscribe({
+      next: (res) => this.setTime(res.time),
+      error: () => this.setTime('00:00')
+    });
+  }
+
+  setTime(time: string) {
+    this.currentTime = time;
+    const hourNum = parseInt(this.currentTime.split(':')[0], 10);
+    this.isDaytime = hourNum >= 6 && hourNum < 18;
+
+    // Sun: visible only from 6:00 to 17:59
+    if (hourNum >= 6 && hourNum < 18) {
+      // Fade in from 6:00 (min) to 12:00 (1), fade out to 18:00 (min)
+      const minOpacity = 0.15;
+      if (hourNum <= 12) {
+        this.sunOpacity = minOpacity + ((hourNum - 6) / 6) * (1 - minOpacity); // 6->min, 12->1
+      } else {
+        this.sunOpacity = minOpacity + ((18 - hourNum) / 6) * (1 - minOpacity); // 12->1, 18->min
+      }
+      this.sunOpacity = Math.max(minOpacity, Math.min(1, this.sunOpacity));
+    } else {
+      this.sunOpacity = 0;
+    }
+
+    // Moon: visible only from 18:00 to 5:59
+    if (hourNum >= 18 && hourNum <= 23) {
+      // Fade in from 18:00 (min) to 0:00 (1)
+      const minOpacity = 0.15;
+      this.moonOpacity = minOpacity + ((hourNum - 18) / 6) * (1 - minOpacity); // 18->min, 24->1 (but hourNum max 23)
+      this.moonOpacity = Math.max(minOpacity, Math.min(1, this.moonOpacity));
+    } else if (hourNum >= 0 && hourNum < 6) {
+      // Fade out from 0:00 (1) to 6:00 (min)
+      const minOpacity = 0.15;
+      this.moonOpacity = minOpacity + ((6 - hourNum) / 6) * (1 - minOpacity); // 0->1, 6->min
+      this.moonOpacity = Math.max(minOpacity, Math.min(1, this.moonOpacity));
+    } else {
+      this.moonOpacity = 0;
+    }
+  }
+
+  incrementHour() {
+    this.http.post<{ time: string }>(`https://${localIP}:8080/api/time/increment`, {}).subscribe();
+    // The backend will emit the new time to all clients via websocket
+  }
+
+  decrementHour() {
+    this.http.post<{ time: string }>(`https://${localIP}:8080/api/time/decrement`, {}).subscribe();
+    // The backend will emit the new time to all clients via websocket
   }
 }
