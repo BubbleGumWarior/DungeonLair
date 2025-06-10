@@ -88,6 +88,17 @@ sequelize.sync({ force: false })
                 isMultiTarget: false,
             },
             {
+                skillID: 9996,
+                skillName: 'Underworld Ravage Strike',
+                description: 'Strike the target dealing Attack Damage to them and bleeding them',
+                mainStat: 'Attack Damage',
+                mainStatPercentage: 100,
+                cooldown: 0,
+                amountOfStrikes: 1,
+                onHitEffect: 'None',
+                isMultiTarget: false,
+            },
+            {
                 skillID: 9997,
                 skillName: 'Lurk in the Shadows Dog',
                 description: 'Strike the target dealing Attack Damage to them. If you are untargetable this does double damage. At the start of each cycle you have a 50% chance to become untargetable.',
@@ -189,6 +200,20 @@ sequelize.sync({ force: false })
                 photo: '/assets/images/Doggo.jpg',
                 passiveSkill: 'Pack Mentality',
                 activeSkills: [8888],
+                modList: [],
+                attackDamage: 15,
+                abilityDamage: 15,
+                magicResist: 10,
+                protections: 10,
+                health: 75,
+                currentHealth: 75,
+                speed: 100,
+            },
+            {
+                maskID: 9996,
+                photo: '/assets/images/UnderworldAlphaHound.jpg',
+                passiveSkill: 'Pack Mentality',
+                activeSkills: [9996],
                 modList: [],
                 attackDamage: 15,
                 abilityDamage: 15,
@@ -837,6 +862,7 @@ let blackHoleDamage = 0; // Initialize variable to track damage from Black Hole
 let stormSize = 0; // Initialize variable to track storm size
 let infectedByPlague = []; // Initialize variable to track infected masks
 let forestsTiming = 0; // Initialize variable to track forests timing
+let detachedSoul = false;
 
 io.on('connection', (socket) => {
     console.log('A user connected with socket ID:', socket.id);
@@ -1588,6 +1614,58 @@ io.on('connection', (socket) => {
                 }
               });
             }
+            else if (skill.skillName === 'Detached Soul') {
+              if (!detachedSoul) {
+              mask.magicResist *= 10;
+              mask.protections *= 10;
+              detachedSoul = true;
+              } else {
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                let damage = mask.attackDamage;
+                let reduction = targetMask.protections;
+                const finalDamage = Math.max(damage - reduction, 0);
+                targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0);
+                battleMessage = `Mask ${maskID} used Detached Soul on Mask ${targetMaskID}, dealing ${finalDamage} damage.`;
+                if (battleMessage) {
+                  console.log(battleMessage);
+                  io.emit('battleMessage', battleMessage);
+                }
+                }
+              });
+              }
+            }
+            else if (skill.skillName === 'Unforseen Strike') {
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                  // Exception: This skill deals true damage (ignores protections)
+                  let damage = mask.attackDamage * (skill.mainStatPercentage / 100);
+                  const finalDamage = Math.max(damage, 0);
+
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0);
+
+                  // If the target is killed
+                  if (targetMask.currentHealth === 0) {
+                    mask.action = true;
+                    mask.bonusAction = true;
+                    mask.movement = mask.speed;
+                    // Reset this skill's cooldown if it was on cooldown
+                    if (mask.cooldowns[skillID] && mask.cooldowns[skillID] !== 0) {
+                      mask.cooldowns[skillID] = 0;
+                    }
+                    console.log(mask.cooldowns);
+                  }
+
+                  battleMessage = `Mask ${maskID} used Detached Soul on Mask ${targetMaskID}, dealing ${finalDamage} true damage.`;
+                  if (battleMessage) {
+                    console.log(battleMessage);
+                    io.emit('battleMessage', battleMessage);
+                  }
+                }
+              });
+            }
             else if (skill.onHitEffect === 'Heal') {
               targetMaskIDs.forEach(targetMaskID => {
                 const targetMask = masksInBattle[targetMaskID];
@@ -1669,7 +1747,10 @@ io.on('connection', (socket) => {
                 }
               });
             }            
-            mask.cooldowns[skillID] = skill.cooldown + 1; // Apply cooldown to the used skill
+            // Apply cooldown to the used skill, except for Unforseen Strike
+            if (skill.skillName !== 'Unforseen Strike') {
+              mask.cooldowns[skillID] = skill.cooldown + 1;
+            }
             mask.action = false; // Set action to false after using a skill
             io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Emit updated masksInBattle to all users
         }
@@ -1729,6 +1810,9 @@ io.on('connection', (socket) => {
         masksInBattle = {};
         blindingStrikesTargets = []; // Clear the tracking array when the battle ends
         blackHoleDamage = 0;
+        detachedSoul = false;
+        stormSize = 0;
+        forestsTiming = 0;
 
         io.emit('masksInBattleUpdate', Object.values(masksInBattle));
       } catch (error) {
@@ -2982,7 +3066,59 @@ app.post('/continue', async (req, res) => {
                 mask.currentHealth = Math.min(mask.currentHealth + statIncrease, mask.health);
               }
             }
+          }
+          if (skillName === "Lord of The Undead") {
+            console.log(`Mask ${mask.maskID} has skill: Lord of The Undead`);
+            if (!masksInBattle[9996]) {
+              const dogStats = {
+                maskID: 9996,
+                attackDamage: mask.attackDamage * 0.25,
+                abilityDamage: mask.attackDamage * 0.25,
+                protections: mask.attackDamage * 0.1,
+                magicResist: mask.attackDamage * 0.1,
+                health: mask.attackDamage * 5,
+                speed: 100,
+                currentHealth: mask.attackDamage * 5,
+                currentSpeed: 0,
+                activeSkills: [9996],
+                stunStacks: 0,
+                burnStacks: 0,
+                poisonStacks: 0,
+                bleedStacks: 0,
+                buffStacks: 0,
+                action: false,
+                bonusAction: false,
+                movement: 0,
+                team: mask.team,
+                cooldowns: {},
+                photo: "/assets/images/UnderworldAlphaHound.jpg"
+              };
+              masksInBattle[9996] = dogStats;
+              console.log(`A good boy was summoned!`);
+              battleMessage = `Mask ${mask.maskID} used Lord of The Undead`;
+              if (battleMessage) {
+                console.log(battleMessage);
+                io.emit('battleMessage', battleMessage);
+              }
+            }
           }          
+          if (skillName === "Underworld Ravage Strike" && mask.currentSpeed === 100) {
+            console.log(`Mask ${mask.maskID} has skill: Underworld Ravage Strike`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+            if (enemies.length > 0) {
+              const randomIndex = Math.floor(Math.random() * enemies.length);
+              const targetMask = enemies[randomIndex];
+              const damage = mask.attackDamage * 1;
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0);
+              targetMask.bleedStacks += 3;
+              masksInBattle[targetMask.maskID] = targetMask;
+              battleMessage = `Mask ${mask.maskID} used Underworld Ravage Strike and dealt ${damage} damage to mask ${targetMask.maskID}, increasing their bleed stacks by 3`;
+              if (battleMessage) {
+                console.log(battleMessage);
+                io.emit('battleMessage', battleMessage);
+              }
+            }
+          }             
           if (skillName === "Good Boy Strike" && mask.currentSpeed === 100) {
             console.log(`Mask ${mask.maskID} has skill: Good Boy Strike`);
             const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
@@ -3179,6 +3315,141 @@ app.post('/continue', async (req, res) => {
             mask.currentHealth += mask.health * 0.50;
             mask.currentHealth = Math.min(mask.currentHealth, mask.health); // Heal mask and cap at mask.health
           }
+          
+            if (skillName === "Ice Hammer") {
+            console.log(`Mask ${mask.maskID} has skill: Ice Hammer`);
+            stormSize += mask.attackDamage;
+            battleMessage = `Mask ${mask.maskID} used Ice Hammer and increased storm size by ${mask.attackDamage}.`;
+            if (stormSize > 2500) {
+              stormSize = 0;
+              const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+              enemies.forEach(targetMask => {
+              targetMask.stunStacks += 5;
+              const damage = mask.attackDamage * 5;
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0);
+              });
+              battleMessage += ` The storm erupts! All enemies are stunned for 5 turns and take ${mask.attackDamage * 5} damage.`;
+            }
+            if (battleMessage) {
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }
+          
+          if (skillName === "What a joke") {
+            console.log(`Mask ${mask.maskID} has skill: What a joke`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0 && targetMask.poisonStacks > 0);
+            let totalHeal = 0;
+            enemies.forEach(targetMask => {
+              const damage = mask.abilityDamage * 0.1;
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0);
+              totalHeal += damage;
+            });
+            mask.currentHealth = Math.min(mask.currentHealth + totalHeal, mask.health);
+            battleMessage = `Mask ${mask.maskID} used What a joke, dealt ${totalHeal} damage and healed for the same amount`;
+            if (battleMessage) {
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }
+          
+          if (skillName === "Tentacle Swarm") {
+            console.log(`Mask ${mask.maskID} has skill: Tentacle Swarm`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+            let totalDamage = 0;
+            let totalStuns = 0;
+            for (let i = 0; i < mask.buffStacks; i++) {
+              if (enemies.length === 0) break;
+              const randomIndex = Math.floor(Math.random() * enemies.length);
+              const targetMask = enemies[randomIndex];
+              const damage = mask.abilityDamage * 0.5;
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0);
+              totalDamage += damage;
+              // Calculate stun chance: X = speed / 2
+              const stunChance = mask.speed / 2;
+              if (Math.random() * 100 < stunChance) {
+                targetMask.stunStacks += 1;
+                totalStuns += 1;
+              }
+            }
+            battleMessage = `Mask ${mask.maskID} used Tentacle Swarm, dealt ${totalDamage} damage and applied ${totalStuns} stun stacks.`;
+            if (battleMessage) {
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }
+          
+          if (skillName === "Do not anger the Forest") {
+            console.log(`Mask ${mask.maskID} has skill: Do not anger the Forest`);
+            forestsTiming = (forestsTiming || 0) + 1;
+            if (forestsTiming > 20) {
+              mask.speed = 100;
+              battleMessage = `Mask ${mask.maskID} used Do not anger the Forest: Forests have grown wild, speed set to 100!`;
+            } else {
+              mask.health *= 1.1;
+              mask.currentHealth *= 1.1;
+              mask.attackDamage *= 1.1;
+              mask.abilityDamage *= 1.1;
+              mask.magicResist *= 1.1;
+              mask.protections *= 1.1;
+              battleMessage = `Mask ${mask.maskID} used Do not anger the Forest: stats increased by 10%. Forests timing: ${forestsTiming}`;
+            }
+            if (battleMessage) {
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }
+          
+          if (skillName === "Chivalry") {
+            console.log(`Mask ${mask.maskID} has skill: Chivalry`);
+            let totalHealed = 0;
+            Object.values(masksInBattle).forEach(targetMask => {
+              if (targetMask.team === mask.team && targetMask.currentHealth > 0) {
+              const healAmount = targetMask.health - targetMask.currentHealth;
+              if (healAmount > 0) {
+                targetMask.currentHealth = targetMask.health;
+                totalHealed += healAmount;
+              }
+              }
+            });
+            const selfDamage = totalHealed * 0.5;
+            mask.currentHealth = Math.max(mask.currentHealth - selfDamage, 0);
+            if (mask.currentHealth > 0) {
+              mask.currentHealth = Math.min(mask.currentHealth + mask.attackDamage, mask.health);
+            }
+            battleMessage = `Mask ${mask.maskID} used Chivalry: healed allies for ${totalHealed}, took ${selfDamage} self-damage, and healed self for ${mask.currentHealth > 0 ? mask.attackDamage : 0}.`;
+            if (battleMessage) {
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }
+          
+          if (skillName === "Crashing Wave") {
+            if (mask.buffStacks > 4) {
+              mask.buffStacks = 0;
+              // Heal all allies for 250% of ability damage
+              Object.values(masksInBattle).forEach(targetMask => {
+                if (targetMask.team === mask.team && targetMask.currentHealth > 0) {
+                  const healAmount = mask.abilityDamage * 2.5;
+                  targetMask.currentHealth = Math.min(targetMask.currentHealth + healAmount, targetMask.health);
+                }
+              });
+              // Deal damage to all enemies for 500% of ability damage and increase their stunStacks by 3
+              Object.values(masksInBattle).forEach(targetMask => {
+                if (targetMask.team !== mask.team && targetMask.currentHealth > 0) {
+                  const damage = mask.abilityDamage * 5;
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0);
+                  targetMask.stunStacks += 3;
+                }
+              });
+              battleMessage = `Mask ${mask.maskID} used Crashing Wave: healed allies for 250% ability damage, damaged enemies for 500% ability damage, and stunned them.`;
+              if (battleMessage) {
+                console.log(battleMessage);
+                io.emit('battleMessage', battleMessage);
+              }
+            }
+          }
+
           if (skillName === "Call the Dragons" && mask.currentSpeed === 100) {
             console.log(`Mask ${mask.maskID} has skill: Call the Dragons`);
             let dragonID = 10000;
@@ -3327,6 +3598,7 @@ app.post('/end-battle', async (req, res) => {
     masksInBattle = {};
     blindingStrikesTargets = []; // Clear the tracking array when the battle ends
     blackHoleDamage = 0;
+    detachedSoul = false;
     infectedByPlague = [];
     stormSize = 0;
     forestsTiming = 0;
@@ -3457,6 +3729,7 @@ app.post('/reset-health', async (req, res) => {
     masksInBattle = {};
     blindingStrikesTargets = []; // Clear the tracking array when the battle ends
     blackHoleDamage = 0;
+    detachedSoul = false;
     infectedByPlague = [];
     stormSize = 0;
     forestsTiming = 0;
