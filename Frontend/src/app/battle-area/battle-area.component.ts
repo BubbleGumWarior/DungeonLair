@@ -46,19 +46,22 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
   showJoinLeaveConfirmationModal: boolean = false; // Add flag for join/leave confirmation modal
   @ViewChild('battleMessagesContainer') battleMessagesContainer!: ElementRef<HTMLDivElement>;
 
+  maskColors: { [maskID: number]: string } = {}; // Persist mask colors
+
   private assignRandomColorsToMasks() {
     this.masksInBattle.forEach(mask => {
-      if (!mask.randomColor) {
-        mask.randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+      if (!this.maskColors[mask.maskID]) {
+        this.maskColors[mask.maskID] = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
       }
+      mask.randomColor = this.maskColors[mask.maskID];
     });
   }
 
-  constructor(private http: HttpClient, private webSocketService: WebSocketService, private router: Router) { // Add Router to constructor
+  constructor(private http: HttpClient, private webSocketService: WebSocketService, private router: Router) {
     this.webSocketService.onMasksInBattleUpdate((masks) => {
       this.masksInBattle = masks.sort((a, b) => b.speed - a.speed);
-      this.updateMaskPhotos(); // Ensure photos are updated
-      this.assignRandomColorsToMasks(); // Assign random colors
+      this.updateMaskPhotos();
+      this.assignRandomColorsToMasks(); // Now uses persistent colors
     });
     this.webSocketService.onBattleMessage((message) => {
       this.battleMessages.push(message);
@@ -75,10 +78,10 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
     // Fetch the current state of masksInBattle from the server
     this.http.get(`https://${localIP}:8080/masks-in-battle`)
       .subscribe(
-        (masks: any) => { // Change type to any
-          this.masksInBattle = masks.sort((a: any, b: any) => b.currentSpeed - a.currentSpeed); // Explicitly type parameters
-          this.updateMaskPhotos(); // Ensure photos are updated
-          this.assignRandomColorsToMasks(); // Assign random colors
+        (masks: any) => {
+          this.masksInBattle = masks.sort((a: any, b: any) => b.currentSpeed - a.currentSpeed);
+          this.updateMaskPhotos();
+          this.assignRandomColorsToMasks(); // Now uses persistent colors
         },
         (error) => {
           console.error('Error fetching masks in battle:', error);
@@ -87,7 +90,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.webSocketService.onMasksInBattleUpdate((masks: any[]) => {
       this.masksInBattle = masks;
-      this.assignRandomColorsToMasks(); // Assign random colors
+      this.assignRandomColorsToMasks(); // Now uses persistent colors
     });
     setTimeout(() => this.scrollBattleMessagesToBottom());
   }
