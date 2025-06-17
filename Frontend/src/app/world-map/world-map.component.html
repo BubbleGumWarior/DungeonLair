@@ -20,10 +20,9 @@
   
   <ul>
     <li *ngFor="let user of liveUsers"
-        class="flex items-center justify-center"
+        class="flex items-center justify-center cursor-pointer"
         [ngClass]="{'text-pink-500': user.username === 'BubbleGumWarior', 'text-blue-700': user.username !== 'BubbleGumWarior'}"
-        (mouseenter)="onUserHover(user, $event)"
-        (mouseleave)="onUserLeave()">
+        (click)="onUserClick(user, $event)">
       <img [src]="user.photoPath" alt="User Photo" class="w-8 h-8 mr-2 rounded-full mb-4"/>
       <p class="mb-4">{{ user.username === 'BubbleGumWarior' ? 'Dungeon Master' : user.username }}</p>
     </li>
@@ -32,8 +31,14 @@
 
 <!-- Modal for character info on hover -->
 <div *ngIf="modalVisible && hoveredCharacter"
-  class="fixed z-50 bg-stone-900 border border-blue-700 rounded-lg shadow-lg p-8 flex flex-col items-center"
-  style="top: 0; left: 0; min-width: 33vw; max-width: 50vw; max-height: 66vh; overflow-y: auto;">
+  class="fixed left-1/2 bottom-8 transform -translate-x-1/2 z-50 bg-stone-900 border border-blue-700 rounded-lg shadow-lg p-8 flex flex-col items-center"
+  style="min-width: 33vw; max-width: 50vw; max-height: 66vh; overflow-y: auto;">
+  <button
+    class="absolute top-2 right-2 pr-4 text-blue-700 hover:text-blue-300 text-2xl font-bold focus:outline-none"
+    (click)="onUserLeave()"
+    aria-label="Close"
+    style="z-index: 10;"
+  >&times;</button>
   <div class="flex items-center justify-center w-full mb-4">
     <ng-container *ngIf="hoveredCharacter.equippedItemPath !== 'https://dungeonlair.ddns.net:8080null'; else singleImage">
       <img *ngIf="hoveredCharacter.characterName"

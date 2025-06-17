@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Import CommonModule
 import { HttpClientModule, HttpClient } from '@angular/common/http'; // Import HttpClientModule and HttpClient
 import { Router } from '@angular/router'; // Import Router
@@ -14,7 +14,7 @@ import { FormsModule } from '@angular/forms'; // Import FormsModule for two-way 
   templateUrl: './battle-area.component.html',
   styleUrl: './battle-area.component.css'
 })
-export class BattleAreaComponent implements OnInit, OnDestroy {
+export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
   Math = Math; // Add Math as a property
   userInformation: any = null;
   maskInformation: any = null; // Add maskInformation variable
@@ -44,17 +44,25 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   showErrorBanner: boolean = false; // Add state for the error banner
   errorMessage: string = ''; // Add variable to store the error message
   showJoinLeaveConfirmationModal: boolean = false; // Add flag for join/leave confirmation modal
+  @ViewChild('battleMessagesContainer') battleMessagesContainer!: ElementRef<HTMLDivElement>;
+
+  private assignRandomColorsToMasks() {
+    this.masksInBattle.forEach(mask => {
+      if (!mask.randomColor) {
+        mask.randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+      }
+    });
+  }
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private router: Router) { // Add Router to constructor
     this.webSocketService.onMasksInBattleUpdate((masks) => {
       this.masksInBattle = masks.sort((a, b) => b.speed - a.speed);
       this.updateMaskPhotos(); // Ensure photos are updated
+      this.assignRandomColorsToMasks(); // Assign random colors
     });
     this.webSocketService.onBattleMessage((message) => {
       this.battleMessages.push(message);
-      setTimeout(() => {
-        this.battleMessages.shift();
-      }, 3000); // Remove message after 3 seconds
+      this.scrollBattleMessagesToBottom();
     });
   }
 
@@ -70,6 +78,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
         (masks: any) => { // Change type to any
           this.masksInBattle = masks.sort((a: any, b: any) => b.currentSpeed - a.currentSpeed); // Explicitly type parameters
           this.updateMaskPhotos(); // Ensure photos are updated
+          this.assignRandomColorsToMasks(); // Assign random colors
         },
         (error) => {
           console.error('Error fetching masks in battle:', error);
@@ -78,6 +87,20 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
 
     this.webSocketService.onMasksInBattleUpdate((masks: any[]) => {
       this.masksInBattle = masks;
+      this.assignRandomColorsToMasks(); // Assign random colors
+    });
+    setTimeout(() => this.scrollBattleMessagesToBottom());
+  }
+
+  ngAfterViewInit() {
+    this.scrollBattleMessagesToBottom();
+  }
+
+  private scrollBattleMessagesToBottom() {
+    setTimeout(() => {
+      if (this.battleMessagesContainer) {
+        this.battleMessagesContainer.nativeElement.scrollTop = this.battleMessagesContainer.nativeElement.scrollHeight;
+      }
     });
   }
 
@@ -568,5 +591,33 @@ export class BattleAreaComponent implements OnInit, OnDestroy {
   clearHealth() {
     this.webSocketService.resetHealth(); // Use WebSocket service to emit resetHealth event
     console.log('Reset health request sent via WebSocket');
+  }
+
+  getMaskPrefixAndColor(message: string): { prefix: string, color: string } {
+    // Match "Mask X" at the start of the message
+    const match = /^Mask (\d+)/.exec(message);
+    if (match) {
+      const maskID = parseInt(match[1], 10);
+      const mask = this.masksInBattle.find(m => m.maskID === maskID);
+      if (mask && mask.randomColor) {
+        const prefix = `Mask ${maskID}`;
+        return { prefix, color: mask.randomColor };
+      }
+    }
+    return { prefix: '', color: '' };
+  }
+
+  colorizeMaskMentions(message: string): string {
+    // Helper to get color for a mask ID
+    const getColorForMask = (maskID: number): string => {
+      const mask = this.masksInBattle.find(m => m.maskID === maskID);
+      return mask && mask.randomColor ? mask.randomColor : '#60a5fa'; // fallback to blue-400
+    };
+
+    // Replace all "Mask X" with colored spans
+    return message.replace(/Mask (\d+)/g, (match, maskID) => {
+      const color = getColorForMask(Number(maskID));
+      return `<span style="color: ${color}; font-weight: bold;">Mask ${maskID}</span>`;
+    });
   }
 }

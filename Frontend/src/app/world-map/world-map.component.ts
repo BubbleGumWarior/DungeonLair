@@ -108,8 +108,8 @@ export class WorldMapComponent implements OnInit {
     return 'default/path/to/photo.jpg';
   }
   
-  // Show modal on hover
-  async onUserHover(user: { username: string }, event: MouseEvent) {
+  // Remove onUserHover and replace with onUserClick
+  async onUserClick(user: { username: string }, event: MouseEvent) {
     try {
       const res = await fetch(`https://dungeonlair.ddns.net:8080/character-id-username/${user.username}`);
       const data = await res.json();
@@ -117,14 +117,14 @@ export class WorldMapComponent implements OnInit {
         username: user.username,
         characterID: data.characterID
       };
-      // Position modal to the left of the live users panel, vertically centered to hovered user
+      // Position modal to the left of the live users panel, vertically centered to clicked user
       const liveUsersPanel = document.querySelector('.fixed.right-4');
       let left = 0;
       let top = 0;
       if (liveUsersPanel) {
         const panelRect = (liveUsersPanel as HTMLElement).getBoundingClientRect();
         left = panelRect.left - 340; // 320px modal width + 20px gap
-        // Vertically center modal to hovered user
+        // Vertically center modal to clicked user
         const liElem = (event.target as HTMLElement).closest('li');
         if (liElem) {
           const liRect = liElem.getBoundingClientRect();

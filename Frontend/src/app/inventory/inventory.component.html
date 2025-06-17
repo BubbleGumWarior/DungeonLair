@@ -1,11 +1,26 @@
 <div class="p-6">
   <input type="text" [(ngModel)]="searchQuery" placeholder="Search items..." class="w-full p-2 mb-4 border border-blue-800 rounded-md bg-stone-950 text-blue-800">
-  <div class="flex space-x-4 mb-4">
-    <button (click)="setSortCriteria('alphabetically')" [class.bg-blue-900]="sortCriteria === 'alphabetically'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Alphabetically</button>
-    <button (click)="setSortCriteria('damage')" [class.bg-blue-900]="sortCriteria === 'damage'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Damage</button>
-    <button (click)="setSortCriteria('type')" [class.bg-blue-900]="sortCriteria === 'type'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Type</button>
-    <button (click)="setSortCriteria('mainStat')" [class.bg-blue-900]="sortCriteria === 'mainStat'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Main Stat</button>
-    <button (click)="setSortCriteria('clothing')" [class.bg-blue-900]="sortCriteria === 'clothing'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Clothing</button>
+  <div class="flex mb-4">
+    <div class="flex space-x-4">
+      <button
+        (click)="setSortCriteria('alphabetically')"
+        [class.bg-blue-900]="sortCriteria === 'alphabetically'"
+        [class.text-stone-950]="sortCriteria === 'alphabetically'"
+        class="p-2 border border-blue-800 rounded-md text-blue-800"
+      >Alphabetically</button>
+      <button (click)="setSortCriteria('damage')" [class.bg-blue-900]="sortCriteria === 'damage'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Damage</button>
+      <button (click)="setSortCriteria('type')" [class.bg-blue-900]="sortCriteria === 'type'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Type</button>
+      <button (click)="setSortCriteria('mainStat')" [class.bg-blue-900]="sortCriteria === 'mainStat'" class="p-2 border border-blue-800 rounded-md focus:text-stone-950 text-blue-800">Main Stat</button>
+    </div>
+    <div class="flex-1 flex justify-end">
+      <button
+        (click)="setSortCriteria('clothing')"
+        [class.bg-yellow-400]="sortCriteria === 'clothing'"
+        class="p-2 border border-yellow-400 rounded-md focus:text-stone-950 text-yellow-400 font-bold ml-4"
+      >
+        Clothing
+      </button>
+    </div>
   </div>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
