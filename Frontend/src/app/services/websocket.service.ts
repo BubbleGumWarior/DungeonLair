@@ -52,6 +52,7 @@ export class WebSocketService {
     this.socket.on('battleMessage', (message) => {
       console.log('Battle Message:', message); // Log the battle message
     });
+    // Remove direct play logic here, move to a subscription method
   }
 
   sendMessage(message: any) {
@@ -222,5 +223,17 @@ export class WebSocketService {
 
   onTimeUpdate(callback: (time: string) => void) {
     this.socket.on('timeUpdate', callback);
+  }
+
+  onPlaySound(callback: (sound: { id: string, path: string }) => void) {
+    this.socket.on('playSound', callback);
+  }
+
+  async playSound(sound: any) {
+    await fetch(`https://${localIP}:8080/api/play-sound`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(sound)
+    });
   }
 }

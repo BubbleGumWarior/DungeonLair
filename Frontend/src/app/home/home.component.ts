@@ -2,7 +2,7 @@ import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // Import FormsModule
-// Remove HttpClientModule import
+import { HttpClientModule } from '@angular/common/http'; // Import HttpClientModule
 import { WorldMapComponent } from '../world-map/world-map.component';
 import { BoardComponent } from '../board/board.component';
 import { FamilyComponent } from '../family/family.component';
@@ -12,7 +12,7 @@ import { SkillsComponent } from '../skills/skills.component';
 import { NotesComponent } from '../notes/notes.component';
 import { ChatButtonComponent } from '../chat-button/chat-button.component';
 import { RollButtonComponent } from '../roll-button/roll-button.component';
-import { vcButtonComponent } from '../vcbutton/vcbutton.component';
+import { SoundComponent } from '../sound/sound.component';
 import { SoundbarComponent } from '../soundbar/soundbar.component';
 import { DMScreenComponent } from '../dmscreen/dmscreen.component';
 import { jwtDecode } from 'jwt-decode';
@@ -26,6 +26,7 @@ import { ScoreComponent } from '../score/score.component';
   imports: [
     CommonModule,
     FormsModule,
+    HttpClientModule, // Add HttpClientModule here
     WorldMapComponent,
     BoardComponent,
     FamilyComponent,
@@ -35,7 +36,7 @@ import { ScoreComponent } from '../score/score.component';
     NotesComponent,
     ChatButtonComponent,
     RollButtonComponent,
-    vcButtonComponent,
+    SoundComponent,
     SoundbarComponent,
     DMScreenComponent,
     ScoreComponent,
@@ -66,6 +67,14 @@ export class HomeComponent implements OnInit {
       this.webSocketService.loginUser({ username: this.username, role: this.role });
     }
     console.log('Character name in HomeComponent:', this.characterName); // Add this log
+
+    // Listen for playSound event for all users
+    this.webSocketService.onPlaySound((sound) => {
+      const url = `https://${localIP}:8080${sound.path}`;
+      console.log('Received playSound event. Sound to play:', sound, 'URL:', url);
+      const audio = new Audio(url);
+      audio.play();
+    });
   }
 
   loadDataFromToken() {

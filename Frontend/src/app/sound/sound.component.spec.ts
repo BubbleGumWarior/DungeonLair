@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { VCButtonComponent } from './vcbutton.component';
+import { SoundComponent } from './sound.component';
 
 describe('VCButtonComponent', () => {
-  let component: VCButtonComponent;
-  let fixture: ComponentFixture<VCButtonComponent>;
+  let component: SoundComponent;
+  let fixture: ComponentFixture<SoundComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [VCButtonComponent]
+      imports: [SoundComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(VCButtonComponent);
+    fixture = TestBed.createComponent(SoundComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -67,7 +67,7 @@
     (resultRolled)="handleDiceResult($event)" 
     (openChat)="openChatButton()">
   </app-roll-button>
-  <app-vc-button *ngIf="isHomeView() || !isMobile()" [username]="username || 'DefaultUser'"></app-vc-button>
+  <app-sound-button *ngIf="role === 'Dungeon Master'"></app-sound-button>
   <!-- <app-soundbar class="hidden md:block"></app-soundbar> -->
 
 <div *ngIf="(isHomeView() || !isMobile())" class="fixed bottom-4 right-4 mb-0">

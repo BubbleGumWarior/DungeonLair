@@ -23,6 +23,7 @@ const MaskList = require('./models/MaskList'); // Import the MaskList model
 const MaskSkills = require('./models/MaskSkills'); // Import the MaskSkills model
 const ModList = require('./models/ModList'); // Import ModList model
 const TimeKeeper = require('./models/TimeKeeper'); // Import TimeKeeper model
+const Sound = require('./models/Sound'); // Import Sound model
 const { localIP, JWT_SECRET } = require('./config'); // Import the IP address and JWT secret
 const multer = require('multer');
 const path = require('path');
@@ -794,6 +795,36 @@ app.put('/character-info-board/:characterID/photo', async (req, res) => {
 });
 
 app.use('/assets/images', express.static(path.join(__dirname, 'assets/images')));
+app.use('/assets/sounds', express.static(path.join(__dirname, 'assets/sounds')));
+
+const soundStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, 'assets/sounds');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+const soundUpload = multer({ storage: soundStorage });
+
+app.post('/api/upload-sound', soundUpload.single('file'), async (req, res) => {
+  const { id } = req.body;
+  if (!req.file || !id) {
+    return res.status(400).json({ message: 'Sound ID and file are required' });
+  }
+  const filePath = `/assets/sounds/${req.file.filename}`;
+  try {
+    await Sound.create({ id, path: filePath });
+    res.status(201).json({ message: 'Sound uploaded successfully', path: filePath });
+  } catch (error) {
+    console.error('Error uploading sound:', error);
+    res.status(500).json({ message: 'Failed to upload sound' });
+  }
+});
 
 // Endpoint to handle gallery image upload
 app.post('/upload-gallery-image', upload.single('image'), async (req, res) => {
@@ -3867,4 +3898,24 @@ app.post('/api/time/decrement', async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Failed to decrement time' });
   }
+});
+
+app.get('/api/sounds', async (req, res) => {
+  try {
+    const sounds = await Sound.findAll();
+    res.json(sounds);
+  } catch (error) {
+    console.error('Error fetching sounds:', error);
+    res.status(500).send('Failed to fetch sounds');
+  }
+});
+
+app.post('/api/play-sound', (req, res) => {
+  const soundDetails = req.body;
+  // Emit the playSound event with the path and id to all connected clients
+  io.emit('playSound', {
+    id: soundDetails.id,
+    path: soundDetails.path
+  });
+  res.status(200).json({ message: 'Sound event emitted' });
 });
