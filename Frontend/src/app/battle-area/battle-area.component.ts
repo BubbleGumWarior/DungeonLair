@@ -44,6 +44,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
   showErrorBanner: boolean = false; // Add state for the error banner
   errorMessage: string = ''; // Add variable to store the error message
   showJoinLeaveConfirmationModal: boolean = false; // Add flag for join/leave confirmation modal
+  isMobile: boolean = false; // Add this property
   @ViewChild('battleMessagesContainer') battleMessagesContainer!: ElementRef<HTMLDivElement>;
 
   maskColors: { [maskID: number]: string } = {}; // Persist mask colors
@@ -93,6 +94,8 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
       this.assignRandomColorsToMasks(); // Now uses persistent colors
     });
     setTimeout(() => this.scrollBattleMessagesToBottom());
+
+    this.isMobile = /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
   }
 
   ngAfterViewInit() {

@@ -34,6 +34,7 @@ export class WorldMapComponent implements OnInit {
   isDaytime: boolean = true;
   sunOpacity: number = 0;
   moonOpacity: number = 0;
+  isMobile: boolean = false; // Add property to track mobile
 
   constructor(
     private webSocketService: WebSocketService, 
@@ -71,6 +72,11 @@ export class WorldMapComponent implements OnInit {
     // Listen for time updates from server
     this.webSocketService.onTimeUpdate((time: string) => {
       this.setTime(time);
+    });
+
+    this.isMobile = window.innerWidth <= 768; // Simple mobile detection
+    window.addEventListener('resize', () => {
+      this.isMobile = window.innerWidth <= 768;
     });
   }
 

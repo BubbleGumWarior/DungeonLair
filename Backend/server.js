@@ -264,6 +264,20 @@ sequelize.sync({ force: false })
                 health: 500,
                 currentHealth: 500,
                 speed: 100,
+            },
+            {
+                maskID: 10000000,
+                photo: '/assets/images/EgyptianHound.png',
+                passiveSkill: 'Pack Mentality',
+                activeSkills: [8888],
+                modList: [],
+                attackDamage: 15,
+                abilityDamage: 15,
+                magicResist: 10,
+                protections: 10,
+                health: 75,
+                currentHealth: 75,
+                speed: 100,
             }
         ];
 
@@ -3109,8 +3123,8 @@ app.post('/continue', async (req, res) => {
             if (!masksInBattle[9996]) {
               const dogStats = {
                 maskID: 9996,
-                attackDamage: mask.attackDamage * 0.25,
-                abilityDamage: mask.attackDamage * 0.25,
+                attackDamage: mask.attackDamage * 1,
+                abilityDamage: mask.attackDamage * 1,
                 protections: mask.attackDamage * 0.1,
                 magicResist: mask.attackDamage * 0.1,
                 health: mask.attackDamage * 5,
@@ -3523,7 +3537,46 @@ app.post('/continue', async (req, res) => {
               console.log(battleMessage);
               io.emit('battleMessage', battleMessage);
             }
-          }   
+          }  
+
+          if (skillName === "Army of Dogs" && mask.currentSpeed === 100) {
+            console.log(`Mask ${mask.maskID} has skill: Army of Dogs`);
+            let dogID = 10000000;
+            while (masksInBattle[dogID]) {
+              dogID++;
+            }
+            const dogStats = {
+              maskID: dogID,
+              attackDamage: mask.abilityDamage * 0.5,
+              abilityDamage: mask.abilityDamage * 0.5,
+              protections: mask.abilityDamage * 0.1,
+              magicResist: mask.abilityDamage * 0.1,
+              health: mask.abilityDamage * 5,
+              speed: 100,
+              currentHealth: mask.abilityDamage * 5,
+              currentSpeed: 0,
+              activeSkills: [8888],
+              stunStacks: 0,
+              burnStacks: 0,
+              poisonStacks: 0,
+              bleedStacks: 0,
+              buffStacks: 0,
+              action: false,
+              bonusAction: false,
+              movement: 0,
+              team: mask.team,
+              cooldowns: {},
+              photo: "/assets/images/EgyptianHound.png"
+            };
+            masksInBattle[dogID] = dogStats;
+            console.log(`An Eqyptian Dog was summoned with ID ${dogID}!`);
+            battleMessage = `Mask ${mask.maskID} used Army of Dogs`;
+            if (battleMessage) {
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }  
+
           if (skillName === "Dragon Blast" && mask.currentSpeed === 100) {
             console.log(`Mask ${mask.maskID} has skill: Dragon Blast`);
             const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);

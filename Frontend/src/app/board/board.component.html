@@ -88,31 +88,31 @@
         </div>
         <div *ngIf="showMask" class="h-full flex flex-col justify-between">
             <div class="flex justify-between">
-                <h2 class="text-4xl font-bold">Attack Damage</h2>
-                <p class="text-4xl font-bold">{{ maskStats.attackDamage }}</p>
+                <h2 [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">Attack Damage</h2>
+                <p [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">{{ maskStats.attackDamage }}</p>
             </div>
             <div class="flex justify-between">
-                <h2 class="text-4xl font-bold">Ability Damage</h2>
-                <p class="text-4xl font-bold">{{ maskStats.abilityDamage }}</p>
+                <h2 [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">Ability Damage</h2>
+                <p [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">{{ maskStats.abilityDamage }}</p>
             </div>
             <div class="flex justify-between">
-                <h2 class="text-4xl font-bold">Magic Resistance</h2>
-                <p class="text-4xl font-bold">{{ maskStats.magicResist }}</p>
+                <h2 [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">Magic Resistance</h2>
+                <p [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">{{ maskStats.magicResist }}</p>
             </div>
             <div class="flex justify-between">
-                <h2 class="text-4xl font-bold">Protections</h2>
-                <p class="text-4xl font-bold">{{ maskStats.protections }}</p>
+                <h2 [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">Protections</h2>
+                <p [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">{{ maskStats.protections }}</p>
             </div>
             <div class="flex justify-between">
-                <h2 class="text-4xl font-bold">Health</h2>
-                <p class="text-4xl font-bold">{{ maskStats.health }}</p>
+                <h2 [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">Health</h2>
+                <p [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">{{ maskStats.health }}</p>
             </div>
             <div class="flex justify-between">
-                <h2 class="text-4xl font-bold">Speed</h2>
-                <p class="text-4xl font-bold">{{ maskStats.speed }}</p>
+                <h2 [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">Speed</h2>
+                <p [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">{{ maskStats.speed }}</p>
             </div>
             <div class="mb-4">
-                <h2 class="text-4xl font-bold">Mods</h2>
+                <h2 [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">Mods</h2>
                 <ul class="text-sm relative">
                     <li *ngFor="let mod of maskMods" class="cursor-pointer relative" (mouseenter)="hoveredMod = mod" (mouseleave)="hoveredMod = null">
                         <p [ngClass]="{
