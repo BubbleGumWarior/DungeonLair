@@ -75,7 +75,7 @@ export class GalleryComponent implements OnInit {
       formData.append('image', this.selectedFile);
       formData.append('imageName', this.newImageName);
 
-      this.http.post(`https://${localIP}:8080/upload-gallery-image`, formData)
+      this.http.post(`https://${localIP}:443/upload-gallery-image`, formData)
         .subscribe(
           (response: any) => {
             console.log('Image uploaded successfully:', response.filePath);
@@ -89,14 +89,14 @@ export class GalleryComponent implements OnInit {
   }
 
   fetchImages() {
-    this.http.get(`https://${localIP}:8080/images`)
+    this.http.get(`https://${localIP}:443/images`)
       .subscribe(
         (response: any) => {
           this.images = response
             .filter((image: any) => image.imageName !== null) // Filter out images with null imageName
             .map((image: any) => ({
               ...image,
-              photo: `https://${localIP}:8080${image.photo}`
+              photo: `https://${localIP}:443${image.photo}`
             }))
             .sort((a: any, b: any) => a.imageName.localeCompare(b.imageName));
           this.latestImage = this.images.reduce((latest, image) => {

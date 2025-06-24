@@ -66,7 +66,7 @@ export class SkillsComponent implements OnInit {
   }
 
   fetchStatsSheet(characterID: string) {
-    this.http.get<StatsSheet>(`https://${localIP}:8080/stats-sheet/${characterID}`).subscribe(
+    this.http.get<StatsSheet>(`https://${localIP}:443/stats-sheet/${characterID}`).subscribe(
       (data) => {
         this.statsSheet = data;
         this.assignModifiers(); // Assign modifiers after fetching stats sheet
@@ -78,7 +78,7 @@ export class SkillsComponent implements OnInit {
   }
 
   fetchSkills(characterID: string) {
-    this.http.get<Skill[]>(`https://${localIP}:8080/skill-list/${characterID}`).subscribe(
+    this.http.get<Skill[]>(`https://${localIP}:443/skill-list/${characterID}`).subscribe(
       (data) => {
         this.Skill = data;
         this.assignModifiers(); // Assign modifiers after fetching skills

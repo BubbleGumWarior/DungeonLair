@@ -71,7 +71,7 @@ export class DMScreenComponent implements OnInit {
   }
 
   fetchCharacterNames() {
-    this.http.get<{ characterName: string, photo: string, maskID: number | null }[]>(`https://${localIP}:8080/character-names`).subscribe(
+    this.http.get<{ characterName: string, photo: string, maskID: number | null }[]>(`https://${localIP}:443/character-names`).subscribe(
       (data) => {
         // Separate mask users and civilians based on maskID
         const maskUsers: { name: string, photo: string }[] = [];
@@ -79,7 +79,7 @@ export class DMScreenComponent implements OnInit {
         data.forEach(character => {
           const charObj = {
             name: character.characterName,
-            photo: character.photo ? `https://${localIP}:8080${character.photo}` : ''
+            photo: character.photo ? `https://${localIP}:443${character.photo}` : ''
           };
           if (character.maskID !== null && character.maskID !== undefined) {
             maskUsers.push(charObj);
@@ -99,7 +99,7 @@ export class DMScreenComponent implements OnInit {
   }
 
   fetchAllCharacters() {
-    this.http.get<{ characterName: string, characterID: string }[]>(`https://${localIP}:8080/all-characters`).subscribe(
+    this.http.get<{ characterName: string, characterID: string }[]>(`https://${localIP}:443/all-characters`).subscribe(
       (data) => {
         this.allCharacters = data
           .map(character => ({
@@ -115,7 +115,7 @@ export class DMScreenComponent implements OnInit {
   }
 
   fetchMasks() {
-    this.http.get<any[]>(`https://${localIP}:8080/masks`).subscribe(
+    this.http.get<any[]>(`https://${localIP}:443/masks`).subscribe(
       (data) => {
         this.maskList = data.map(mask => ({
           ...mask,
@@ -133,7 +133,7 @@ export class DMScreenComponent implements OnInit {
 
   selectCharacter(name: string) {
     this.currentlySelectedCharacter = name;
-    this.http.get<{ characterID: string, maskID: string | null }>(`https://${localIP}:8080/character-id/${name}`).subscribe(
+    this.http.get<{ characterID: string, maskID: string | null }>(`https://${localIP}:443/character-id/${name}`).subscribe(
       (data) => {
         this.currentlySelectedCharacterID = data.characterID;
         this.fetchStatsSheet(this.currentlySelectedCharacterID);
@@ -155,7 +155,7 @@ export class DMScreenComponent implements OnInit {
   }
 
   fetchStatsSheet(characterID: string) {
-    this.http.get<any>(`https://${localIP}:8080/stats-sheet/${characterID}`).subscribe(
+    this.http.get<any>(`https://${localIP}:443/stats-sheet/${characterID}`).subscribe(
       (data) => {
         this.statsSheet = data;
       },
@@ -166,11 +166,11 @@ export class DMScreenComponent implements OnInit {
   }
 
   fetchFamilyMembers(characterID: string) {
-    this.http.get<any[]>(`https://${localIP}:8080/family-member/${characterID}`).subscribe(
+    this.http.get<any[]>(`https://${localIP}:443/family-member/${characterID}`).subscribe(
       (data) => {
         this.familyMembers = data.map(member => ({
           characterName: member.characterName,
-          photo: member.photo ? `https://${localIP}:8080${member.photo}` : ''
+          photo: member.photo ? `https://${localIP}:443${member.photo}` : ''
         }));
       },
       (error) => {
@@ -180,11 +180,11 @@ export class DMScreenComponent implements OnInit {
   }
 
   fetchFriendMembers(characterID: string) {
-    this.http.get<any[]>(`https://${localIP}:8080/friend-member/${characterID}`).subscribe(
+    this.http.get<any[]>(`https://${localIP}:443/friend-member/${characterID}`).subscribe(
       (data) => {
         this.friendMembers = data.map(member => ({
           characterName: member.characterName,
-          photo: member.photo ? `https://${localIP}:8080${member.photo}` : ''
+          photo: member.photo ? `https://${localIP}:443${member.photo}` : ''
         }));
       },
       (error) => {
@@ -194,11 +194,11 @@ export class DMScreenComponent implements OnInit {
   }
 
   fetchInventoryItems(characterID: string) {
-    this.http.get<any[]>(`https://${localIP}:8080/inventory-item/${characterID}`).subscribe(
+    this.http.get<any[]>(`https://${localIP}:443/inventory-item/${characterID}`).subscribe(
       (data) => {
         this.inventoryItems = data.map(item => ({
           ...item,
-          photo: item.photo ? `https://${localIP}:8080${item.photo}` : ''
+          photo: item.photo ? `https://${localIP}:443${item.photo}` : ''
         })).sort((a, b) => a.itemName.localeCompare(b.itemName)); // Sort items alphabetically by name
       },
       (error) => {
@@ -208,7 +208,7 @@ export class DMScreenComponent implements OnInit {
   }
 
   fetchSkills(characterID: string) {
-    this.http.get<any[]>(`https://${localIP}:8080/skill-list/${characterID}`).subscribe(
+    this.http.get<any[]>(`https://${localIP}:443/skill-list/${characterID}`).subscribe(
       (data) => {
         this.skillList = data.sort((a, b) => a.skillName.localeCompare(b.skillName)); // Sort skills alphabetically by name
       },
@@ -219,13 +219,13 @@ export class DMScreenComponent implements OnInit {
   }
 
   fetchMaskDetails(maskID: string) {
-    this.http.get<any>(`https://${localIP}:8080/mask-details/${maskID}`).subscribe(
+    this.http.get<any>(`https://${localIP}:443/mask-details/${maskID}`).subscribe(
       (data) => {
         if (data && Object.keys(data).length > 0) {
           this.maskDetails = data;
           this.newMask = { 
             ...data, 
-            photo: `https://${localIP}:8080${data.photo}`,
+            photo: `https://${localIP}:443${data.photo}`,
             activeSkills: data.activeSkills.join(', '), // Convert array to comma-separated string
           }; // Initialize newMask with the received data and format photo URL
           this.fetchMaskSkillDetails(data.activeSkills); // Fetch mask skill details
@@ -247,7 +247,7 @@ export class DMScreenComponent implements OnInit {
 
   fetchMaskSkillDetails(skillIDs: number[]) {
     skillIDs.forEach(skillID => {
-      this.http.get<any>(`https://${localIP}:8080/mask-skill-details/${skillID}`).subscribe(
+      this.http.get<any>(`https://${localIP}:443/mask-skill-details/${skillID}`).subscribe(
         (data) => {
           this.maskDetails.activeSkills.push(data); // Add skill details to maskDetails
         },
@@ -259,7 +259,7 @@ export class DMScreenComponent implements OnInit {
   }
 
   saveStatsSheet() {
-    this.http.put(`https://${localIP}:8080/stats-sheet/${this.currentlySelectedCharacterID}`, this.statsSheet).subscribe(
+    this.http.put(`https://${localIP}:443/stats-sheet/${this.currentlySelectedCharacterID}`, this.statsSheet).subscribe(
       () => {
       },
       (error) => {
@@ -276,7 +276,7 @@ export class DMScreenComponent implements OnInit {
       amountOfStrikes: parseInt(this.newMaskSkill.amountOfStrikes, 10),
       isMultiTarget: this.newMaskSkill.isMultiTarget // Include this property
     };
-    this.http.post(`https://${localIP}:8080/mask-skills`, maskSkillData).subscribe(
+    this.http.post(`https://${localIP}:443/mask-skills`, maskSkillData).subscribe(
       (data: any) => {
         this.updateMaskActiveSkills(data.skillID);
         this.newMaskSkill = { 
@@ -298,7 +298,7 @@ export class DMScreenComponent implements OnInit {
 
   updateMaskActiveSkills(skillID: number) {
     if (this.currentlySelectedCharacterID !== null) {
-      this.http.put(`https://${localIP}:8080/masks/${this.maskDetails.maskID}/add-skill`, { skillID }).subscribe(
+      this.http.put(`https://${localIP}:443/masks/${this.maskDetails.maskID}/add-skill`, { skillID }).subscribe(
         () => {
           console.log('Skill added to mask successfully');
         },
@@ -316,7 +316,7 @@ export class DMScreenComponent implements OnInit {
       description: this.newMaskMod.description 
     };
 
-    this.http.post(`https://${localIP}:8080/mods`, modData).subscribe(
+    this.http.post(`https://${localIP}:443/mods`, modData).subscribe(
       (mod: any) => {
         if (this.maskDetails.maskID) {
           this.addModToMask(mod.modID, this.maskDetails.maskID); // Use the maskID of the currently selected character
@@ -330,7 +330,7 @@ export class DMScreenComponent implements OnInit {
   }
 
   addModToMask(modID: number, maskID: number) {
-    this.http.put(`https://${localIP}:8080/masks/${maskID}/add-mod`, { modID }).subscribe(
+    this.http.put(`https://${localIP}:443/masks/${maskID}/add-mod`, { modID }).subscribe(
       () => {
         console.log(`Mod ${modID} added to mask ${maskID}`);
       },
@@ -374,7 +374,7 @@ export class DMScreenComponent implements OnInit {
       itemName: this.newInventoryItem.itemName,
       description: this.newInventoryItem.description.replace(/\n/g, '\\n') // Replace new lines with \n
     };
-    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacterID}/inventory-item`, inventoryItemData).subscribe(
+    this.http.post(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/inventory-item`, inventoryItemData).subscribe(
       (data: any) => {
         this.inventoryItems.push(data); // Add the new item to the inventoryItems array
         this.newInventoryItem = null; // Reset the newInventoryItem
@@ -391,7 +391,7 @@ export class DMScreenComponent implements OnInit {
       skillName: this.newSkill.skillName,
       description: this.newSkill.description.replace(/\n/g, '\\n') // Replace new lines with \n
     };
-    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacterID}/skill`, skillData).subscribe(
+    this.http.post(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/skill`, skillData).subscribe(
       (data: any) => {
         this.skillList.push(data); // Add the new skill to the skillList array
         this.newSkill = null; // Reset the newSkill
@@ -414,7 +414,7 @@ export class DMScreenComponent implements OnInit {
       currentHealth: this.newMask.health, // Set currentHealth to health value
       speed: this.newMask.speed
     };
-    this.http.post(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacterID}/mask`, maskData).subscribe(
+    this.http.post(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/mask`, maskData).subscribe(
       (data: any) => {
         this.maskDetails = data; // Update mask details
         this.newMask = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magicResist: 0, protections: 0, health: 0, speed: 0 }; // Reset the newMask with default values
@@ -430,7 +430,7 @@ export class DMScreenComponent implements OnInit {
       const selectedCharacter = this.allCharacters.find(character => character.name === this.selectedFamilyMember);
       if (selectedCharacter) {
         const familyMemberId = selectedCharacter.id;
-        this.http.put(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/family-members`, { familyMemberId }).subscribe(
+        this.http.put(`https://${localIP}:443/character-info/${this.currentlySelectedCharacter}/family-members`, { familyMemberId }).subscribe(
           () => {
             this.fetchFamilyMembers(this.currentlySelectedCharacterID!); // Refresh family members list
             this.newFamilyMember = null; // Reset the newFamilyMember
@@ -449,7 +449,7 @@ export class DMScreenComponent implements OnInit {
       const selectedCharacter = this.allCharacters.find(character => character.name === this.selectedFriendMember);
       if (selectedCharacter) {
         const friendMemberId = selectedCharacter.id;
-        this.http.put(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/friend-members`, { friendMemberId }).subscribe(
+        this.http.put(`https://${localIP}:443/character-info/${this.currentlySelectedCharacter}/friend-members`, { friendMemberId }).subscribe(
           () => {
             this.fetchFriendMembers(this.currentlySelectedCharacterID!); // Refresh friend members list
             this.newFriendMember = null; // Reset the newFriendMember
@@ -464,7 +464,7 @@ export class DMScreenComponent implements OnInit {
   }
 
   updateCharacterFamilyMembers(familyMemberId: number) {
-    this.http.put(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/family-members`, { familyMemberId }).subscribe(
+    this.http.put(`https://${localIP}:443/character-info/${this.currentlySelectedCharacter}/family-members`, { familyMemberId }).subscribe(
       () => {
       },
       (error) => {
@@ -474,7 +474,7 @@ export class DMScreenComponent implements OnInit {
   }
 
   updateCharacterFriendMembers(friendMemberId: number) {
-    this.http.put(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/friend-members`, { friendMemberId }).subscribe(
+    this.http.put(`https://${localIP}:443/character-info/${this.currentlySelectedCharacter}/friend-members`, { friendMemberId }).subscribe(
       () => {
       },
       (error) => {
@@ -484,7 +484,7 @@ export class DMScreenComponent implements OnInit {
   }
 
   updateCharacterInventoryItems(itemId: number) {
-    this.http.put(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacter}/inventory-items`, { itemId }).subscribe(
+    this.http.put(`https://${localIP}:443/character-info/${this.currentlySelectedCharacter}/inventory-items`, { itemId }).subscribe(
       () => {
       },
       (error) => {
@@ -494,7 +494,7 @@ export class DMScreenComponent implements OnInit {
   }
 
   saveImage(formData: FormData) {
-    this.http.post(`https://${localIP}:8080/save-image`, formData).subscribe(
+    this.http.post(`https://${localIP}:443/save-image`, formData).subscribe(
       (response: any) => {
         if (this.newFamilyMember) {
           this.newFamilyMember.photo = response.filePath; // Save as relative URL
@@ -574,7 +574,7 @@ export class DMScreenComponent implements OnInit {
 
   deleteSkill() {
     if (this.selectedSkill) {
-      this.http.delete(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacterID}/skill/${this.selectedSkill.skillID}`).subscribe(
+      this.http.delete(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/skill/${this.selectedSkill.skillID}`).subscribe(
         () => {
           this.skillList = this.skillList.filter(skill => skill !== this.selectedSkill);
           this.selectedSkill = null;
@@ -588,7 +588,7 @@ export class DMScreenComponent implements OnInit {
 
   deleteInventoryItem() {
     if (this.selectedInventoryItem) {
-      this.http.delete(`https://${localIP}:8080/character-info/${this.currentlySelectedCharacterID}/inventory-item/${this.selectedInventoryItem.itemID}`).subscribe(
+      this.http.delete(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/inventory-item/${this.selectedInventoryItem.itemID}`).subscribe(
         () => {
           this.inventoryItems = this.inventoryItems.filter(item => item !== this.selectedInventoryItem);
           this.selectedInventoryItem = null;

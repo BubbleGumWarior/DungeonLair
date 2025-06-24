@@ -76,7 +76,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
     document.addEventListener('click', this.closeAssignTeamsModalOnClickOutside.bind(this)); // Add event listener for assign teams modal
 
     // Fetch the current state of masksInBattle from the server
-    this.http.get(`https://${localIP}:8080/masks-in-battle`)
+    this.http.get(`https://${localIP}:443/masks-in-battle`)
       .subscribe(
         (masks: any) => {
           this.masksInBattle = masks.sort((a: any, b: any) => b.currentSpeed - a.currentSpeed);
@@ -131,7 +131,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   fetchCharacterInfo(characterID: string) {
-    this.http.get(`https://${localIP}:8080/character-info/${characterID}`)
+    this.http.get(`https://${localIP}:443/character-info/${characterID}`)
       .subscribe(
         (data: any) => {
           this.userInformation.characterName = data.characterName;
@@ -148,7 +148,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   fetchMaskInfo(maskID: number) {
-    this.http.get(`https://${localIP}:8080/mask-details/${maskID}`)
+    this.http.get(`https://${localIP}:443/mask-details/${maskID}`)
       .subscribe(
         (data: any) => {
           this.maskInformation = {
@@ -161,7 +161,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
             speed: data.speed,
             currentHealth: data.health,
             currentSpeed: data.speed,
-            photo: data.photo.startsWith('http') ? data.photo : `https://${localIP}:8080${data.photo}` // Ensure correct photo URL
+            photo: data.photo.startsWith('http') ? data.photo : `https://${localIP}:443${data.photo}` // Ensure correct photo URL
           };
           console.log('Mask info:', this.maskInformation);
         },
@@ -186,7 +186,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
     const userMask = this.masksInBattle.find(mask => mask.maskID === this.userInformation.maskID);
     if (userMask && userMask.activeSkills) {
       const skillIDs = userMask.activeSkills.join(',');
-      this.http.get(`https://${localIP}:8080/mask-skills?skillIDs=${skillIDs}`)
+      this.http.get(`https://${localIP}:443/mask-skills?skillIDs=${skillIDs}`)
         .subscribe(
           (skills: any) => {
             this.skills = skills;
@@ -311,7 +311,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   continue() {
-      this.http.post(`https://${localIP}:8080/continue`, {}).subscribe(
+      this.http.post(`https://${localIP}:443/continue`, {}).subscribe(
         () => console.log('Continue request sent successfully'),
         (error) => console.error('Error sending continue request:', error)
       );
@@ -393,7 +393,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   endBattle() {
-          this.http.post(`https://${localIP}:8080/end-battle`, {}).subscribe(
+          this.http.post(`https://${localIP}:443/end-battle`, {}).subscribe(
         () => console.log('End battle request sent successfully'),
         (error) => console.error('Error sending end battle request:', error)
       );
@@ -429,7 +429,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
 
   updateMaskPhotos() {
     this.masksInBattle.forEach(mask => {
-      mask.photo = mask.photo.startsWith('http') ? mask.photo : `https://${localIP}:8080${mask.photo}`; // Ensure correct photo URL
+      mask.photo = mask.photo.startsWith('http') ? mask.photo : `https://${localIP}:443${mask.photo}`; // Ensure correct photo URL
     });
   }
 
@@ -459,12 +459,12 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   fetchMaskList() {
-    this.http.get(`https://${localIP}:8080/mask-list`)
+    this.http.get(`https://${localIP}:443/mask-list`)
       .subscribe(
         (data: any) => {
           this.maskList = data.map((mask: any) => ({
             ...mask,
-            photo: mask.photo.startsWith('http') ? mask.photo : `https://${localIP}:8080${mask.photo}` // Ensure correct photo URL
+            photo: mask.photo.startsWith('http') ? mask.photo : `https://${localIP}:443${mask.photo}` // Ensure correct photo URL
           }));
           this.filteredMaskList = [...this.maskList].sort((a, b) => a.maskID - b.maskID); // Sort by maskID as integers
         },
@@ -496,7 +496,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
     // Fetch and load the skills for the added mask
     if (mask.activeSkills) {
       const skillIDs = mask.activeSkills.join(',');
-      this.http.get(`https://${localIP}:8080/mask-skills?skillIDs=${skillIDs}`)
+      this.http.get(`https://${localIP}:443/mask-skills?skillIDs=${skillIDs}`)
         .subscribe(
           (skills: any) => {
             mask.skills = skills; // Attach the fetched skills to the mask
@@ -535,7 +535,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
   fetchSkillsForMask(mask: any) {
     if (mask && mask.activeSkills) {
       const skillIDs = mask.activeSkills.join(',');
-      this.http.get(`https://${localIP}:8080/mask-skills?skillIDs=${skillIDs}`)
+      this.http.get(`https://${localIP}:443/mask-skills?skillIDs=${skillIDs}`)
         .subscribe(
           (skills: any) => {
             this.skills = skills;

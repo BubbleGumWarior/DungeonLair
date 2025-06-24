@@ -8,8 +8,8 @@
 </div>
 
 <div class="relative">
-  <img *ngIf="!isUniversityMap" src="https://dungeonlair.ddns.net:8080/assets/images/CityMap.jpg" alt="City Map" class="fade-in city-map centered-image">
-  <img *ngIf="isUniversityMap" src="https://dungeonlair.ddns.net:8080/assets/images/UniMap.jpg" alt="University Map" class="fade-in uni-map centered-image">
+  <img *ngIf="!isUniversityMap" src="https://dungeonlair.ddns.net:443/assets/images/CityMap.jpg" alt="City Map" class="fade-in city-map centered-image">
+  <img *ngIf="isUniversityMap" src="https://dungeonlair.ddns.net:443/assets/images/UniMap.jpg" alt="University Map" class="fade-in uni-map centered-image">
   <!-- <div class="absolute top-0 left-0 flex space-x-2">
     <img *ngFor="let user of liveUsers" [src]="user.photoPath" alt="User Photo" class="w-8 h-8 rounded-full cursor-pointer">
   </div> -->
@@ -40,7 +40,7 @@
     style="z-index: 10;"
   >&times;</button>
   <div class="flex items-center justify-center w-full mb-4">
-    <ng-container *ngIf="hoveredCharacter.equippedItemPath !== 'https://dungeonlair.ddns.net:8080null'; else singleImage">
+    <ng-container *ngIf="hoveredCharacter.equippedItemPath !== 'https://dungeonlair.ddns.net:443'; else singleImage">
       <img *ngIf="hoveredCharacter.characterName"
         [src]="hoveredCharacter.photo"
         alt="Character Photo"

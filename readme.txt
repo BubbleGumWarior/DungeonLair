@@ -25,3 +25,13 @@ Tailwind CSS IntelliSense
 
 Trust the Dotnet Developer Certificate:
 dotnet dev-certs https --trust
+
+To rebuild for the serve do thse commands:
+# 1. Delete the old build output in the backend public directory
+Remove-Item -Recurse -Force D:\Coding\DungeonLair\DungeonLair\Backend\public
+
+# 2. Build your Angular app
+npm run build
+
+# 3. Copy the new build output to the backend public directory
+xcopy /E /I /Y D:\Coding\DungeonLair\DungeonLair\Frontend\dist\frontend D:\Coding\DungeonLair\DungeonLair\Backend\public

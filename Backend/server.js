@@ -33,37 +33,36 @@ const { exec } = require('child_process');
 const maskRoutes = require('./routes/maskRoutes'); // Import maskRoutes
 
 const app = express();
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Load SSL certificates
-const privateKey = fs.readFileSync('d:/Coding/DungeonLair/DungeonLair/key.pem', 'utf8');
-const certificate = fs.readFileSync('d:/Coding/DungeonLair/DungeonLair/cert.pem', 'utf8');
-const credentials = { key: privateKey, cert: certificate };
+const privateKey = fs.readFileSync('d:/Coding/DungeonLair/DungeonLair/certs/dungeonlair.ddns.net-key.pem', 'utf8');
+const certificate = fs.readFileSync('d:/Coding/DungeonLair/DungeonLair/certs/dungeonlair.ddns.net-crt.pem', 'utf8');
+const ca = fs.readFileSync('d:/Coding/DungeonLair/DungeonLair/certs/dungeonlair.ddns.net-chain-only.pem', 'utf8');
 
-const server = https.createServer(credentials, app); // Ensure https.createServer is used
+const credentials = { key: privateKey, cert: certificate, ca: ca };
 
-const allowedOrigins = [
-  `https://${localIP}`, // No-IP hostname without port
-];
+const server = https.createServer(credentials, app);
+// Old CORS code (if you want to revert):
+// app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+//
+// const io = socketIo(server, {
+//   cors: {
+//     origin: 'http://localhost:3000',
+//     methods: ["GET", "POST"]
+//   }
+// });
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE"]
-}));
+app.use(cors({ origin: true, credentials: true }));
 
 const io = socketIo(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: true,
     methods: ["GET", "POST"]
   }
 });
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 443;
 
 let liveUsers = [];
 
@@ -1861,13 +1860,20 @@ function broadcastUserUpdate() {
 }
 
 // Redirect HTTP to HTTPS
+// const httpApp = express();
+// httpApp.use((req, res) => {
+//   res.redirect(`https://${req.headers.host}${req.url}`);
+// });
+// const httpServer = http.createServer(httpApp);
+// httpServer.listen(80, '0.0.0.0', () => {
+//   console.log('HTTP server is running on port 80 and redirecting to HTTPS');
+// });
+
 const httpApp = express();
-httpApp.use((req, res) => {
-  res.redirect(`https://${req.headers.host}${req.url}`);
-});
+httpApp.use('/.well-known/acme-challenge', express.static(path.join(__dirname, '.well-known/acme-challenge')));
 const httpServer = http.createServer(httpApp);
 httpServer.listen(80, '0.0.0.0', () => {
-  console.log('HTTP server is running on port 80 and redirecting to HTTPS');
+  console.log('HTTP server is running on port 80 for ACME challenge');
 });
 
 // Start the server
@@ -2267,7 +2273,7 @@ app.post('/character-info/:characterID/mask', async (req, res) => {
       return res.status(404).send('Character info not found');
     }
 
-    const relativePhotoPath = photo.replace(`https://${localIP}:8080`, '');
+    const relativePhotoPath = photo.replace(`https://${localIP}:443`, '');
 
     if (characterInfo.maskID) {
       // Update existing mask
@@ -3918,4 +3924,8 @@ app.post('/api/play-sound', (req, res) => {
     path: soundDetails.path
   });
   res.status(200).json({ message: 'Sound event emitted' });
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

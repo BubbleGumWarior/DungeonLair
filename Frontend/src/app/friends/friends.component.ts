@@ -29,12 +29,12 @@ export class FriendsComponent implements OnInit {
   }
 
   fetchFriendMembers(characterID: string) {
-    this.http.get<Character[]>(`https://${localIP}:8080/friend-member/${characterID}`).subscribe(
+    this.http.get<Character[]>(`https://${localIP}:443/friend-member/${characterID}`).subscribe(
       (data) => {
         this.Characters = data.map(member => ({
           characterName: member.characterName,
           race: member.race,
-          photo: member.photo ? `https://${localIP}:8080${member.photo}` : ''
+          photo: member.photo ? `https://${localIP}:443${member.photo}` : ''
         }));
       },
       (error) => {

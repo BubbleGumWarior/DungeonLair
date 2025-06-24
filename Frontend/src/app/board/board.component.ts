@@ -88,7 +88,7 @@ export class BoardComponent implements OnInit {
 
   fetchStatsSheet(characterName: string) {
     console.log('Fetching stats sheet for character:', characterName);
-    this.http.get(`https://${localIP}:8080/stats-sheet/${characterName}`)
+    this.http.get(`https://${localIP}:443/stats-sheet/${characterName}`)
       .subscribe(
         (data: any) => {
           console.log('Stats sheet data:', data);
@@ -104,7 +104,7 @@ export class BoardComponent implements OnInit {
   async fetchCharacterInfo(characterName: string) {
     console.log('Fetching character info for character:', characterName);
     try {
-      const response = await fetch(`https://${localIP}:8080/character-info/${characterName}`);
+      const response = await fetch(`https://${localIP}:443/character-info/${characterName}`);
       if (!response.ok) throw new Error('Failed to fetch info');
       
       const characterInfo = await response.json();
@@ -120,11 +120,11 @@ export class BoardComponent implements OnInit {
   }
 
   fetchMaskDetails(maskID: number) {
-    this.http.get(`https://${localIP}:8080/mask-details/${maskID}`)
+    this.http.get(`https://${localIP}:443/mask-details/${maskID}`)
       .subscribe(
         (data: any) => {
           console.log('Mask details received from server:', data); // Log the mask object
-          this.maskPhoto = `https://${localIP}:8080${data.photo}`;
+          this.maskPhoto = `https://${localIP}:443${data.photo}`;
           this.maskStats = {
             attackDamage: data.attackDamage,
             abilityDamage: data.abilityDamage,
@@ -148,7 +148,7 @@ export class BoardComponent implements OnInit {
   }
 
   fetchModsForMask(maskID: number) {
-    this.http.get<any[]>(`https://${localIP}:8080/masks/${maskID}/mods`).subscribe(
+    this.http.get<any[]>(`https://${localIP}:443/masks/${maskID}/mods`).subscribe(
       (data) => {
         this.maskMods = data;
       },
@@ -161,7 +161,7 @@ export class BoardComponent implements OnInit {
   fetchActiveSkillDetails(skillIDs: number[]) {
     this.maskActiveSkillDetails = [];
     skillIDs.forEach(skillID => {
-      this.http.get(`https://${localIP}:8080/mask-skill-details/${skillID}`)
+      this.http.get(`https://${localIP}:443/mask-skill-details/${skillID}`)
         .subscribe(
           (data: any) => {
             this.ngZone.run(() => {
@@ -231,7 +231,7 @@ export class BoardComponent implements OnInit {
   updateCharacterInfo(stats: any) {
     this.class = stats.class;
     this.race = stats.race;
-    this.photo = stats.photo ? `https://${localIP}:8080${stats.photo}` : '';
+    this.photo = stats.photo ? `https://${localIP}:443${stats.photo}` : '';
     this.level = stats.level;
   }
   
@@ -276,10 +276,10 @@ export class BoardComponent implements OnInit {
       formData.append('image', file);
       formData.append('characterID', this.characterID);
   
-      this.http.post(`https://${localIP}:8080/save-image-board`, formData)
+      this.http.post(`https://${localIP}:443/save-image-board`, formData)
         .subscribe(
           (response: any) => {
-            this.photo = `https://${localIP}:8080${response.filePath}`;
+            this.photo = `https://${localIP}:443${response.filePath}`;
             this.updateCharacterPhoto(response.filePath); // Use relative path
           },
           (error) => {
@@ -297,7 +297,7 @@ export class BoardComponent implements OnInit {
       return;
     }
     console.log('Updating character photo:', photoUrl);
-    this.http.put(`https://${localIP}:8080/character-info-board/${this.characterID}/photo`, { photo: photoUrl })
+    this.http.put(`https://${localIP}:443/character-info-board/${this.characterID}/photo`, { photo: photoUrl })
       .subscribe(
         () => {
           console.log('Character photo updated successfully');

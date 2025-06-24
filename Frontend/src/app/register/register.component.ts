@@ -18,7 +18,7 @@ export class RegisterComponent {
   submitted = false;
   errorMessage: string | null = null;
   isMobile: boolean = false;
-  loginImageUrl: string = `https://${localIP}:8080/assets/images/LoginBackground.jpg`;
+  loginImageUrl: string = `https://${localIP}:443/assets/images/LoginBackground.jpg`;
   showModal: boolean = false; // Add this line
   showCharacterNameModal: boolean = false; // Add this line
   characterName: string = ''; // Add this line
@@ -97,7 +97,7 @@ export class RegisterComponent {
 
     // Use fetch API to send POST request to the register endpoint
     console.log('Sending POST request to register endpoint');
-    fetch(`https://${localIP}:8080/register`, {
+    fetch(`https://${localIP}:443/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -148,7 +148,7 @@ export class RegisterComponent {
       email: DOMPurify.sanitize(this.registerForm.value.email) // Include email in the request body
     };
   
-    fetch(`https://${localIP}:8080/update-character-name`, {
+    fetch(`https://${localIP}:443/update-character-name`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

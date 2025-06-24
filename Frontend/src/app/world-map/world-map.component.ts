@@ -94,13 +94,13 @@ export class WorldMapComponent implements OnInit {
 
   async fetchPhotoPath(username: string): Promise<string> {
     try {
-      const characterIdRes = await fetch(`https://dungeonlair.ddns.net:8080/character-id-username/${username}`);
+      const characterIdRes = await fetch(`https://dungeonlair.ddns.net:443/character-id-username/${username}`);
       const characterIdData = await characterIdRes.json();
       if (!characterIdData.characterID) return 'default/path/to/photo.jpg';
-      const characterRes = await fetch(`https://dungeonlair.ddns.net:8080/character-info/${characterIdData.characterID}`);
+      const characterRes = await fetch(`https://dungeonlair.ddns.net:443/character-info/${characterIdData.characterID}`);
       const characterData = await characterRes.json();
       if (characterData.photo) {
-        return `https://${localIP}:8080${characterData.photo}`;
+        return `https://${localIP}:443${characterData.photo}`;
       }
     } catch (error) {
       console.error('Error fetching photo path:', error);
@@ -111,7 +111,7 @@ export class WorldMapComponent implements OnInit {
   // Remove onUserHover and replace with onUserClick
   async onUserClick(user: { username: string }, event: MouseEvent) {
     try {
-      const res = await fetch(`https://dungeonlair.ddns.net:8080/character-id-username/${user.username}`);
+      const res = await fetch(`https://dungeonlair.ddns.net:443/character-id-username/${user.username}`);
       const data = await res.json();
       this.selectedUser = {
         username: user.username,
@@ -139,7 +139,7 @@ export class WorldMapComponent implements OnInit {
       }
 
       // Fetch character details from backend and save to hoveredCharacter
-      const detailsRes = await fetch('https://dungeonlair.ddns.net:8080/hover-character-id', {
+      const detailsRes = await fetch('https://dungeonlair.ddns.net:443/hover-character-id', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ characterID: data.characterID })
@@ -148,8 +148,8 @@ export class WorldMapComponent implements OnInit {
         const details = await detailsRes.json();
         this.hoveredCharacter = {
           characterName: details.characterName,
-          photo: `https://${localIP}:8080${details.photo}`,
-          equippedItemPath: `https://${localIP}:8080${details.equippedItemPath}`
+          photo: `https://${localIP}:443${details.photo}`,
+          equippedItemPath: `https://${localIP}:443${details.equippedItemPath}`
         };
       } else {
         this.hoveredCharacter = null;
@@ -172,7 +172,7 @@ export class WorldMapComponent implements OnInit {
   }
 
   fetchTimeFromServer() {
-    this.http.get<{ time: string }>(`https://${localIP}:8080/api/time`).subscribe({
+    this.http.get<{ time: string }>(`https://${localIP}:443/api/time`).subscribe({
       next: (res) => this.setTime(res.time),
       error: () => this.setTime('00:00')
     });
@@ -214,12 +214,12 @@ export class WorldMapComponent implements OnInit {
   }
 
   incrementHour() {
-    this.http.post<{ time: string }>(`https://${localIP}:8080/api/time/increment`, {}).subscribe();
+    this.http.post<{ time: string }>(`https://${localIP}:443/api/time/increment`, {}).subscribe();
     // The backend will emit the new time to all clients via websocket
   }
 
   decrementHour() {
-    this.http.post<{ time: string }>(`https://${localIP}:8080/api/time/decrement`, {}).subscribe();
+    this.http.post<{ time: string }>(`https://${localIP}:443/api/time/decrement`, {}).subscribe();
     // The backend will emit the new time to all clients via websocket
   }
 }

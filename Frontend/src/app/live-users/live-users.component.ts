@@ -17,7 +17,7 @@ export class LiveUsersComponent implements OnInit {
   }
 
   fetchLiveUsers() {
-    this.http.get(`https://${localIP}:8080/api/live-users`)
+    this.http.get(`https://${localIP}:443/api/live-users`)
       .subscribe(
         (data: any) => {
           this.liveUsers = data;

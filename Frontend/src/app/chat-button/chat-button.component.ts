@@ -84,7 +84,7 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
 
   setupSocketConnection() {
     // Connect to the Socket.IO server
-    this.socket = io(`wss://${localIP}:8080`, {
+    this.socket = io(`wss://${localIP}:443`, {
       transports: ['websocket']
     });
 
@@ -162,7 +162,7 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
 
   async loadChatHistory() {
     try {
-        const chatHistoryResponse = await fetch(`https://${localIP}:8080/chat-history/`);
+        const chatHistoryResponse = await fetch(`https://${localIP}:443/chat-history/`);
         if (!chatHistoryResponse.ok) throw new Error('Failed to fetch chat history');
         const chatHistory = await chatHistoryResponse.json();
 
@@ -170,7 +170,7 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
 
         if (this.userRole === 'Dungeon Master') {
             const token = localStorage.getItem('token'); // Get the JWT from localStorage
-            const dmChatHistoryResponse = await fetch(`https://${localIP}:8080/dm-chat-history/`, {
+            const dmChatHistoryResponse = await fetch(`https://${localIP}:443/dm-chat-history/`, {
                 headers: {
                     'Authorization': token || ''
                 }
@@ -205,7 +205,7 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
       };
 
       try {
-        const response = await fetch(`https://${localIP}:8080/chat-history/`, {
+        const response = await fetch(`https://${localIP}:443/chat-history/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -232,7 +232,7 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
     };
 
     try {
-      const response = await fetch(`https://${localIP}:8080/chat-history/`, {
+      const response = await fetch(`https://${localIP}:443/chat-history/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -256,7 +256,7 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
     };
 
     try {
-      const response = await fetch(`https://${localIP}:8080/dm-chat-history/`, {
+      const response = await fetch(`https://${localIP}:443/dm-chat-history/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -360,7 +360,7 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
       formData.append('image', file);
 
       try {
-        const response = await fetch(`https://${localIP}:8080/save-image`, {
+        const response = await fetch(`https://${localIP}:443/save-image`, {
           method: 'POST',
           body: formData
         });
@@ -372,7 +372,7 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
           message: data.filePath,
           timestamp: new Date()
         };
-        await fetch(`https://${localIP}:8080/chat-history/`, {
+        await fetch(`https://${localIP}:443/chat-history/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newMessage)
