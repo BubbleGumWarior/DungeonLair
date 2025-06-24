@@ -68,7 +68,7 @@ export class InventoryComponent implements OnInit {
   }
 
   fetchStatsSheet(characterID: string) {
-    this.http.get<StatsSheet>(`https://${localIP}:8080/stats-sheet/${characterID}`).subscribe(
+    this.http.get<StatsSheet>(`https://${localIP}:443/stats-sheet/${characterID}`).subscribe(
       (data) => {
         this.statsSheet = data;
         this.assignModifiers(); // Assign modifiers after fetching stats sheet
@@ -80,11 +80,11 @@ export class InventoryComponent implements OnInit {
   }
 
   fetchInventoryItems(characterID: string) {
-    this.http.get<Item[]>(`https://${localIP}:8080/inventory-item/${characterID}`).subscribe(
+    this.http.get<Item[]>(`https://${localIP}:443/inventory-item/${characterID}`).subscribe(
       (data) => {
         this.Item = data.map(item => ({
           ...item,
-          photo: item.photo ? `https://${localIP}:8080${item.photo}` : ''
+          photo: item.photo ? `https://${localIP}:443${item.photo}` : ''
         }));
         this.assignModifiers(); // Assign modifiers after fetching items
         this.sortItems(); // Sort items after fetching
@@ -207,7 +207,7 @@ export class InventoryComponent implements OnInit {
       characterID: this.characterID,
       itemID: (item as any).itemID // Cast to any if itemID is not in the Item interface
     };
-    this.http.post(`https://${localIP}:8080/equip-item`, payload).subscribe({
+    this.http.post(`https://${localIP}:443/equip-item`, payload).subscribe({
       next: (response) => {
         // Refresh inventory after equipping item
         this.fetchInventoryItems(this.characterID!);

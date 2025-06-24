@@ -26,7 +26,7 @@ export class SoundComponent implements OnInit {
   }
 
   fetchSounds() {
-    fetch(`https://${localIP}:8080/api/sounds`)
+    fetch(`https://${localIP}:443/api/sounds`)
       .then(res => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
@@ -75,7 +75,7 @@ export class SoundComponent implements OnInit {
     formData.append('file', this.uploadFile);
 
     try {
-      await fetch(`https://${localIP}:8080/api/upload-sound`, {
+      await fetch(`https://${localIP}:443/api/upload-sound`, {
         method: 'POST',
         body: formData
       });

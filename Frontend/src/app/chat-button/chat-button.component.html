@@ -45,7 +45,7 @@
             </div>
             <ng-container *ngIf="chat.username.startsWith('Photo - '); else normalMessage">
               <img 
-                [src]="'https://dungeonlair.ddns.net:8080' + chat.message"
+                [src]="'https://dungeonlair.ddns.net:443' + chat.message"
                 alt="Photo Message"
                 class="max-h-40 w-auto rounded border border-blue-700 my-2"
               />

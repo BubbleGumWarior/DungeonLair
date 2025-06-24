@@ -40,7 +40,7 @@ export class NotesComponent implements OnInit {
     try {
       // If the user is Dungeon Master, use 'DungeonMaster' as the username
       const user = this.role === 'Dungeon Master' ? 'Dungeon Master' : this.username;
-      const response = await fetch(`https://${localIP}:8080/get-notes/${user}`);
+      const response = await fetch(`https://${localIP}:443/get-notes/${user}`);
       const notes = await response.json();
       this.notes = notes.map((note: { noteID: number; title: string; description: string }) => ({
         id: note.noteID,
@@ -58,7 +58,7 @@ export class NotesComponent implements OnInit {
       const user = this.role === 'Dungeon Master' ? 'Dungeon Master' : this.username;
       const newNote = { title: DOMPurify.sanitize(this.newNoteName), description: '' };
       try {
-        const response = await fetch(`https://${localIP}:8080/add-note/${user}`, {
+        const response = await fetch(`https://${localIP}:443/add-note/${user}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -89,7 +89,7 @@ export class NotesComponent implements OnInit {
       const user = this.role === 'Dungeon Master' ? 'Dungeon Master' : this.username;
       const updatedNote = { title: DOMPurify.sanitize(this.selectedNote.name), description: DOMPurify.sanitize(this.selectedNote.description) };
       try {
-        const response = await fetch(`https://${localIP}:8080/update-note/${user}/${this.selectedNote.id}`, {
+        const response = await fetch(`https://${localIP}:443/update-note/${user}/${this.selectedNote.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
@@ -116,7 +116,7 @@ export class NotesComponent implements OnInit {
       
       const user = this.role === 'Dungeon Master' ? 'Dungeon Master' : this.username;
       try {
-        const response = await fetch(`https://${localIP}:8080/delete-note/${user}/${this.selectedNote.id}`, {
+        const response = await fetch(`https://${localIP}:443/delete-note/${user}/${this.selectedNote.id}`, {
           method: 'DELETE'
         });
         if (!response.ok) {

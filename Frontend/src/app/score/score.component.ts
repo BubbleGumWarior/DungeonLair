@@ -26,7 +26,7 @@ export class ScoreComponent implements OnInit {
 
   async fetchScores() {
     try {
-      const response = await fetch(`https://${localIP}:8080/api/scores`);
+      const response = await fetch(`https://${localIP}:443/api/scores`);
       console.log(response);
       this.scores = await response.json();
     } catch (error) {
@@ -36,7 +36,7 @@ export class ScoreComponent implements OnInit {
 
   async updateScore(characterName: string, field: string, value: number) {
     try {
-      await this.http.put(`https://${localIP}:8080/api/scores/${characterName}`, { field, value }).toPromise();
+      await this.http.put(`https://${localIP}:443/api/scores/${characterName}`, { field, value }).toPromise();
       this.fetchScores(); // Refresh scores after update
     } catch (error) {
       console.error('Error updating score:', error);

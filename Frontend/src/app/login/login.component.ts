@@ -15,7 +15,7 @@ import { CommonModule } from '@angular/common'; // Import CommonModule
 export class LoginComponent {
   email: string = '';
   password: string = '';
-  loginImageUrl: string = `https://${localIP}:8080/assets/images/LoginBackground.jpg`;
+  loginImageUrl: string = `https://${localIP}:443/assets/images/LoginBackground.jpg`;
   isMobile: boolean = false;
   errorMessage: string | null = null;
   showModal: boolean = false; // Add this line
@@ -33,7 +33,7 @@ export class LoginComponent {
     console.log('Sanitized password:', sanitizedPassword);
 
     // Use fetch API to send login request
-    fetch(`https://${localIP}:8080/login`, { // Change http to https
+    fetch(`https://${localIP}:443/login`, { // Change http to https
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

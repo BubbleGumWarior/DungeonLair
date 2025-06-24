@@ -85,7 +85,7 @@ export class CharactersGalleryComponent implements OnInit {
       formData.append('itemInventory', JSON.stringify([])); // Default empty array
       formData.append('skillList', JSON.stringify([])); // Default empty array
 
-      this.http.post(`https://${localIP}:8080/create-character`, formData)
+      this.http.post(`https://${localIP}:443/create-character`, formData)
         .subscribe(
           (response: any) => {
             console.log('Character created successfully:', response.character);
@@ -100,7 +100,7 @@ export class CharactersGalleryComponent implements OnInit {
   }
 
   fetchCharacters() {
-    this.http.get(`https://${localIP}:8080/all-characters`)
+    this.http.get(`https://${localIP}:443/all-characters`)
       .subscribe(
         (response: any) => {
           console.log('Characters fetched:', response); // Log all character objects
@@ -108,7 +108,7 @@ export class CharactersGalleryComponent implements OnInit {
             .filter((character: any) => character.characterName !== null && character.characterName !== 'Dungeon Master')
             .map((character: any) => ({
               imageName: character.characterName,
-              photo: `https://${localIP}:8080${character.photo}` // Ensure correct photo URL
+              photo: `https://${localIP}:443${character.photo}` // Ensure correct photo URL
             }))
             .sort((a: any, b: any) => {
               if (a.imageName && b.imageName) {

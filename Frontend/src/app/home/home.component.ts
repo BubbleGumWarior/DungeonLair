@@ -70,7 +70,7 @@ export class HomeComponent implements OnInit {
 
     // Listen for playSound event for all users
     this.webSocketService.onPlaySound((sound) => {
-      const url = `https://${localIP}:8080${sound.path}`;
+      const url = `https://${localIP}:443${sound.path}`;
       console.log('Received playSound event. Sound to play:', sound, 'URL:', url);
       const audio = new Audio(url);
       audio.play();

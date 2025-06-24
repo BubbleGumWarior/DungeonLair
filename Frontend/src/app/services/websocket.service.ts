@@ -36,7 +36,7 @@ export class WebSocketService {
   private socket: Socket;
 
   constructor() {
-    this.socket = io(`https://${localIP}:8080`);
+    this.socket = io(`https://${localIP}:443`);
     this.socket.on('connect', () => {
       console.log('Socket.IO connection established');
       console.log('Socket ID:', this.socket.id);
@@ -76,7 +76,7 @@ export class WebSocketService {
   }
 
   async uploadGalleryImage(formData: FormData) {
-    const response = await fetch(`https://${localIP}:8080/upload-gallery-image`, {
+    const response = await fetch(`https://${localIP}:443/upload-gallery-image`, {
       method: 'POST',
       body: formData
     });
@@ -85,7 +85,7 @@ export class WebSocketService {
   }
 
   async fetchGalleryImages() {
-    const response = await fetch(`https://${localIP}:8080/images`);
+    const response = await fetch(`https://${localIP}:443/images`);
     const images = await response.json();
     return images;
   }
@@ -230,7 +230,7 @@ export class WebSocketService {
   }
 
   async playSound(sound: any) {
-    await fetch(`https://${localIP}:8080/api/play-sound`, {
+    await fetch(`https://${localIP}:443/api/play-sound`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(sound)

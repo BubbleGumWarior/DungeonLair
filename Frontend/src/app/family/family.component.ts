@@ -29,12 +29,12 @@ export class FamilyComponent implements OnInit {
   }
 
   fetchFamilyMembers(characterID: string) {
-    this.http.get<Character[]>(`https://${localIP}:8080/family-member/${characterID}`).subscribe(
+    this.http.get<Character[]>(`https://${localIP}:443/family-member/${characterID}`).subscribe(
       (data) => {
         this.Characters = data.map(member => ({
           characterName: member.characterName,
           race: member.race,
-          photo: member.photo ? `https://${localIP}:8080${member.photo}` : ''
+          photo: member.photo ? `https://${localIP}:443${member.photo}` : ''
         }));
       },
       (error) => {
