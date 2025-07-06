@@ -559,7 +559,8 @@
       <p><strong>Protections:</strong> {{ Math.ceil(selectedMaskDetails.protections) }}</p>
       <p><strong>Magic Resist:</strong> {{ Math.ceil(selectedMaskDetails.magicResist) }}</p>
       <p><strong>Health:</strong> {{ Math.ceil(selectedMaskDetails.currentHealth) }} / {{ Math.ceil(selectedMaskDetails.health) }}</p>
-      <p><strong>Speed:</strong> {{ Math.ceil(selectedMaskDetails.currentSpeed) }} / {{ Math.ceil(selectedMaskDetails.speed) }}</p>
+      <p><strong>Speed:</strong> {{ Math.ceil(selectedMaskDetails.speed) }}</p>
+      <p><strong>Current Speed:</strong> {{ Math.ceil(selectedMaskDetails.currentSpeed) }} / 100</p>
     </div>
     <div class="flex justify-end space-x-4 mt-4">
       <button (click)="closeMaskDetailsModal()" class="bg-red-500 text-white p-2 rounded">Close</button>
@@ -575,8 +576,8 @@
       <p><strong>Ability Damage:</strong> {{ Math.ceil(selectedMaskDetails.abilityDamage) }}</p>
       <p><strong>Protections:</strong> {{ Math.ceil(selectedMaskDetails.protections) }}</p>
       <p><strong>Magic Resist:</strong> {{ Math.ceil(selectedMaskDetails.magicResist) }}</p>
-      <p><strong>Health:</strong> {{ Math.ceil(selectedMaskDetails.currentHealth) }} / {{ Math.ceil(selectedMaskDetails.health) }}</p>
-      <p><strong>Speed:</strong> {{ Math.ceil(selectedMaskDetails.currentSpeed) }} / {{ Math.ceil(selectedMaskDetails.speed) }}</p>
+      <p><strong>Speed:</strong> {{ Math.ceil(selectedMaskDetails.speed) }}</p>
+      <p><strong>Current Speed:</strong> {{ Math.ceil(selectedMaskDetails.currentSpeed) }} / 100</p>
     </div>
     <div class="flex justify-end space-x-4 mt-4">
       <button (click)="closeMaskDetailsModal()" class="bg-red-500 text-white p-2 rounded">Close</button>
