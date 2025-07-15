@@ -31,6 +31,7 @@ export class WorldMapComponent implements OnInit {
     equippedItemPath: string;
   } | null = null;
   currentTime: string = '00:00';
+  currentDay: string = 'Monday'; // Default day
   isDaytime: boolean = true;
   sunOpacity: number = 0;
   moonOpacity: number = 0;
@@ -70,8 +71,9 @@ export class WorldMapComponent implements OnInit {
     this.fetchTimeFromServer();
 
     // Listen for time updates from server
-    this.webSocketService.onTimeUpdate((time: string) => {
-      this.setTime(time);
+    this.webSocketService.onTimeUpdate((data: { time: string; day: string }) => {
+      this.setTime(data.time);
+      this.currentDay = data.day.charAt(0).toUpperCase() + data.day.slice(1); // Capitalize day
     });
 
     this.isMobile = window.innerWidth <= 768; // Simple mobile detection
@@ -178,9 +180,16 @@ export class WorldMapComponent implements OnInit {
   }
 
   fetchTimeFromServer() {
-    this.http.get<{ time: string }>(`https://${localIP}:443/api/time`).subscribe({
-      next: (res) => this.setTime(res.time),
-      error: () => this.setTime('00:00')
+    this.http.get<{ time: string, day: string }>(`https://${localIP}:443/api/time`).subscribe({
+      next: (res) => {
+        this.setTime(res.time);
+        this.currentDay = res.day.charAt(0).toUpperCase() + res.day.slice(1); // Capitalize day
+        console.log('Current time:', this.currentTime, 'Current day:', this.currentDay);
+      },
+      error: () => {
+        this.setTime('00:00');
+        this.currentDay = 'Monday';
+      }
     });
   }
 

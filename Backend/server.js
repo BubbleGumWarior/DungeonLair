@@ -4199,27 +4199,46 @@ TimeKeeper.findOrCreate({
   console.error('Error initializing TimeKeeper:', err);
 });
 
-// API endpoint to get current time
+// API endpoint to get current time and day
 app.get('/api/time', async (req, res) => {
   try {
     const tk = await TimeKeeper.findOne();
-    res.json({ time: tk ? tk.time : '00:00' });
+    res.json({ 
+      time: tk ? tk.time : '00:00',
+      day: tk ? tk.day : 'monday'
+    });
   } catch (err) {
-    res.status(500).json({ time: '00:00' });
+    res.status(500).json({ time: '00:00', day: 'monday' });
   }
 });
 
 // API endpoint to increment hour
+const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
 app.post('/api/time/increment', async (req, res) => {
   try {
     const tk = await TimeKeeper.findOne();
     let [hour, minute] = (tk?.time || '00:00').split(':').map(Number);
-    hour = (hour + 1) % 24;
+    let dayIndex = daysOfWeek.indexOf((tk?.day || 'monday').toLowerCase());
+    if (dayIndex === -1) dayIndex = 0;
+
+    console.log('Before increment:', { hour, minute, dayIndex, day: daysOfWeek[dayIndex] });
+
+    hour += 1;
+    if (hour >= 24) {
+      hour = 0;
+      dayIndex = (dayIndex + 1) % daysOfWeek.length;
+      console.log('Hour overflow, incrementing day:', { hour, dayIndex, day: daysOfWeek[dayIndex] });
+    }
     const newTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    await TimeKeeper.update({ time: newTime }, { where: {} });
-    io.emit('timeUpdate', newTime);
-    res.json({ time: newTime });
+    const newDay = daysOfWeek[dayIndex];
+    console.log('After increment:', { newTime, newDay });
+
+    await TimeKeeper.update({ time: newTime, day: newDay }, { where: {} });
+    io.emit('timeUpdate', { time: newTime, day: newDay });
+    res.json({ time: newTime, day: newDay });
   } catch (err) {
+    console.error('Error incrementing time:', err);
     res.status(500).json({ message: 'Failed to increment time' });
   }
 });
@@ -4229,12 +4248,26 @@ app.post('/api/time/decrement', async (req, res) => {
   try {
     const tk = await TimeKeeper.findOne();
     let [hour, minute] = (tk?.time || '00:00').split(':').map(Number);
-    hour = (hour - 1 + 24) % 24;
+    let dayIndex = daysOfWeek.indexOf((tk?.day || 'monday').toLowerCase());
+    if (dayIndex === -1) dayIndex = 0;
+
+    console.log('Before decrement:', { hour, minute, dayIndex, day: daysOfWeek[dayIndex] });
+
+    hour -= 1;
+    if (hour < 0) {
+      hour = 23;
+      dayIndex = (dayIndex - 1 + daysOfWeek.length) % daysOfWeek.length;
+      console.log('Hour underflow, decrementing day:', { hour, dayIndex, day: daysOfWeek[dayIndex] });
+    }
     const newTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    await TimeKeeper.update({ time: newTime }, { where: {} });
-    io.emit('timeUpdate', newTime);
-    res.json({ time: newTime });
+    const newDay = daysOfWeek[dayIndex];
+    console.log('After decrement:', { newTime, newDay });
+
+    await TimeKeeper.update({ time: newTime, day: newDay }, { where: {} });
+    io.emit('timeUpdate', { time: newTime, day: newDay });
+    res.json({ time: newTime, day: newDay });
   } catch (err) {
+    console.error('Error decrementing time:', err);
     res.status(500).json({ message: 'Failed to decrement time' });
   }
 });

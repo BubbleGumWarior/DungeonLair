@@ -221,7 +221,7 @@ export class WebSocketService {
     this.socket.emit('resetHealth'); // Emit the resetHealth event
   }
 
-  onTimeUpdate(callback: (time: string) => void) {
+  onTimeUpdate(callback: (data: { time: string; day: string }) => void) {
     this.socket.on('timeUpdate', callback);
   }
 
