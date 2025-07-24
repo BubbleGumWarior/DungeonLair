@@ -62,6 +62,12 @@ export class DMScreenComponent implements OnInit {
   maskUsers: { name: string, photo: string }[] = [];
   civilians: { name: string, photo: string }[] = [];
 
+  // New properties for manage mask functionality
+  manageMaskId: number | null = null;
+  loadedMaskDetails: any = {};
+  characterCurrentMaskId: number | null = null; // Store the character's current mask ID
+  localIP = localIP; // Make localIP accessible in template
+
   constructor(private http: HttpClient, private websocketService: WebSocketService) {} // Inject WebSocketService
 
   ngOnInit() {
@@ -133,9 +139,14 @@ export class DMScreenComponent implements OnInit {
 
   selectCharacter(name: string) {
     this.currentlySelectedCharacter = name;
+    // Clear manage mask form when selecting a new character
+    this.manageMaskId = null;
+    this.loadedMaskDetails = {};
+    
     this.http.get<{ characterID: string, maskID: string | null }>(`https://${localIP}:443/character-id/${name}`).subscribe(
       (data) => {
         this.currentlySelectedCharacterID = data.characterID;
+        this.characterCurrentMaskId = data.maskID ? parseInt(data.maskID, 10) : null; // Store the character's current mask ID
         this.fetchStatsSheet(this.currentlySelectedCharacterID);
         this.fetchFamilyMembers(this.currentlySelectedCharacterID);
         this.fetchFriendMembers(this.currentlySelectedCharacterID);
@@ -344,8 +355,21 @@ export class DMScreenComponent implements OnInit {
     return Object.keys(obj);
   }
 
+  hasKeys(obj: any): boolean {
+    return obj && Object.keys(obj).length > 0;
+  }
+
   changeView(view: string) {
     this.selectedView = view;
+    
+    // If switching to Manage Mask view, automatically load the character's current mask
+    if (view === 'Manage Mask' && this.characterCurrentMaskId) {
+      this.manageMaskId = this.characterCurrentMaskId;
+      this.loadMaskDetails();
+    } else if (view === 'Manage Mask' && !this.characterCurrentMaskId) {
+      // Clear the manage mask form if character has no mask
+      this.clearMaskId();
+    }
   }
 
   addFamilyMember() {
@@ -402,7 +426,7 @@ export class DMScreenComponent implements OnInit {
     );
   }
 
-  saveMask() {
+  createMask() {
     const maskData = { 
       ...this.newMask, 
       activeSkills: this.newMask.activeSkills.split(',').map((skill: string) => parseInt(skill.trim(), 10)), // Convert activeSkills to array of integers
@@ -414,13 +438,75 @@ export class DMScreenComponent implements OnInit {
       currentHealth: this.newMask.health, // Set currentHealth to health value
       speed: this.newMask.speed
     };
-    this.http.post(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/mask`, maskData).subscribe(
+
+    // Check if the new /masks endpoint exists, otherwise use fallback
+    this.http.post(`https://${localIP}:443/masks`, maskData).subscribe(
       (data: any) => {
-        this.maskDetails = data; // Update mask details
+        console.log('Mask created successfully:', data);
+        alert(`Mask created with ID: ${data.maskID}`);
         this.newMask = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magicResist: 0, protections: 0, health: 0, speed: 0 }; // Reset the newMask with default values
       },
       (error) => {
-        console.error('Error saving mask:', error);
+        console.error('Error creating mask with /masks endpoint:', error);
+        
+        // Fallback: Create mask by temporarily assigning to current character
+        if (this.currentlySelectedCharacterID) {
+          // First, store the current mask ID if any
+          const originalMaskId = this.characterCurrentMaskId;
+          
+          this.http.post(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/mask`, maskData).subscribe(
+            (data: any) => {
+              console.log('Mask created successfully via fallback:', data);
+              const newMaskId = data.maskID;
+              
+              // If character originally had a mask, restore it
+              if (originalMaskId) {
+                // Fetch the original mask data and reassign it
+                this.http.get<any>(`https://${localIP}:443/mask-details/${originalMaskId}`).subscribe(
+                  (originalMaskData) => {
+                    const originalMaskPayload = {
+                      photo: originalMaskData.photo || '',
+                      passiveSkill: originalMaskData.passiveSkill || '',
+                      activeSkills: originalMaskData.activeSkills || [],
+                      attackDamage: originalMaskData.attackDamage || 0,
+                      abilityDamage: originalMaskData.abilityDamage || 0,
+                      magicResist: originalMaskData.magicResist || 0,
+                      protections: originalMaskData.protections || 0,
+                      health: originalMaskData.health || 0,
+                      speed: originalMaskData.speed || 0
+                    };
+                    
+                    this.http.post(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/mask`, originalMaskPayload).subscribe(
+                      () => {
+                        alert(`Mask created with ID: ${newMaskId}. Original mask restored.`);
+                        this.selectCharacter(this.currentlySelectedCharacter!);
+                      },
+                      (restoreError) => {
+                        console.error('Error restoring original mask:', restoreError);
+                        alert(`Mask created with ID: ${newMaskId}, but failed to restore original mask.`);
+                      }
+                    );
+                  }
+                );
+              } else {
+                // Character had no original mask, remove the newly created one
+                this.websocketService.removeMaskFromUser(newMaskId);
+                setTimeout(() => {
+                  alert(`Mask created with ID: ${newMaskId}`);
+                  this.selectCharacter(this.currentlySelectedCharacter!);
+                }, 500);
+              }
+              
+              this.newMask = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magicResist: 0, protections: 0, health: 0, speed: 0 }; // Reset the newMask with default values
+            },
+            (fallbackError) => {
+              console.error('Error creating mask via fallback:', fallbackError);
+              alert('Error creating mask. Please try again.');
+            }
+          );
+        } else {
+          alert('Please select a character first to create a mask.');
+        }
       }
     );
   }
@@ -605,6 +691,115 @@ export class DMScreenComponent implements OnInit {
       this.websocketService.removeMaskFromUser(this.maskDetails.maskID); // Use WebSocket to remove the mask
       this.newMask = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magicResist: 0, protections: 0, health: 0, speed: 0 }; // Reset newMask
       this.maskDetails = {}; // Clear mask details
+    }
+  }
+
+  // New methods for manage mask functionality
+  loadMaskDetails() {
+    if (!this.manageMaskId) {
+      alert('Please enter a mask ID');
+      return;
+    }
+
+    this.http.get<any>(`https://${localIP}:443/mask-details/${this.manageMaskId}`).subscribe(
+      (data) => {
+        this.loadedMaskDetails = data;
+        console.log('Loaded mask details:', data);
+      },
+      (error) => {
+        console.error('Error loading mask details:', error);
+        if (error.status === 404) {
+          alert('Mask not found with the provided ID');
+        } else {
+          alert('Error loading mask details. Please try again.');
+        }
+        this.loadedMaskDetails = {};
+      }
+    );
+  }
+
+  clearMaskId() {
+    this.manageMaskId = null;
+    this.loadedMaskDetails = {};
+  }
+
+  assignMaskToCharacter() {
+    if (!this.manageMaskId || !this.currentlySelectedCharacterID) {
+      alert('Please select a character and enter a mask ID');
+      return;
+    }
+
+    // First verify the mask exists
+    this.http.get<any>(`https://${localIP}:443/mask-details/${this.manageMaskId}`).subscribe(
+      (maskData) => {
+        // Try the direct assignment endpoint first
+        this.http.put(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/assign-mask`, 
+          { maskID: Number(this.manageMaskId) }).subscribe(
+          (response) => {
+            console.log('Mask assigned successfully:', response);
+            alert(`Mask ${this.manageMaskId} assigned to ${this.currentlySelectedCharacter}`);
+            
+            // Update the character's current mask ID immediately
+            this.characterCurrentMaskId = this.manageMaskId;
+            
+            // Refresh character data to update the UI
+            this.selectCharacter(this.currentlySelectedCharacter!);
+          },
+          (error) => {
+            console.error('Direct assignment failed, trying WebSocket approach:', error);
+            
+            // Fallback: Use WebSocket to assign mask
+            if (this.currentlySelectedCharacterID) {
+              // Send assignment through WebSocket
+              this.websocketService.assignMaskToCharacter(Number(this.currentlySelectedCharacterID), Number(this.manageMaskId));
+              
+              // Update UI immediately (optimistic update)
+              this.characterCurrentMaskId = this.manageMaskId;
+              alert(`Mask ${this.manageMaskId} assigned to ${this.currentlySelectedCharacter} via WebSocket`);
+              
+              // Refresh character data
+              setTimeout(() => {
+                this.selectCharacter(this.currentlySelectedCharacter!);
+              }, 500);
+            }
+          }
+        );
+      },
+      (error) => {
+        console.error('Error verifying mask existence:', error);
+        if (error.status === 404) {
+          alert('Mask not found with the provided ID');
+        } else {
+          alert('Error loading mask details. Please try again.');
+        }
+      }
+    );
+  }
+
+  removeMaskFromCharacter() {
+    if (!this.currentlySelectedCharacterID) {
+      alert('Please select a character');
+      return;
+    }
+
+    // Use websocket to remove the mask (this uses the existing websocket handler)
+    if (this.characterCurrentMaskId) {
+      this.websocketService.removeMaskFromUser(this.characterCurrentMaskId);
+      
+      alert(`Mask removed from ${this.currentlySelectedCharacter}`);
+      
+      // Update the character's current mask ID immediately
+      this.characterCurrentMaskId = null;
+      
+      // Clear the manage mask form
+      this.clearMaskId();
+      
+      // Refresh character data to update the UI
+      setTimeout(() => {
+        this.selectCharacter(this.currentlySelectedCharacter!);
+      }, 500); // Small delay to allow websocket to complete
+    } else {
+      alert('Character has no mask to remove');
     }
   }
 }

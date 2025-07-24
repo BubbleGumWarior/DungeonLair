@@ -1,0 +1,74 @@
+.mask-collection-container {
+  padding: 2rem;
+  min-height: 100vh;
+  background-color: #1a1a1a;
+}
+
+.add-mask-section {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.masks-grid {
+  margin-top: 2rem;
+}
+
+.mask-card {
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mask-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+/* Mask image styling */
+.mask-card img {
+  transition: transform 0.2s ease;
+}
+
+.mask-card:hover img {
+  transform: scale(1.05);
+}
+
+/* Stats styling */
+.mask-card .flex {
+  font-size: 0.875rem;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Form styling enhancements */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .mask-collection-container {
+    padding: 1rem;
+  }
+  
+  .add-mask-section {
+    padding: 1rem;
+  }
+}

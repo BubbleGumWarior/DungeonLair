@@ -24,6 +24,7 @@ const MaskSkills = require('./models/MaskSkills'); // Import the MaskSkills mode
 const ModList = require('./models/ModList'); // Import ModList model
 const TimeKeeper = require('./models/TimeKeeper'); // Import TimeKeeper model
 const Sound = require('./models/Sound'); // Import Sound model
+const MaskCollection = require('./models/MaskCollection'); // Import MaskCollection model
 const { localIP, JWT_SECRET } = require('./config'); // Import the IP address and JWT secret
 const multer = require('multer');
 const path = require('path');
@@ -1856,6 +1857,38 @@ io.on('connection', (socket) => {
       }
     });
 
+    socket.on('assign-mask-to-character', async (data) => {
+      try {
+        const { characterID, maskID } = data;
+        console.log(`Assigning mask ${maskID} to character ${characterID}`);
+        
+        // Verify character exists
+        const characterInfo = await CharacterInfo.findOne({ where: { characterID } });
+        if (!characterInfo) {
+          console.error(`Character with ID ${characterID} not found`);
+          return;
+        }
+
+        // Verify mask exists (optional, but good for data integrity)
+        if (maskID !== null) {
+          const maskExists = await MaskList.findOne({ where: { maskID } });
+          if (!maskExists) {
+            console.error(`Mask with ID ${maskID} not found`);
+            return;
+          }
+        }
+
+        // Update character's mask assignment
+        await CharacterInfo.update({ maskID }, { where: { characterID } });
+        console.log(`Successfully assigned mask ${maskID} to character ${characterID}`);
+        
+        // Optionally broadcast the update to other clients
+        io.emit('maskAssignmentUpdated', { characterID, maskID });
+      } catch (error) {
+        console.error('Error assigning mask to character:', error);
+      }
+    });
+
     socket.on('resetHealth', async () => {
       try {
         await MaskList.update(
@@ -2331,6 +2364,60 @@ app.post('/character-info/:characterID/mask', async (req, res) => {
   } catch (error) {
     console.error('Error adding/updating mask:', error);
     res.status(500).send('Failed to add/update mask');
+  }
+});
+
+// New endpoint for creating masks without assigning to characters
+app.post('/masks', async (req, res) => {
+  const { photo, passiveSkill, activeSkills, attackDamage, abilityDamage, magicResist, protections, health, speed } = req.body;
+
+  try {
+    const relativePhotoPath = photo ? photo.replace(`https://${localIP}:443`, '') : '';
+
+    const newMask = await MaskList.create({
+      photo: relativePhotoPath,
+      passiveSkill,
+      activeSkills,
+      attackDamage,
+      abilityDamage,
+      magicResist,
+      protections,
+      health,
+      currentHealth: health, // Explicitly set currentHealth to health
+      speed
+    });
+
+    res.status(201).json(newMask);
+  } catch (error) {
+    console.error('Error creating mask:', error);
+    res.status(500).send('Failed to create mask');
+  }
+});
+
+// New endpoint for assigning mask to character
+app.put('/character-info/:characterID/assign-mask', async (req, res) => {
+  const { characterID } = req.params;
+  const { maskID } = req.body;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterID } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    // Verify mask exists
+    if (maskID !== null) {
+      const maskExists = await MaskList.findOne({ where: { maskID } });
+      if (!maskExists) {
+        return res.status(404).send('Mask not found');
+      }
+    }
+
+    await CharacterInfo.update({ maskID }, { where: { characterID } });
+    res.status(200).json({ message: 'Mask assignment updated successfully' });
+  } catch (error) {
+    console.error('Error assigning mask:', error);
+    res.status(500).send('Failed to assign mask');
   }
 });
 
@@ -4222,17 +4309,13 @@ app.post('/api/time/increment', async (req, res) => {
     let dayIndex = daysOfWeek.indexOf((tk?.day || 'monday').toLowerCase());
     if (dayIndex === -1) dayIndex = 0;
 
-    console.log('Before increment:', { hour, minute, dayIndex, day: daysOfWeek[dayIndex] });
-
     hour += 1;
     if (hour >= 24) {
       hour = 0;
       dayIndex = (dayIndex + 1) % daysOfWeek.length;
-      console.log('Hour overflow, incrementing day:', { hour, dayIndex, day: daysOfWeek[dayIndex] });
     }
     const newTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
     const newDay = daysOfWeek[dayIndex];
-    console.log('After increment:', { newTime, newDay });
 
     await TimeKeeper.update({ time: newTime, day: newDay }, { where: {} });
     io.emit('timeUpdate', { time: newTime, day: newDay });
@@ -4251,17 +4334,13 @@ app.post('/api/time/decrement', async (req, res) => {
     let dayIndex = daysOfWeek.indexOf((tk?.day || 'monday').toLowerCase());
     if (dayIndex === -1) dayIndex = 0;
 
-    console.log('Before decrement:', { hour, minute, dayIndex, day: daysOfWeek[dayIndex] });
-
     hour -= 1;
     if (hour < 0) {
       hour = 23;
       dayIndex = (dayIndex - 1 + daysOfWeek.length) % daysOfWeek.length;
-      console.log('Hour underflow, decrementing day:', { hour, dayIndex, day: daysOfWeek[dayIndex] });
     }
     const newTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
     const newDay = daysOfWeek[dayIndex];
-    console.log('After decrement:', { newTime, newDay });
 
     await TimeKeeper.update({ time: newTime, day: newDay }, { where: {} });
     io.emit('timeUpdate', { time: newTime, day: newDay });
@@ -4269,6 +4348,83 @@ app.post('/api/time/decrement', async (req, res) => {
   } catch (err) {
     console.error('Error decrementing time:', err);
     res.status(500).json({ message: 'Failed to decrement time' });
+  }
+});
+
+// Mask Collection routes
+app.get('/api/mask-collection', async (req, res) => {
+  try {
+    const maskCollection = await MaskCollection.findAll();
+    console.log('Mask collection data:', JSON.stringify(maskCollection, null, 2));
+    res.json(maskCollection);
+  } catch (error) {
+    console.error('Error fetching mask collection:', error);
+    res.status(500).send('Failed to fetch mask collection');
+  }
+});
+
+app.post('/api/mask-collection', async (req, res) => {
+  try {
+    const { maskID } = req.body;
+    
+    if (!maskID || typeof maskID !== 'number') {
+      return res.status(400).json({ error: 'Valid maskID is required' });
+    }
+
+    // Check if the mask exists in MaskList
+    const maskExists = await MaskList.findOne({ where: { maskID } });
+    if (!maskExists) {
+      return res.status(404).json({ error: `Mask with ID ${maskID} does not exist` });
+    }
+
+    // Check if the mask is already in the collection
+    const existingMask = await MaskCollection.findOne({ where: { maskID } });
+    if (existingMask) {
+      return res.status(409).json({ error: `Mask ${maskID} is already in your collection` });
+    }
+
+    const newMask = await MaskCollection.create({ maskID });
+    
+    // Emit WebSocket event to all clients to refresh mask collection
+    io.emit('maskCollectionUpdate', { action: 'added', maskID, maskData: newMask });
+    console.log(`WebSocket event emitted: maskCollectionUpdate for added mask ${maskID}`);
+    
+    res.status(201).json(newMask);
+  } catch (error) {
+    console.error('Error adding mask to collection:', error);
+    res.status(500).json({ error: 'Failed to add mask to collection' });
+  }
+});
+
+app.delete('/api/mask-collection/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`DELETE request for mask collection ID: ${id}`);
+    
+    // First check if the record exists
+    const existingRecord = await MaskCollection.findByPk(parseInt(id, 10));
+    console.log(`Record found:`, existingRecord);
+    
+    if (!existingRecord) {
+      console.log(`No record found with ID ${id}`);
+      return res.status(404).json({ error: 'Mask not found in collection' });
+    }
+    
+    const deletedRows = await MaskCollection.destroy({ where: { id: parseInt(id, 10) } });
+    console.log(`Deleted rows: ${deletedRows}`);
+    
+    if (deletedRows === 0) {
+      return res.status(404).json({ error: 'Mask not found in collection' });
+    }
+    
+    // Emit WebSocket event to all clients to refresh mask collection
+    io.emit('maskCollectionUpdate', { action: 'removed', maskID: existingRecord.maskID, recordId: id });
+    console.log(`WebSocket event emitted: maskCollectionUpdate for removed mask ${existingRecord.maskID}`);
+    
+    res.status(200).json({ message: 'Mask removed from collection successfully' });
+  } catch (error) {
+    console.error('Error removing mask from collection:', error);
+    res.status(500).json({ error: 'Failed to remove mask from collection' });
   }
 });
 

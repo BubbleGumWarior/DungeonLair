@@ -30,8 +30,12 @@ To rebuild for the serve do thse commands:
 # 1. Delete the old build output in the backend public directory
 Remove-Item -Recurse -Force D:\Coding\DungeonLair\DungeonLair\Backend\public
 
+
 # 2. Build your Angular app (remember to cd into frontend)
 npm run build
 
 # 3. Copy the new build output to the backend public directory
 xcopy /E /I /Y D:\Coding\DungeonLair\DungeonLair\Frontend\dist\frontend D:\Coding\DungeonLair\DungeonLair\Backend\public
+
+Or if you want all at the same time do this:
+Remove-Item -Recurse -Force D:\Coding\DungeonLair\DungeonLair\Backend\public; npm run build; xcopy /E /I /Y D:\Coding\DungeonLair\DungeonLair\Frontend\dist\frontend D:\Coding\DungeonLair\DungeonLair\Backend\public

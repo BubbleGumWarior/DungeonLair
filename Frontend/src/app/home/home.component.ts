@@ -19,6 +19,7 @@ import { jwtDecode } from 'jwt-decode';
 import { WebSocketService } from '../services/websocket.service';
 import { localIP } from '../config'; // Import localIP from config
 import { ScoreComponent } from '../score/score.component';
+import { MaskCollectionComponent } from '../mask-collection/mask-collection.component';
 
 @Component({
   selector: 'app-home',
@@ -40,6 +41,7 @@ import { ScoreComponent } from '../score/score.component';
     SoundbarComponent,
     DMScreenComponent,
     ScoreComponent,
+    MaskCollectionComponent,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],

@@ -200,6 +200,10 @@ export class WebSocketService {
     this.socket.emit('removeMaskFromUser', maskID); // Emit the removeMask event with the maskID
   }
 
+  assignMaskToCharacter(characterID: number, maskID: number) {
+    this.socket.emit('assign-mask-to-character', { characterID, maskID });
+  }
+
   // Add methods to handle masks in battle
   addMaskToBattle(maskID: number) {
     this.socket.emit('add-mask-to-battle', { maskID });
@@ -235,5 +239,9 @@ export class WebSocketService {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(sound)
     });
+  }
+
+  onMaskCollectionUpdate(callback: (data: { action: string, maskID: number, maskData?: any, recordId?: number }) => void) {
+    this.socket.on('maskCollectionUpdate', callback);
   }
 }
