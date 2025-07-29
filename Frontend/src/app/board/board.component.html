@@ -1,130 +1,121 @@
-<div [ngClass]="{'grid grid-cols-3 gap-6 p-6 pb-20': !isMobile, 'flex flex-col gap-6 p-6 pb-10': isMobile}">
-    <!-- Column 2: Character Bio and Image -->
-    <div class="order-1 md:order-2 flex flex-col items-center p-4 text-blue-800 h-full w-full bg-blue-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-blue-800" style="z-index: 1;">
-        <div class="bg-white w-full h-full mb-4 relative">
-            <img *ngIf="photo && !showMask" [src]="photo" alt="Character Photo" class="w-full h-full" />
-            <img *ngIf="maskPhoto && showMask" [src]="maskPhoto" alt="Mask Photo" class="w-full h-full" />
-            <div *ngIf="!photo" class="flex items-center justify-center h-full">
-                <label class="cursor-pointer">
-                    <span class="text-blue-800">Upload Image</span>
-                    <input type="file" (change)="onImageUpload($event)" class="hidden" accept="image/*" />
-                </label>
+<div class="bg-stone-900 rounded-xl border border-stone-700 p-4">
+    <div [ngClass]="{'grid grid-cols-3 gap-12 p-6': !isMobile, 'flex flex-col gap-6 p-6': isMobile}">
+        <!-- Column 2: Character Bio and Image -->
+        <div class="order-1 md:order-2 flex flex-col items-center p-6 text-blue-300 h-full w-full bg-gray-900 rounded-lg border border-gray-700 shadow-lg" style="z-index: 1;">
+            <div class="bg-gray-800 w-full h-full mb-4 relative rounded-lg overflow-hidden">
+                <img *ngIf="photo && !showMask" [src]="photo" alt="Character Photo" class="w-full h-full object-cover" />
+                <img *ngIf="maskPhoto && showMask" [src]="maskPhoto" alt="Mask Photo" class="w-full h-full object-cover" />
+                <div *ngIf="!photo" class="flex items-center justify-center h-full">
+                    <label class="cursor-pointer">
+                        <span class="text-blue-300 hover:text-blue-200 transition-colors">Upload Image</span>
+                        <input type="file" (change)="onImageUpload($event)" class="hidden" accept="image/*" />
+                    </label>
+                </div>
+                <i *ngIf="maskPhoto" class="fa-solid fa-mask absolute top-2 right-2 text-blue-300 cursor-pointer hover:text-blue-200 transition-colors" (click)="toggleMask()"></i>
             </div>
-            <i *ngIf="maskPhoto" class="fa-solid fa-mask absolute top-2 right-2 text-white cursor-pointer" (click)="toggleMask()"></i>
+            <div class="text-center">
+                <h2 class="text-4xl font-bold text-blue-300 mb-2">{{ characterName }}</h2>
+                <p class="text-gray-300 mb-1">Race: {{race}}</p>
+                <p class="text-gray-300 mb-1">Class: {{class}}</p>
+                <p class="text-gray-300">Level: {{level}}</p>
+            </div>
         </div>
-        <div class="text-center">
-            <h2 class="text-3xl font-bold">{{ characterName }}</h2>
-            <p class="text-sm">Race: {{race}}</p>
-            <p class="text-sm">Class: {{class}}</p>
-            <p class="text-sm">Level: {{level}}</p>
-        </div>
-    </div>
 
-    <!-- Column 1: Strength, Dexterity, Constitution or Mask Stats -->
-    <div class="order-2 md:order-1 space-y-4 p-4 text-blue-800 h-full w-full bg-blue-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-blue-800">
-        <div *ngIf="!showMask">
-            <div>            
-                <div class="flex justify-between">
-                    <h2 class="text-4xl font-bold">Strength</h2>
-                    <p class="text-4xl font-bold">{{ strength }}</p>
+        <!-- Column 1: Strength, Dexterity, Constitution or Mask Stats -->
+        <div class="order-2 md:order-1 space-y-4 p-6 text-blue-300 h-full w-full bg-gray-900 rounded-lg border border-gray-700 shadow-lg">
+            <div *ngIf="!showMask">
+                <div class="bg-stone-800 p-4 rounded-lg mb-4">            
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-3xl font-bold text-blue-300">Strength</h2>
+                        <p class="text-3xl font-bold text-blue-300">{{ strength }}</p>
+                    </div>
+                    <div class="flex justify-center mb-3">
+                        <p class="text-xl font-semibold cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out px-3 py-1 rounded" (click)="rollDice($event)">({{ (strengthMod) > 0 ? '+' : '' }}{{ strengthMod }})</p>
+                    </div>            
+                    <ul class="text-sm space-y-1">
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">Athletics</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (athletics + strengthMod) > 0 ? '+' : '' }}{{ athletics + strengthMod }}
+                            </span>
+                        </li>
+                    </ul>
                 </div>
-                <div class="flex justify-center">
-                    <p class="text-2xl font-semibold cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">({{ (strengthMod) > 0 ? '+' : '' }}{{ strengthMod }})</p>
-                </div>            
-                <ul class="text-sm">
-                    <li class="flex justify-between">
-                        <span>Athletics</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (athletics + strengthMod) > 0 ? '+' : '' }}{{ athletics + strengthMod }}
-                        </span>
-                    </li>
-                </ul>
-            </div>
 
-            <div>            
-                <div class="flex justify-between">
-                    <h2 class="text-4xl font-bold">Dexterity</h2>
-                    <p class="text-4xl font-bold">{{ dexterity }}</p>
+                <div class="bg-stone-800 p-4 rounded-lg mb-4">            
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-3xl font-bold text-blue-300">Dexterity</h2>
+                        <p class="text-3xl font-bold text-blue-300">{{ dexterity }}</p>
+                    </div>
+                    <div class="flex justify-center mb-3">
+                        <p class="text-xl font-semibold cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out px-3 py-1 rounded" (click)="rollDice($event)">({{ (dexterityMod) > 0 ? '+' : '' }}{{ dexterityMod }})</p>
+                    </div>            
+                    <ul class="text-sm space-y-1">
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">Acrobatics</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (acrobatics + dexterityMod) > 0 ? '+' : '' }}{{ acrobatics + dexterityMod }}
+                            </span>
+                        </li>
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">Sleight of Hand</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (sleightOfHand + dexterityMod) > 0 ? '+' : '' }}{{ sleightOfHand + dexterityMod }}
+                            </span>
+                        </li>
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">Stealth</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (stealth + dexterityMod) > 0 ? '+' : '' }}{{ stealth + dexterityMod }}
+                            </span>
+                        </li>
+                    </ul>
                 </div>
-                <div class="flex justify-center">
-                    <p class="text-2xl font-semibold cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">({{ (dexterityMod) > 0 ? '+' : '' }}{{ dexterityMod }})</p>
-                </div>            
-                <ul class="text-sm">
-                    <li class="flex justify-between">
-                        <span>Acrobatics</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (acrobatics + dexterityMod) > 0 ? '+' : '' }}{{ acrobatics + dexterityMod }}
-                        </span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>Sleight of Hand</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (sleightOfHand + dexterityMod) > 0 ? '+' : '' }}{{ sleightOfHand + dexterityMod }}
-                        </span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>Stealth</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (stealth + dexterityMod) > 0 ? '+' : '' }}{{ stealth + dexterityMod }}
-                        </span>
-                    </li>
-                </ul>
-            </div>
-            <div>            
-                <div class="flex justify-between">
-                    <h2 class="text-4xl font-bold">Constitution</h2>
-                    <p class="text-4xl font-bold">{{ constitution }}</p>
+                <div class="bg-stone-800 p-4 rounded-lg">            
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-3xl font-bold text-blue-300">Constitution</h2>
+                        <p class="text-3xl font-bold text-blue-300">{{ constitution }}</p>
+                    </div>
+                    <div class="flex justify-center mb-3">
+                        <p class="text-xl font-semibold cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out px-3 py-1 rounded" (click)="rollDice($event)">({{ (constitutionMod) > 0 ? '+' : '' }}{{ constitutionMod }})</p>
+                    </div>            
+                    <ul class="text-sm space-y-1">
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">-</span>
+                            <span class="text-gray-300">-</span>
+                        </li>
+                    </ul>
                 </div>
-                <div class="flex justify-center">
-                    <p class="text-2xl font-semibold cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">({{ (constitutionMod) > 0 ? '+' : '' }}{{ constitutionMod }})</p>
-                </div>            
-                <ul class="text-sm">
-                    <li class="flex justify-between">
-                        <span>-</span>
-                        <span>-</span>
-                    </li>
-                </ul>
             </div>
-        </div>
-        <div *ngIf="showMask" class="h-full flex flex-col justify-between">
-            <div class="flex justify-between">
-                <h2 [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">Attack Damage</h2>
-                <p [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">{{ maskStats.attackDamage }}</p>
-            </div>
-            <div class="flex justify-between">
-                <h2 [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">Ability Damage</h2>
-                <p [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">{{ maskStats.abilityDamage }}</p>
-            </div>
-            <div class="flex justify-between">
-                <h2 [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">Magic Resistance</h2>
-                <p [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">{{ maskStats.magicResist }}</p>
-            </div>
-            <div class="flex justify-between">
-                <h2 [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">Protections</h2>
-                <p [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">{{ maskStats.protections }}</p>
-            </div>
-            <div class="flex justify-between">
-                <h2 [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">Health</h2>
-                <p [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">{{ maskStats.health }}</p>
-            </div>
-            <div class="flex justify-between">
-                <h2 [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">Speed</h2>
-                <p [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">{{ maskStats.speed }}</p>
-            </div>
-            <div class="mb-4">
-                <h2 [ngClass]="isMobile ? 'text-2xl font-bold' : 'text-4xl font-bold'">Mods</h2>
-                <ul class="text-sm relative">
-                    <li *ngFor="let mod of maskMods" class="cursor-pointer relative" (mouseenter)="hoveredMod = mod" (mouseleave)="hoveredMod = null">
-                        <p [ngClass]="{
-                            'text-brown-500': mod.modRarity === 1,
-                            'text-gray-400': mod.modRarity === 2,
-                            'text-yellow-500': mod.modRarity === 3,
-                            'text-blue-400': mod.modRarity === 4,
-                            'text-purple-500': mod.modRarity === 5
-                        }">
-                            {{ mod.modType }}
-                        </p>
-                        <div *ngIf="hoveredMod === mod" class="absolute left-1/3 w-2/3 bg-stone-950 p-2 rounded shadow-lg z-[9999] border border-blue-700">
+            <div *ngIf="showMask" class="h-full flex flex-col justify-between space-y-4">
+                <div class="flex justify-between items-center bg-stone-800 p-4 rounded-lg">
+                    <h2 [ngClass]="isMobile ? 'text-xl font-bold text-blue-300' : 'text-3xl font-bold text-blue-300'">Health</h2>
+                    <p [ngClass]="isMobile ? 'text-xl font-bold text-green-400' : 'text-3xl font-bold text-green-400'">{{ maskStats.health }}</p>
+                </div>
+                <div class="flex justify-between items-center bg-stone-800 p-4 rounded-lg">
+                    <h2 [ngClass]="isMobile ? 'text-xl font-bold text-blue-300' : 'text-3xl font-bold text-blue-300'">Speed</h2>
+                    <p [ngClass]="isMobile ? 'text-xl font-bold text-yellow-400' : 'text-3xl font-bold text-yellow-400'">{{ maskStats.speed }}</p>
+                </div>
+                <div class="flex justify-between items-center bg-stone-800 p-4 rounded-lg">
+                    <h2 [ngClass]="isMobile ? 'text-xl font-bold text-blue-300' : 'text-3xl font-bold text-blue-300'">Attack Damage</h2>
+                    <p [ngClass]="isMobile ? 'text-xl font-bold text-red-400' : 'text-3xl font-bold text-red-400'">{{ maskStats.attackDamage }}</p>
+                </div>
+                <div class="flex justify-between items-center bg-stone-800 p-4 rounded-lg">
+                    <h2 [ngClass]="isMobile ? 'text-xl font-bold text-blue-300' : 'text-3xl font-bold text-blue-300'">Ability Damage</h2>
+                    <p [ngClass]="isMobile ? 'text-xl font-bold text-purple-400' : 'text-3xl font-bold text-purple-400'">{{ maskStats.abilityDamage }}</p>
+                </div>
+                <div class="flex justify-between items-center bg-stone-800 p-4 rounded-lg">
+                    <h2 [ngClass]="isMobile ? 'text-xl font-bold text-blue-300' : 'text-3xl font-bold text-blue-300'">Protections</h2>
+                    <p [ngClass]="isMobile ? 'text-xl font-bold text-blue-400' : 'text-3xl font-bold text-blue-400'">{{ maskStats.protections }}</p>
+                </div>
+                <div class="flex justify-between items-center bg-stone-800 p-4 rounded-lg">
+                    <h2 [ngClass]="isMobile ? 'text-xl font-bold text-blue-300' : 'text-3xl font-bold text-blue-300'">Magic Resistance</h2>
+                    <p [ngClass]="isMobile ? 'text-xl font-bold text-cyan-400' : 'text-3xl font-bold text-cyan-400'">{{ maskStats.magicResist }}</p>
+                </div>
+                <div class="bg-stone-800 p-4 rounded-lg">
+                    <h2 [ngClass]="isMobile ? 'text-xl font-bold text-blue-300 mb-3' : 'text-3xl font-bold text-blue-300 mb-3'">Mods</h2>
+                    <ul class="text-sm relative space-y-2">
+                        <li *ngFor="let mod of maskMods" class="cursor-pointer relative bg-gray-700 p-2 rounded" (mouseenter)="hoveredMod = mod" (mouseleave)="hoveredMod = null">
                             <p [ngClass]="{
                                 'text-brown-500': mod.modRarity === 1,
                                 'text-gray-400': mod.modRarity === 2,
@@ -132,143 +123,154 @@
                                 'text-blue-400': mod.modRarity === 4,
                                 'text-purple-500': mod.modRarity === 5
                             }">
-                            {{ mod.description }}
+                                {{ mod.modType }}
                             </p>
-                        </div>
-                    </li>
-                </ul>
+                            <div *ngIf="hoveredMod === mod" class="absolute left-1/3 w-2/3 bg-gray-900 border border-blue-700 p-3 rounded-lg shadow-xl z-[9999]">
+                                <p [ngClass]="{
+                                    'text-brown-500': mod.modRarity === 1,
+                                    'text-gray-400': mod.modRarity === 2,
+                                    'text-yellow-500': mod.modRarity === 3,
+                                    'text-blue-400': mod.modRarity === 4,
+                                    'text-purple-500': mod.modRarity === 5
+                                }">
+                                {{ mod.description }}
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Column 3: Intelligence, Wisdom, Charisma or Mask Skills -->
-    <div class="order-3 space-y-4 p-4 text-blue-800 h-full w-full bg-blue-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-blue-800">
-        <div *ngIf="!showMask">
-            <div>            
-                <div class="flex justify-between">
-                    <h2 class="text-4xl font-bold">Intelligence</h2>
-                    <p class="text-4xl font-bold">{{ intelligence }}</p>
+        <!-- Column 3: Intelligence, Wisdom, Charisma or Mask Skills -->
+        <div class="order-3 space-y-4 p-6 text-blue-300 h-full w-full bg-gray-900 rounded-lg border border-gray-700 shadow-lg">
+            <div *ngIf="!showMask">
+                <div class="bg-stone-800 p-4 rounded-lg mb-4">            
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-3xl font-bold text-blue-300">Intelligence</h2>
+                        <p class="text-3xl font-bold text-blue-300">{{ intelligence }}</p>
+                    </div>
+                    <div class="flex justify-center mb-3">
+                        <p class="text-xl font-semibold cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out px-3 py-1 rounded" (click)="rollDice($event)">({{ (intelligenceMod) > 0 ? '+' : '' }}{{ intelligenceMod }})</p>
+                    </div>            
+                    <ul class="text-sm space-y-1">
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">History</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (history + intelligenceMod) > 0 ? '+' : '' }}{{ history + intelligenceMod }}
+                            </span>
+                        </li>
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">Investigation</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (investigation + intelligenceMod) > 0 ? '+' : '' }}{{ investigation + intelligenceMod }}
+                            </span>
+                        </li>
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">Nature</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (nature + intelligenceMod) > 0 ? '+' : '' }}{{ nature + intelligenceMod }}
+                            </span>
+                        </li>
+                    </ul>
                 </div>
-                <div class="flex justify-center">
-                    <p class="text-2xl font-semibold cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">({{ (intelligenceMod) > 0 ? '+' : '' }}{{ intelligenceMod }})</p>
-                </div>            
-                <ul class="text-sm">
-                    <li class="flex justify-between">
-                        <span>History</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (history + intelligenceMod) > 0 ? '+' : '' }}{{ history + intelligenceMod }}
-                        </span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>Investigation</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (investigation + intelligenceMod) > 0 ? '+' : '' }}{{ investigation + intelligenceMod }}
-                        </span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>Nature</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (nature + intelligenceMod) > 0 ? '+' : '' }}{{ nature + intelligenceMod }}
-                        </span>
-                    </li>
-                </ul>
-            </div>
 
-            <div>            
-                <div class="flex justify-between">
-                    <h2 class="text-4xl font-bold">Wisdom</h2>
-                    <p class="text-4xl font-bold">{{ wisdom }}</p>
+                <div class="bg-stone-800 p-4 rounded-lg mb-4">            
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-3xl font-bold text-blue-300">Wisdom</h2>
+                        <p class="text-3xl font-bold text-blue-300">{{ wisdom }}</p>
+                    </div>
+                    <div class="flex justify-center mb-3">
+                        <p class="text-xl font-semibold cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out px-3 py-1 rounded" (click)="rollDice($event)">({{ (wisdomMod) > 0 ? '+' : '' }}{{ wisdomMod }})</p>
+                    </div>            
+                    <ul class="text-sm space-y-1">
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">Animal handling</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (animalHandling + wisdomMod) > 0 ? '+' : '' }}{{ animalHandling + wisdomMod }}
+                            </span>
+                        </li>
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">Insight</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (insight + wisdomMod) > 0 ? '+' : '' }}{{ insight + wisdomMod }}
+                            </span>
+                        </li>
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">Medicine</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (medicine + wisdomMod) > 0 ? '+' : '' }}{{ medicine + wisdomMod }}
+                            </span>
+                        </li>
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">Perception</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (perception + wisdomMod) > 0 ? '+' : '' }}{{ perception + wisdomMod }}
+                            </span>
+                        </li>
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">Survival</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (survival + wisdomMod) > 0 ? '+' : '' }}{{ survival + wisdomMod }}
+                            </span>
+                        </li>
+                    </ul>
                 </div>
-                <div class="flex justify-center">
-                    <p class="text-2xl font-semibold cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">({{ (wisdomMod) > 0 ? '+' : '' }}{{ wisdomMod }})</p>
-                </div>            
-                <ul class="text-sm">
-                    <li class="flex justify-between">
-                        <span>Animal handling</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (animalHandling + wisdomMod) > 0 ? '+' : '' }}{{ animalHandling + wisdomMod }}
-                        </span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>Insight</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (insight + wisdomMod) > 0 ? '+' : '' }}{{ insight + wisdomMod }}
-                        </span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>Medicine</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (medicine + wisdomMod) > 0 ? '+' : '' }}{{ medicine + wisdomMod }}
-                        </span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>Perception</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (perception + wisdomMod) > 0 ? '+' : '' }}{{ perception + wisdomMod }}
-                        </span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>Survival</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (survival + wisdomMod) > 0 ? '+' : '' }}{{ survival + wisdomMod }}
-                        </span>
-                    </li>
-                </ul>
-            </div>
 
-            <div>            
-                <div class="flex justify-between">
-                    <h2 class="text-4xl font-bold">Charisma</h2>
-                    <p class="text-4xl font-bold">{{ charisma }}</p>
+                <div class="bg-stone-800 p-4 rounded-lg">            
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-3xl font-bold text-blue-300">Charisma</h2>
+                        <p class="text-3xl font-bold text-blue-300">{{ charisma }}</p>
+                    </div>
+                    <div class="flex justify-center mb-3">
+                        <p class="text-xl font-semibold cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out px-3 py-1 rounded" (click)="rollDice($event)">({{ (charismaMod) > 0 ? '+' : '' }}{{ charismaMod }})</p>
+                    </div>            
+                    <ul class="text-sm space-y-1">
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">Deception</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (deception + charismaMod) > 0 ? '+' : '' }}{{ deception + charismaMod }}
+                            </span>
+                        </li>
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">Intimidation</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (intimidation + charismaMod) > 0 ? '+' : '' }}{{ intimidation + charismaMod }}
+                            </span>
+                        </li>
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">Performance</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (performance + charismaMod) > 0 ? '+' : '' }}{{ performance + charismaMod }}
+                            </span>
+                        </li>
+                        <li class="flex justify-between items-center bg-gray-700 px-3 py-2 rounded">
+                            <span class="text-gray-300">Persuasion</span>
+                            <span class="cursor-pointer hover:text-blue-200 transition duration-300 ease-in-out text-blue-300 font-medium" (click)="rollDice($event)">
+                                {{ (persuasion + charismaMod) > 0 ? '+' : '' }}{{ persuasion + charismaMod }}
+                            </span>
+                        </li>
+                    </ul>
                 </div>
-                <div class="flex justify-center">
-                    <p class="text-2xl font-semibold cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">({{ (charismaMod) > 0 ? '+' : '' }}{{ charismaMod }})</p>
-                </div>            
-                <ul class="text-sm">
-                    <li class="flex justify-between">
-                        <span>Deception</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (deception + charismaMod) > 0 ? '+' : '' }}{{ deception + charismaMod }}
-                        </span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>Intimidation</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (intimidation + charismaMod) > 0 ? '+' : '' }}{{ intimidation + charismaMod }}
-                        </span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>Performance</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (performance + charismaMod) > 0 ? '+' : '' }}{{ performance + charismaMod }}
-                        </span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>Persuasion</span>
-                        <span class="cursor-pointer hover:text-white transition duration-300 ease-in-out" (click)="rollDice($event)">
-                            {{ (persuasion + charismaMod) > 0 ? '+' : '' }}{{ persuasion + charismaMod }}
-                        </span>
-                    </li>
-                </ul>
             </div>
-        </div>
-        <div *ngIf="showMask">
-            <div>
-                <h2 class="text-4xl font-bold underline">Passive Skill</h2>
-                <p class="text-2xl">{{ maskSkills.passiveSkill }}</p>
-            </div>
-            <div>
-                <h2 class="text-4xl font-bold underline">Active Skills</h2>
-                <ul class="text-sm">
-                    <li *ngFor="let skill of maskActiveSkillDetails" class="flex flex-col">
-                        <span class="text-2xl font-bold">{{ skill.skillName }}</span>
-                        <span><strong>Main Stat:</strong> {{ skill.mainStat }} ({{ skill.mainStatPercentage }}%)</span>
-                        <span><strong>Cooldown:</strong> {{ skill.cooldown }} turns</span>
-                        <span><strong>Amount of Strikes:</strong> {{ skill.amountOfStrikes }}</span>
-                        <span><strong>On Hit Effect:</strong> {{ skill.onHitEffect }}</span>
-                        <span><strong>Description:</strong> {{ skill.description }}</span>
-                    </li>
-                </ul>
+            <div *ngIf="showMask" class="space-y-4">
+                <div class="bg-stone-800 p-4 rounded-lg">
+                    <h2 class="text-3xl font-bold text-blue-300 underline mb-3">Passive Skill</h2>
+                    <p class="text-xl text-blue-300">{{ maskSkills.passiveSkill }}</p>
+                </div>
+                <div class="bg-stone-800 p-4 rounded-lg">
+                    <h2 class="text-3xl font-bold text-blue-300 underline mb-3">Active Skills</h2>
+                    <ul class="text-sm space-y-3">
+                        <li *ngFor="let skill of maskActiveSkillDetails" class="flex flex-col bg-gray-700 p-3 rounded">
+                            <span class="text-xl font-bold text-blue-300 mb-2">{{ skill.skillName }}</span>
+                            <span class="text-gray-300"><strong class="text-blue-300">Main Stat:</strong> {{ skill.mainStat }} ({{ skill.mainStatPercentage }}%)</span>
+                            <span class="text-gray-300"><strong class="text-blue-300">Cooldown:</strong> {{ skill.cooldown }} turns</span>
+                            <span class="text-gray-300"><strong class="text-blue-300">Amount of Strikes:</strong> {{ skill.amountOfStrikes }}</span>
+                            <span class="text-gray-300"><strong class="text-blue-300">On Hit Effect:</strong> {{ skill.onHitEffect }}</span>
+                            <span class="text-gray-300"><strong class="text-blue-300">Description:</strong> {{ skill.description }}</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

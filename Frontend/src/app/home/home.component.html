@@ -1,67 +1,67 @@
-<div class="home-screen">
+<div class="home-screen min-h-screen">
   <nav class="bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 p-4">
     <div class="container mx-auto flex justify-between items-center">
       <ul class="hidden md:flex space-x-4">
         <li>
-          <a class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer flex items-center" (click)="navigateView('home')">
+          <a class="text-white font-bold text-xl hover:text-blue-200 cursor-pointer flex items-center transition-colors" (click)="navigateView('home')">
             <i class="fa fa-home mr-2"></i>
           </a>
         </li>
       </ul>
       <ul class="hidden md:flex space-x-4">
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('board')" [ngClass]="{'underline font-bold': currentView === 'board'}">Board</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('family')"[ngClass]="{'underline font-bold': currentView === 'family'}">Family</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('friends')"[ngClass]="{'underline font-bold': currentView === 'friends'}">Contacts</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('inventory')"[ngClass]="{'underline font-bold': currentView === 'inventory'}">Inventory</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('skills')"[ngClass]="{'underline font-bold': currentView === 'skills'}">Skills</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('notes')"[ngClass]="{'underline font-bold': currentView === 'notes'}">Notes</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('mask-collection')"[ngClass]="{'underline font-bold': currentView === 'mask-collection'}">Mask Collection</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('score')" [ngClass]="{'underline font-bold': currentView === 'score'}">Score</a></li>
-        <li *ngIf="role === 'Dungeon Master'"><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('dm-screen')"[ngClass]="{'underline font-bold': currentView === 'dm-screen'}">Dm Screen</a></li>
-        <li *ngIf="role === 'Dungeon Master'"><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateTo('admin-panel')">Admin Panel</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('board')" [ngClass]="{'underline font-bold': currentView === 'board'}">Board</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('family')"[ngClass]="{'underline font-bold': currentView === 'family'}">Family</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('friends')"[ngClass]="{'underline font-bold': currentView === 'friends'}">Contacts</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('inventory')"[ngClass]="{'underline font-bold': currentView === 'inventory'}">Inventory</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('skills')"[ngClass]="{'underline font-bold': currentView === 'skills'}">Skills</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('notes')"[ngClass]="{'underline font-bold': currentView === 'notes'}">Notes</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('mask-collection')"[ngClass]="{'underline font-bold': currentView === 'mask-collection'}">Mask Collection</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('score')" [ngClass]="{'underline font-bold': currentView === 'score'}">Score</a></li>
+        <li *ngIf="role === 'Dungeon Master'"><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('dm-screen')"[ngClass]="{'underline font-bold': currentView === 'dm-screen'}">Dm Screen</a></li>
+        <li *ngIf="role === 'Dungeon Master'"><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateTo('admin-panel')">Admin Panel</a></li>
       </ul>
       <ul class="hidden md:flex space-x-4">
         <li>
-          <a class="text-black hover:text-gray-300 cursor-pointer text-sm" (click)="navigateTo('change-password')">
+          <a class="text-white hover:text-blue-200 cursor-pointer text-sm transition-colors" (click)="navigateTo('change-password')">
             <i class="fa fa-key mr-1"></i> Change Password
           </a>
         </li>
         <li>
-          <a class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer flex items-center" (click)="navigateTo('login')">
+          <a class="text-white font-bold text-xl hover:text-blue-200 cursor-pointer flex items-center transition-colors" (click)="navigateTo('login')">
             <i class="fa fa-sign-out-alt mr-2"></i>
           </a>
         </li>
       </ul>
       <div class="md:hidden">
-        <button class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer flex items-center" (click)="showMobileMenu = !showMobileMenu">
+        <button class="text-white font-bold text-xl hover:text-blue-200 cursor-pointer flex items-center transition-colors" (click)="showMobileMenu = !showMobileMenu">
           <i class="fa fa-bars mr-2"></i>
         </button>
       </div>
     </div>
     <div *ngIf="showMobileMenu" class="md:hidden">
       <ul class="flex flex-col space-y-4 mt-4">
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('home')">Home</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('board')">Board</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('family')">Family</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('friends')">Contacts</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('inventory')">Inventory</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('skills')">Skills</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('notes')">Notes</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('mask-collection')">Mask Collection</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('score')">Score</a></li>
-        <li *ngIf="role === 'Dungeon Master'"><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('dm-screen')">DM Screen</a></li>
-        <li *ngIf="role === 'Dungeon Master'"><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateTo('admin-panel')">Admin Panel</a></li>
-        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateTo('change-password')">
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('home')">Home</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('board')">Board</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('family')">Family</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('friends')">Contacts</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('inventory')">Inventory</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('skills')">Skills</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('notes')">Notes</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('mask-collection')">Mask Collection</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('score')">Score</a></li>
+        <li *ngIf="role === 'Dungeon Master'"><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('dm-screen')">DM Screen</a></li>
+        <li *ngIf="role === 'Dungeon Master'"><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateTo('admin-panel')">Admin Panel</a></li>
+        <li><a class="text-white hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateTo('change-password')">
           <i class="fa fa-key mr-1"></i> Change Password
         </a></li>
-        <li><a class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer flex items-center" (click)="navigateTo('login')">>
+        <li><a class="text-white font-bold text-xl hover:text-blue-200 cursor-pointer flex items-center transition-colors" (click)="navigateTo('login')">>
           <i class="fa fa-sign-out-alt mr-2"></i> Logout
         </a></li>
       </ul>
     </div>
   </nav>
 
-  <div class="container mx-auto mt-10">
+  <div class="container mx-auto py-8">
     <app-world-map *ngIf="currentView === 'home'"></app-world-map>
     <app-board *ngIf="currentView === 'board'" [characterID]="characterID" (resultRolled)="handleDiceResult($event)"></app-board>
     <app-family *ngIf="currentView === 'family'" [characterID]="characterID"></app-family>
@@ -84,18 +84,18 @@
   <!-- <app-soundbar class="hidden md:block"></app-soundbar> -->
 
 <div *ngIf="(isHomeView() || !isMobile())" class="fixed bottom-4 right-4 mb-0">
-  <button class="vc-button p-3 w-12 h-12 bg-blue-800 text-black rounded-full shadow-lg hover:bg-blue-900 transition duration-200" (click)="navigateToBattle()">
+  <button class="vc-button p-3 w-12 h-12 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded-full shadow-lg hover:opacity-90 transition-opacity transform hover:-translate-y-1" (click)="navigateToBattle()">
     <i class="fa fa-lg fa-solid fa-map" aria-hidden="true"></i>
   </button>
 </div>
 
 <div *ngIf="(isHomeView() || !isMobile())" class="fixed bottom-20 right-4 mb-0">
-  <button class="vc-button p-3 w-12 h-12 bg-blue-800 text-black rounded-full shadow-lg hover:bg-blue-900 transition duration-200" (click)="navigateToGallery()">
+  <button class="vc-button p-3 w-12 h-12 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded-full shadow-lg hover:opacity-90 transition-opacity transform hover:-translate-y-1" (click)="navigateToGallery()">
     <i class="fa fa-lg fa-image" aria-hidden="true"></i>
   </button>
 </div>
 <div *ngIf="(isHomeView() || !isMobile())" class="fixed bottom-32 right-4 mb-4">
-  <button class="vc-button p-3 w-12 h-12 bg-blue-800 text-black rounded-full shadow-lg hover:bg-blue-900 transition duration-200" (click)="navigateToCharactersGallery()">
+  <button class="vc-button p-3 w-12 h-12 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded-full shadow-lg hover:opacity-90 transition-opacity transform hover:-translate-y-1" (click)="navigateToCharactersGallery()">
     <i class="fa fa-user" aria-hidden="true"></i>
   </button>
 </div>

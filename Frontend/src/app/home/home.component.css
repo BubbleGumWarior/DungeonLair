@@ -1,3 +1,8 @@
+/* Home Screen Theme */
+.home-screen {
+  background: linear-gradient(135deg, #030c22 0%, rgb(0, 0, 0) 100%);
+}
+
 .modal {
   position: fixed;
   top: 0;
@@ -9,20 +14,35 @@
   justify-content: center;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .modal-content {
-  background-color: white;
+  background-color: #1f2937;
+  border: 1px solid #1e40af;
   padding: 1.5rem;
   border-radius: 0.5rem;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
   text-align: center;
+  color: #dbeafe;
 }
 
 .modal-content p {
   margin-bottom: 1rem;
   font-size: 1.125rem;
   font-weight: bold;
+  color: #1e40af;
 }
 
 .modal-content button {
@@ -31,15 +51,46 @@
   font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .modal-content button:first-child {
-  background-color: #6b46c1; /* Purple color */
+  background: linear-gradient(to right, #1d4ed8, #1e40af, #1e3a8a);
   color: white;
   margin-right: 0.5rem;
+  border: none;
+}
+
+.modal-content button:first-child:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 
 .modal-content button:last-child {
-  background-color: #4a5568; /* Gray color */
-  color: white;
+  background-color: #374151;
+  color: #d1d5db;
+  border: 1px solid #4b5563;
+}
+
+.modal-content button:last-child:hover {
+  background-color: #4b5563;
+  transform: translateY(-1px);
+}
+
+/* Navigation hover effects */
+nav a {
+  transition: all 0.2s ease;
+}
+
+nav a:hover {
+  transform: translateY(-1px);
+}
+
+/* Button hover animations */
+.vc-button {
+  transition: all 0.2s ease;
+}
+
+.vc-button:hover {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }

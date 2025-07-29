@@ -1,4 +1,4 @@
-<div class="mask-collection-container">
+<div class="mask-collection-container bg-stone-900 rounded-xl border border-stone-700 p-4">
   <div class="flex items-center justify-center mb-8">
     <h1 class="text-4xl font-bold text-blue-700 text-center">All masks in collection</h1>
   </div>
@@ -100,16 +100,16 @@
                 <span class="text-green-400 font-bold text-lg">{{ maskDetail.health }}</span>
               </div>
               <div class="flex flex-col items-center p-2 bg-stone-700 rounded">
+                <span class="text-xs text-gray-400 uppercase mb-1">Speed</span>
+                <span class="text-yellow-400 font-bold text-lg">{{ maskDetail.speed }}</span>
+              </div>
+              <div class="flex flex-col items-center p-2 bg-stone-700 rounded">
                 <span class="text-xs text-gray-400 uppercase mb-1">Attack</span>
                 <span class="text-red-400 font-bold text-lg">{{ maskDetail.attackDamage }}</span>
               </div>
               <div class="flex flex-col items-center p-2 bg-stone-700 rounded">
                 <span class="text-xs text-gray-400 uppercase mb-1">Ability</span>
                 <span class="text-purple-400 font-bold text-lg">{{ maskDetail.abilityDamage }}</span>
-              </div>
-              <div class="flex flex-col items-center p-2 bg-stone-700 rounded">
-                <span class="text-xs text-gray-400 uppercase mb-1">Speed</span>
-                <span class="text-yellow-400 font-bold text-lg">{{ maskDetail.speed }}</span>
               </div>
               <div class="flex flex-col items-center p-2 bg-stone-700 rounded">
                 <span class="text-xs text-gray-400 uppercase mb-1">Protections</span>

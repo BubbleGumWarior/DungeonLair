@@ -1,16 +1,23 @@
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
-    <div *ngFor="let character of Characters" class="flex flex-row items-start p-4 text-blue-800 h-full w-full bg-blue-900 rounded-md bg-clip-padding backdrop-filter backdrop-blur-3xl bg-opacity-0 border border-blue-800 mb-4">
-        <div class="flex flex-col w-full">
-            <div class="text-center">
-                <div class="h-full mb-4 flex items-center justify-center">
-                    <img [src]="character.photo" alt="{{ character.characterName }}" class="h-1/4 w-1/4 object-cover rounded-md">
-                </div>
-                <h2 class="text-3xl font-bold">{{ character.characterName }}</h2>
-                <p class="text-sm">Race: {{ character.race }}</p>
-            </div>
-        </div>
-    </div>    
-</div>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 h-20">
+<div class="bg-stone-900 rounded-xl border border-stone-700 p-4">
+  <div class="max-w-6xl mx-auto px-6">
+    <!-- Header -->
+    <div class="mb-8 text-center">
+      <h1 class="text-4xl font-bold text-blue-800 mb-2">Family</h1>
+      <p class="text-gray-300">Your character's family members</p>
+    </div>
 
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div *ngFor="let character of Characters" class="bg-gray-900 rounded-lg border border-gray-700 shadow-lg overflow-hidden hover:border-blue-500 transition duration-200">
+            <div class="p-6">
+                <div class="text-center">
+                    <div class="mb-4 flex items-center justify-center">
+                        <img [src]="character.photo" alt="{{ character.characterName }}" class="h-32 w-32 object-cover rounded-lg border-2 border-gray-600">
+                    </div>
+                    <h2 class="text-2xl font-bold text-blue-800 mb-2">{{ character.characterName }}</h2>
+                    <p class="text-gray-300">Race: {{ character.race }}</p>
+                </div>
+            </div>
+        </div>    
+    </div>
+  </div>
 </div>
