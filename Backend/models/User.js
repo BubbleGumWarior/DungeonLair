@@ -38,6 +38,14 @@ const User = sequelize.define('User', {
   noteList: {
     type: DataTypes.ARRAY(DataTypes.INTEGER), // Add array field for note IDs
   },
+  isTemporaryPassword: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  temporaryPasswordExpires: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 }, {
   tableName: 'users', // Explicitly define table name in lowercase
 });

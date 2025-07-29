@@ -436,6 +436,11 @@ app.post('/login', async (req, res) => {
     return res.status(401).send('Invalid credentials');
   }
 
+  // Check if temporary password has expired
+  if (user.isTemporaryPassword && user.temporaryPasswordExpires && new Date() > user.temporaryPasswordExpires) {
+    return res.status(401).json({ message: 'Temporary password has expired. Please contact your Dungeon Master.' });
+  }
+
   // Compare hashed password
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
@@ -452,7 +457,15 @@ app.post('/login', async (req, res) => {
     JWT_SECRET,
     { expiresIn: '1h' }
   );
-  res.json({ token, characterID, username: user.username, role: user.role });
+  
+  res.json({ 
+    token, 
+    characterID, 
+    username: user.username, 
+    role: user.role,
+    isTemporaryPassword: user.isTemporaryPassword || false,
+    temporaryPasswordExpires: user.temporaryPasswordExpires
+  });
 });
 
 // Define your other endpoints here...
@@ -2307,6 +2320,111 @@ app.post('/update-character-name', async (req, res) => {
   } catch (error) {
     console.error('Error updating character name:', error);
     res.status(500).json({ message: 'Failed to update character name' });
+  }
+});
+
+// Admin endpoint to get all users (DM only)
+app.get('/admin/users', verifyToken, async (req, res) => {
+  if (req.user.role !== 'Dungeon Master') {
+    return res.status(403).json({ message: 'Access denied. Dungeon Master role required.' });
+  }
+
+  try {
+    const users = await User.findAll({
+      attributes: ['id', 'username', 'email', 'role', 'isTemporaryPassword', 'temporaryPasswordExpires'],
+      where: {
+        role: { [Op.ne]: 'Dungeon Master' } // Exclude other DMs
+      }
+    });
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Failed to fetch users' });
+  }
+});
+
+// Admin endpoint to reset user password (DM only)
+app.post('/admin/reset-password', verifyToken, async (req, res) => {
+  if (req.user.role !== 'Dungeon Master') {
+    return res.status(403).json({ message: 'Access denied. Dungeon Master role required.' });
+  }
+
+  const { userId } = req.body;
+
+  try {
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.role === 'Dungeon Master') {
+      return res.status(400).json({ message: 'Cannot reset password for another Dungeon Master' });
+    }
+
+    // Generate temporary password (8 characters, readable)
+    const tempPassword = Math.random().toString(36).slice(-8).toUpperCase();
+    const hashedTempPassword = await bcrypt.hash(tempPassword, 10);
+    
+    // Set expiration to 7 days from now
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + 7);
+
+    await user.update({
+      password: hashedTempPassword,
+      isTemporaryPassword: true,
+      temporaryPasswordExpires: expirationDate
+    });
+
+    res.json({ 
+      message: 'Password reset successfully',
+      temporaryPassword: tempPassword,
+      username: user.username,
+      expiresAt: expirationDate
+    });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ message: 'Failed to reset password' });
+  }
+});
+
+// Endpoint for users to change their password (especially after temporary login)
+app.post('/change-password', verifyToken, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: 'Current password and new password are required' });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ message: 'New password must be at least 6 characters long' });
+  }
+
+  try {
+    const user = await User.findOne({ where: { email: req.user.email } });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+
+    // Hash new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password and clear temporary password flags
+    await user.update({
+      password: hashedNewPassword,
+      isTemporaryPassword: false,
+      temporaryPasswordExpires: null
+    });
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ message: 'Failed to change password' });
   }
 });
 

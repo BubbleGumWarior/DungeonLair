@@ -1,0 +1,126 @@
+<div class="min-h-screen bg-stone-950 py-8 px-4">
+  <div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center">
+        <h1 class="text-4xl font-bold text-blue-800">Admin Panel - User Management</h1>
+        <button 
+          (click)="navigateHome()" 
+          class="bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white px-4 py-2 rounded hover:opacity-90 transition-opacity"
+        >
+          Back to Home
+        </button>
+      </div>
+      <p class="text-gray-300 mt-2">Manage user passwords and temporary access</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="text-center py-8">
+      <div class="text-blue-800 text-xl">Loading users...</div>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage && !loading" class="bg-red-900 border border-red-700 text-red-100 px-4 py-3 rounded mb-6">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Users Table -->
+    <div *ngIf="!loading && users.length > 0" class="bg-gray-900 rounded-lg shadow-lg overflow-hidden">
+      <div class="px-6 py-4 bg-gray-800 border-b border-gray-700">
+        <h2 class="text-xl font-semibold text-blue-800">Players</h2>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="min-w-full">
+          <thead class="bg-gray-800">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-blue-300 uppercase tracking-wider">Username</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-blue-300 uppercase tracking-wider">Email</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-blue-300 uppercase tracking-wider">Role</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-blue-300 uppercase tracking-wider">Password Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-blue-300 uppercase tracking-wider">Temp Expires</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-blue-300 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-gray-900 divide-y divide-gray-700">
+            <tr *ngFor="let user of users" class="hover:bg-gray-800 transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                {{ user.username }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                {{ user.email }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                {{ user.role }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <span 
+                  *ngIf="user.isTemporaryPassword" 
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-900 text-yellow-200"
+                >
+                  Temporary
+                </span>
+                <span 
+                  *ngIf="!user.isTemporaryPassword" 
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-200"
+                >
+                  Normal
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                {{ formatDate(user.temporaryPasswordExpires) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <button 
+                  (click)="resetPassword(user.id, user.username)"
+                  [disabled]="loading"
+                  class="bg-gradient-to-r from-red-700 via-red-800 to-red-900 text-white px-3 py-1 rounded text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  Reset Password
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- No Users Message -->
+    <div *ngIf="!loading && users.length === 0" class="text-center py-8">
+      <div class="text-gray-400 text-lg">No players found</div>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div *ngIf="showModal && resetResult" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-gray-900 border border-blue-800 rounded-lg p-6 max-w-md w-full mx-4">
+    <h3 class="text-xl font-bold text-blue-800 mb-4">Password Reset Successful</h3>
+    
+    <div class="space-y-3 mb-6">
+      <p class="text-gray-300">
+        <span class="font-semibold text-blue-300">User:</span> {{ resetResult.username }}
+      </p>
+      <p class="text-gray-300">
+        <span class="font-semibold text-blue-300">Temporary Password:</span> 
+        <span class="font-mono bg-gray-800 px-2 py-1 rounded text-yellow-300">{{ resetResult.temporaryPassword }}</span>
+      </p>
+      <p class="text-gray-300">
+        <span class="font-semibold text-blue-300">Expires:</span> {{ formatDate(resetResult.expiresAt) }}
+      </p>
+    </div>
+    
+    <div class="bg-blue-900 border border-blue-700 p-3 rounded mb-4">
+      <p class="text-blue-100 text-sm">
+        <strong>Instructions:</strong> Give this temporary password to the user. They will be required to change it upon their next login.
+      </p>
+    </div>
+    
+    <button 
+      (click)="closeModal()" 
+      class="w-full bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white py-2 px-4 rounded hover:opacity-90 transition-opacity"
+    >
+      Close
+    </button>
+  </div>
+</div>

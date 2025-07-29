@@ -18,8 +18,14 @@
         <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('mask-collection')"[ngClass]="{'underline font-bold': currentView === 'mask-collection'}">Mask Collection</a></li>
         <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('score')" [ngClass]="{'underline font-bold': currentView === 'score'}">Score</a></li>
         <li *ngIf="role === 'Dungeon Master'"><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('dm-screen')"[ngClass]="{'underline font-bold': currentView === 'dm-screen'}">Dm Screen</a></li>
+        <li *ngIf="role === 'Dungeon Master'"><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateTo('admin-panel')">Admin Panel</a></li>
       </ul>
       <ul class="hidden md:flex space-x-4">
+        <li>
+          <a class="text-black hover:text-gray-300 cursor-pointer text-sm" (click)="navigateTo('change-password')">
+            <i class="fa fa-key mr-1"></i> Change Password
+          </a>
+        </li>
         <li>
           <a class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer flex items-center" (click)="navigateTo('login')">
             <i class="fa fa-sign-out-alt mr-2"></i>
@@ -44,7 +50,11 @@
         <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('mask-collection')">Mask Collection</a></li>
         <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('score')">Score</a></li>
         <li *ngIf="role === 'Dungeon Master'"><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateView('dm-screen')">DM Screen</a></li>
-        <li><a class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer flex items-center" (click)="navigateTo('login')">
+        <li *ngIf="role === 'Dungeon Master'"><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateTo('admin-panel')">Admin Panel</a></li>
+        <li><a class="text-black hover:text-gray-300 cursor-pointer" (click)="navigateTo('change-password')">
+          <i class="fa fa-key mr-1"></i> Change Password
+        </a></li>
+        <li><a class="text-black font-bold text-xl hover:text-gray-300 cursor-pointer flex items-center" (click)="navigateTo('login')">>
           <i class="fa fa-sign-out-alt mr-2"></i> Logout
         </a></li>
       </ul>

@@ -22,6 +22,7 @@ export class RegisterComponent {
   showModal: boolean = false; // Add this line
   showCharacterNameModal: boolean = false; // Add this line
   characterName: string = ''; // Add this line
+  showPassword: boolean = false; // Add password visibility toggle
 
   constructor(private fb: FormBuilder, private router: Router) {
     this.isMobile = window.innerWidth <= 768; // Detect if the device is mobile
@@ -169,5 +170,9 @@ export class RegisterComponent {
       this.errorMessage = `There was a problem with the fetch operation: ${error.message}`;
       console.error('There was a problem with the fetch operation:', error);
     });
+  }
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
   }
 }
