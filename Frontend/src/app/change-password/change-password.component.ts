@@ -40,7 +40,7 @@ export class ChangePasswordComponent implements OnInit {
   checkLoginStatus() {
     const token = localStorage.getItem('token');
     if (!token) {
-      this.router.navigate(['/login']);
+      this.router.navigate(['/auth']);
     }
   }
 

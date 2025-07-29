@@ -61,7 +61,7 @@ export class HomeComponent implements OnInit {
   ngOnInit() {
     this.loadDataFromToken();
     if (!this.username) {
-      this.router.navigate(['/login']);
+      this.router.navigate(['/auth']);
     }
     // Log in the user upon initialization
     if (this.username && this.role) {
@@ -109,8 +109,12 @@ export class HomeComponent implements OnInit {
   }
 
   navigateTo(route: string) {
-    if (route === 'login') {
+    if (route === 'login' || route === 'auth') {
       localStorage.clear(); // Clear local storage on logout
+    }
+    // Handle auth routing for backward compatibility
+    if (route === 'login') {
+      route = 'auth';
     }
     this.router.navigate([route]);
   }

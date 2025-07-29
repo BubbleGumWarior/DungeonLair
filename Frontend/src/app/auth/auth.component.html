@@ -1,0 +1,208 @@
+<div class="auth-container">
+  <!-- Background gradient overlay -->
+  <div class="background-overlay"></div>
+  
+  <!-- Main container -->
+  <div class="main-container" [class.mobile]="isMobile">
+    <!-- Image panel with sliding animation -->
+    <div class="image-panel" 
+         [class.slide-right]="!isLoginMode && !isMobile" 
+         [class.slide-left]="isLoginMode && !isMobile"
+         [class.mobile-hidden]="isMobile">
+      <div class="image-container">
+        <img [src]="loginImageUrl" alt="Dungeon Background" class="auth-image">
+        <div class="image-overlay"></div>
+      </div>
+    </div>
+
+    <!-- Login Form -->
+    <div class="form-panel login-panel" 
+         [class.active]="isLoginMode"
+         [class.slide-out-left]="!isLoginMode && !isMobile"
+         [class.mobile-active]="isLoginMode && isMobile">
+      <div class="form-content">
+        <div class="form-header">
+          <h2 class="form-title">Welcome Back</h2>
+          <p class="form-subtitle">Enter your credentials to access your adventure</p>
+        </div>
+
+        <form (ngSubmit)="onLoginSubmit()" class="auth-form">
+          <div class="input-group">
+            <label for="login-email" class="input-label">Email</label>
+            <div class="input-container">
+              <input 
+                type="email" 
+                id="login-email" 
+                [(ngModel)]="email" 
+                name="email" 
+                required 
+                class="form-input"
+                placeholder="Enter your email"
+              />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="login-password" class="input-label">Password</label>
+            <div class="input-container password-container">
+              <input 
+                [type]="showPassword ? 'text' : 'password'" 
+                id="login-password" 
+                [(ngModel)]="password" 
+                name="password" 
+                required 
+                class="form-input"
+                placeholder="Enter your password"
+              />
+              <button 
+                type="button" 
+                (click)="togglePasswordVisibility()" 
+                class="password-toggle"
+              >
+                <svg *ngIf="!showPassword" class="eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                <svg *ngIf="showPassword" class="eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn">
+            <span>Enter the Dungeon</span>
+          </button>
+        </form>
+
+        <div class="form-footer">
+          <p class="switch-mode">
+            New adventurer? 
+            <button type="button" class="mode-toggle" (click)="toggleMode()">
+              Create your legend
+            </button>
+          </p>
+          <p class="forgot-password">
+            Forgot your scroll of access? Contact your Dungeon Master for aid.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Register Form -->
+    <div class="form-panel register-panel" 
+         [class.active]="!isLoginMode"
+         [class.slide-out-right]="isLoginMode && !isMobile"
+         [class.mobile-active]="!isLoginMode && isMobile">
+      <div class="form-content">
+        <div class="form-header">
+          <h2 class="form-title">Begin Your Quest</h2>
+          <p class="form-subtitle">Create your account and join the adventure</p>
+        </div>
+
+        <form [formGroup]="registerForm" (ngSubmit)="onRegisterSubmit()" class="auth-form">
+          <div class="input-group">
+            <label for="username" class="input-label">Username</label>
+            <div class="input-container">
+              <input 
+                type="text" 
+                id="username" 
+                formControlName="username"
+                class="form-input"
+                placeholder="Choose your username"
+              />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="register-email" class="input-label">Email</label>
+            <div class="input-container">
+              <input 
+                type="email" 
+                id="register-email" 
+                formControlName="email"
+                class="form-input" 
+                placeholder="Enter your email"
+              />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="register-password" class="input-label">Password</label>
+            <div class="input-container password-container">
+              <input 
+                [type]="showRegisterPassword ? 'text' : 'password'" 
+                id="register-password" 
+                formControlName="password"
+                class="form-input" 
+                placeholder="Create a strong password"
+              />
+              <button 
+                type="button" 
+                (click)="toggleRegisterPasswordVisibility()" 
+                class="password-toggle"
+              >
+                <svg *ngIf="!showRegisterPassword" class="eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                <svg *ngIf="showRegisterPassword" class="eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn">
+            <span>Begin Adventure</span>
+          </button>
+        </form>
+
+        <div class="form-footer">
+          <p class="switch-mode">
+            Already have an account? 
+            <button type="button" class="mode-toggle" (click)="toggleMode()">
+              Return to your realm
+            </button>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Modal -->
+  <div *ngIf="showModal" class="modal-overlay" (click)="closeModal($event)">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Quest Update</h3>
+      </div>
+      <div class="modal-body">
+        <p>{{ errorMessage }}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn" (click)="showModal = false">Understood</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Character Name Modal -->
+  <div *ngIf="showCharacterNameModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Name Your Character</h3>
+      </div>
+      <div class="modal-body">
+        <p class="mb-4">What shall your character be called in this realm?</p>
+        <input 
+          type="text" 
+          [(ngModel)]="characterName" 
+          class="form-input w-full" 
+          placeholder="Enter your character name"
+        />
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn" (click)="submitCharacterName()">Forge Identity</button>
+      </div>
+    </div>
+  </div>
+</div>
