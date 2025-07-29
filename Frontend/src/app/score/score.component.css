@@ -1,4 +1,215 @@
+/* Magic Score Container - Transparent to use home background */
+.magic-score-container-transparent {
+  padding: 1.5rem;
+  /* No background - uses home component background */
+}
+
+/* Magic Text Styles */
+.magic-text {
+  color: #3b82f6;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.magic-text-bright {
+  color: #60a5fa;
+  text-shadow: 0 2px 8px rgba(96, 165, 250, 0.4);
+}
+
+.magic-text-secondary {
+  color: #94a3b8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.magic-border-subtle {
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 
+    0 8px 25px -5px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+
+/* Magic Table Panel */
+.magic-table-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.9) 0%,
+    rgba(30, 41, 59, 0.9) 50%,
+    rgba(51, 65, 85, 0.9) 100%
+  );
+  backdrop-filter: blur(15px);
+}
+
+/* Magic Table Header */
+.magic-table-header {
+  background: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.95) 0%,
+    rgba(51, 65, 85, 0.95) 100%
+  );
+  backdrop-filter: blur(20px);
+}
+
+/* Magic Table Body */
+.magic-table-body {
+  background: transparent;
+}
+
+/* Magic Table Row */
+.magic-table-row {
+  border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.magic-table-row:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.1) 0%,
+    rgba(37, 99, 235, 0.1) 100%
+  );
+  backdrop-filter: blur(10px);
+}
+
+/* Current Character Highlight */
+.magic-current-character {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.3) 0%,
+    rgba(37, 99, 235, 0.3) 100%
+  ) !important;
+  border-color: rgba(59, 130, 246, 0.6) !important;
+  box-shadow: 
+    0 8px 25px -5px rgba(59, 130, 246, 0.4),
+    0 0 0 1px rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Magic Score Card (Mobile) */
+.magic-score-card {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.9) 0%,
+    rgba(30, 41, 59, 0.9) 50%,
+    rgba(51, 65, 85, 0.9) 100%
+  );
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+.magic-score-card:hover {
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(59, 130, 246, 0.4),
+    0 8px 25px rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Magic Stat Mini */
+.magic-stat-mini {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.1) 0%,
+    rgba(37, 99, 235, 0.1) 50%,
+    rgba(29, 78, 216, 0.1) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.magic-stat-mini:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: scale(1.02);
+}
+
+/* Magic Increment Button */
+.magic-increment-button {
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.9) 0%,
+    rgba(22, 163, 74, 0.9) 100%
+  );
+  color: white;
+  border: 1px solid rgba(34, 197, 94, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.magic-increment-button:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(22, 163, 74, 1) 0%,
+    rgba(21, 128, 61, 1) 100%
+  );
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+}
+
+/* Magic Decrement Button */
+.magic-decrement-button {
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.9) 0%,
+    rgba(220, 38, 38, 0.9) 100%
+  );
+  color: white;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.magic-decrement-button:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(220, 38, 38, 1) 0%,
+    rgba(185, 28, 28, 1) 100%
+  );
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+/* Small Button Variants for Mobile */
+.magic-increment-button-small {
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.9) 0%,
+    rgba(22, 163, 74, 0.9) 100%
+  );
+  color: white;
+  border: 1px solid rgba(34, 197, 94, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.magic-increment-button-small:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(22, 163, 74, 1) 0%,
+    rgba(21, 128, 61, 1) 100%
+  );
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+}
+
+.magic-decrement-button-small {
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.9) 0%,
+    rgba(220, 38, 38, 0.9) 100%
+  );
+  color: white;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.magic-decrement-button-small:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(220, 38, 38, 1) 0%,
+    rgba(185, 28, 28, 1) 100%
+  );
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
+/* Legacy highlight class - keeping for compatibility */
 .highlight {
-  background: linear-gradient(to right, #9f7aea, #805ad5, #6b46c1); /* bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 */
-  color: #1c1917; /* text-stone-950 */
+  background: linear-gradient(to right, #9f7aea, #805ad5, #6b46c1);
+  color: #1c1917;
 }

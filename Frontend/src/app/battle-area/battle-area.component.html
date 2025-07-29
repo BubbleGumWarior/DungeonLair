@@ -1,246 +1,273 @@
-<!-- Top Buttons: Responsive Layout -->
-<div *ngIf="!isMobile" class="grid grid-cols-4 gap-4 p-4">
-    <button  *ngIf="userInformation.role !== 'Dungeon Master'" (click)="confirmJoinLeaveBattle()" class="m-2 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
+<div class="magic-battle-container">
+  <!-- Top Action Buttons: Desktop Layout -->
+  <div *ngIf="!isMobile" class="magic-action-bar">
+    <button *ngIf="userInformation.role !== 'Dungeon Master'" (click)="confirmJoinLeaveBattle()" class="magic-action-button magic-button-primary">
         Join/Leave Battle
     </button>
-    <button *ngIf="userInformation.role !== 'Dungeon Master'"  (click)="useMainAction()" [ngClass]="canUseMainAction() ? 'bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900' : 'bg-gradient-to-r from-red-700 via-red-800 to-red-900'" class="m-2 add-npc-button text-stone-950 p-2 rounded-full flex items-center justify-center">
+    <button *ngIf="userInformation.role !== 'Dungeon Master'" (click)="useMainAction()" [ngClass]="canUseMainAction() ? 'magic-button-primary' : 'magic-button-disabled'" class="magic-action-button">
        Use Skill
     </button>
-    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="openAddMaskModal()" class="m-2 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="openAddMaskModal()" class="magic-action-button magic-button-primary">
       Add a Mask
     </button>
-    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="useMask()" class="m-2 add-npc-button bg-gradient-to-r from-green-500 via-green-600 to-green-700 text-stone-950 p-2 rounded-full flex items-center justify-center">
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="useMask()" class="magic-action-button magic-button-success">
       Use a Mask
     </button>
-    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="continue()" class="m-2 add-npc-button bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 text-stone-950 p-2 rounded-full flex items-center justify-center">
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="continue()" class="magic-action-button magic-button-warning">
         Continue
     </button>
-    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="openAssignTeamsModal()" class="m-2 add-npc-button bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 text-stone-950 p-2 rounded-full flex items-center justify-center">
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="openAssignTeamsModal()" class="magic-action-button magic-button-purple">
       Assign Teams
     </button>
-    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="removeMask()" class="m-2 add-npc-button bg-gradient-to-r from-red-700 via-red-800 to-red-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="removeMask()" class="magic-action-button magic-button-danger">
       Remove a Mask
     </button>
-    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="clearHealth()" class="m-2 add-npc-button bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-stone-950 p-2 rounded-full flex items-center justify-center">
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="clearHealth()" class="magic-action-button magic-button-orange">
       Reset Health
     </button>
-    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="endBattle()" class="m-2 add-npc-button bg-gradient-to-r from-orange-700 via-orange-800 to-orange-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="endBattle()" class="magic-action-button magic-button-danger">
       End Battle
     </button>
-    <button (click)="leaveBattle()" class="m-2 add-npc-button bg-gradient-to-r from-red-600 via-red-900 to-stone-950 text-stone-950 p-2 rounded-full flex items-center justify-center">
+    <button (click)="leaveBattle()" class="magic-action-button magic-button-exit">
         Return to Home Page
     </button>
-</div>
-<div *ngIf="isMobile" class="flex flex-col gap-2 p-2">
-  <button  *ngIf="userInformation.role !== 'Dungeon Master'" (click)="confirmJoinLeaveBattle()" class="w-full m-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
-      Join/Leave Battle
-  </button>
-  <button *ngIf="userInformation.role !== 'Dungeon Master'"  (click)="useMainAction()" [ngClass]="canUseMainAction() ? 'bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900' : 'bg-gradient-to-r from-red-700 via-red-800 to-red-900'" class="w-full m-1 add-npc-button text-stone-950 p-2 rounded-full flex items-center justify-center">
-     Use Skill
-  </button>
-  <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="openAddMaskModal()" class="w-full m-1 add-npc-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
-    Add a Mask
-  </button>
-  <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="useMask()" class="w-full m-1 add-npc-button bg-gradient-to-r from-green-500 via-green-600 to-green-700 text-stone-950 p-2 rounded-full flex items-center justify-center">
-    Use a Mask
-  </button>
-  <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="continue()" class="w-full m-1 add-npc-button bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 text-stone-950 p-2 rounded-full flex items-center justify-center">
-      Continue
-  </button>
-  <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="openAssignTeamsModal()" class="w-full m-1 add-npc-button bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 text-stone-950 p-2 rounded-full flex items-center justify-center">
-    Assign Teams
-  </button>
-  <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="removeMask()" class="w-full m-1 add-npc-button bg-gradient-to-r from-red-700 via-red-800 to-red-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
-    Remove a Mask
-  </button>
-  <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="clearHealth()" class="w-full m-1 add-npc-button bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-stone-950 p-2 rounded-full flex items-center justify-center">
-    Reset Health
-  </button>
-  <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="endBattle()" class="w-full m-1 add-npc-button bg-gradient-to-r from-orange-700 via-orange-800 to-orange-900 text-stone-950 p-2 rounded-full flex items-center justify-center">
-    End Battle
-  </button>
-  <button (click)="leaveBattle()" class="w-full m-1 add-npc-button bg-gradient-to-r from-red-600 via-red-900 to-stone-950 text-stone-950 p-2 rounded-full flex items-center justify-center">
-      Return to Home Page
-  </button>
-</div>
-
-<div *ngIf="showErrorBanner" class="fixed top-0 left-0 right-0 bg-red-500 text-white text-center p-2 h-20 flex items-center justify-center">
-  <span>{{ errorMessage }}</span>
-</div>
-
-<div *ngIf="showTargetBanner && selectedSkill?.isMultiTarget" class="fixed top-0 left-0 right-0 bg-yellow-500 text-black text-center p-2 h-20 flex items-center justify-center">
-  <span>Choose target {{ selectedTargets.length + 1 }} of {{ selectedSkill?.amountOfStrikes || 1 }} of skill {{ selectedSkill?.skillName }}</span>
-  <button (click)="cancelSkillSelection()" class="absolute right-4 bg-amber-600 text-white p-1 rounded">Cancel</button>
-</div>
-
-<div *ngIf="showTargetBanner && !selectedSkill?.isMultiTarget" class="fixed top-0 left-0 right-0 bg-yellow-500 text-black text-center p-2 h-20 flex items-center justify-center">
-  <span>Choose target of skill {{ selectedSkill?.skillName }}</span>
-  <button (click)="cancelSkillSelection()" class="absolute right-4 bg-amber-600 text-white p-1 rounded">Cancel</button>
-</div>
-
-<div *ngIf="showRemoveMaskBanner" class="fixed top-0 left-0 right-0 bg-red-500 text-white text-center p-2 h-20 flex items-center justify-center">
-  <span>Select a mask to remove</span>
-  <button (click)="cancelRemoveMaskSelection()" class="absolute right-4 bg-red-700 text-white p-1 rounded">Cancel</button>
-</div>
-
-<div *ngIf="showUseMaskBanner" class="fixed top-0 left-0 right-0 bg-green-500 text-white text-center p-2 h-20 flex items-center justify-center">
-  <span>Select a mask to use</span>
-  <button (click)="showUseMaskBanner = false" class="absolute right-4 bg-green-700 text-white p-1 rounded">Cancel</button>
-</div>
-
-<div *ngIf="!isMobile" class="grid grid-cols-3 gap-4 p-12">
-  <div class="col-span-1">
-    <ul>
-      <ng-container *ngFor="let mask of masksInBattle">
-        <li *ngIf="mask.team === 'Ally'" (click)="showUseMaskBanner ? selectMaskForUse(mask) : (showRemoveMaskBanner ? selectMaskForRemoval(mask) : selectTarget(mask))" (mouseover)="mask.hover = true" (mouseout)="mask.hover = false" class="transition-transform duration-500 ease-in-out transform hover:scale-105">
-          <div class="flex items-center space-x-2 p-4 my-2 border" [ngClass]="{'animate-border': mask.action && mask.currentSpeed >= 100}" [class]="getBorderColor(mask)" rounded>
-            <div class="w-24 h-24">
-              <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="w-full h-full rounded-full" />
-            </div>
-            <div class="flex flex-col justify-around h-24 w-full">
-              <div class="flex justify-between">
-                <div class="text-blue-700 text-2xl flex items-center" [style.color]="mask.randomColor">
-                  Mask: {{ mask.maskID }}
-                  <i class="fa-solid fa-mask text-blue-700 ml-2 cursor-pointer" (click)="openMaskDetails(mask)"></i>
-                </div>
-                <div class="flex space-x-2 justify-end text-blue-700">
-                  <div class="text-center">
-                    <i class="fa-solid fa-bolt-lightning text-yellow-600"></i>
-                    <div>{{ mask.stunStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-fire text-orange-600"></i>
-                    <div>{{ mask.burnStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-skull text-purple-600"></i>
-                    <div>{{ mask.poisonStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-droplet text-red-600"></i>
-                    <div>{{ mask.bleedStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-layer-group text-green-600"></i>
-                    <div>{{ mask.buffStacks }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="w-full bg-gray-300 h-4 rounded-full">
-                <div class="bg-green-500 h-full rounded-full" [style.width.%]="(mask.currentHealth / mask.health) * 100"></div>
-              </div>
-              <div class="w-full bg-gray-300 h-4 rounded-full">
-                <div class="bg-yellow-500 h-full rounded-full" [style.width.%]="mask.currentSpeed"></div>
-              </div>
-            </div>
-          </div>
-        </li>
-      </ng-container>
-    </ul>
   </div>
-  <div class="col-span-1">
-    <ul>
-      <ng-container *ngFor="let mask of masksInBattle">
-        <li *ngIf="mask.team === 'Neutral'" (click)="showUseMaskBanner ? selectMaskForUse(mask) : (showRemoveMaskBanner ? selectMaskForRemoval(mask) : selectTarget(mask))" (mouseover)="mask.hover = true" (mouseout)="mask.hover = false" class="transition-transform duration-500 ease-in-out transform hover:scale-105">
-          <div class="flex items-center space-x-2 p-4 my-2 border" [ngClass]="{'animate-border': mask.action && mask.currentSpeed >= 100}" [class]="getBorderColor(mask)" rounded>
-            <div class="w-24 h-24">
-              <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="w-full h-full rounded-full" />
-            </div>
-            <div class="flex flex-col justify-around h-24 w-full">
-              <div class="flex justify-between">
-                <div class="text-blue-700 text-2xl flex items-center" [style.color]="mask.randomColor">
-                  Mask: {{ mask.maskID }}
-                  <i class="fa-solid fa-mask text-blue-700 ml-2 cursor-pointer" (click)="openMaskDetails(mask)"></i>
-                </div>
-                <div class="flex space-x-2 justify-end text-blue-700">
-                  <div class="text-center">
-                    <i class="fa-solid fa-bolt-lightning text-yellow-600"></i>
-                    <div>{{ mask.stunStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-fire text-orange-600"></i>
-                    <div>{{ mask.burnStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-skull text-purple-600"></i>
-                    <div>{{ mask.poisonStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-droplet text-red-600"></i>
-                    <div>{{ mask.bleedStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-layer-group text-green-600"></i>
-                    <div>{{ mask.buffStacks }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="w-full bg-gray-300 h-4 rounded-full">
-                <div class="bg-green-500 h-full rounded-full" [style.width.%]="(mask.currentHealth / mask.health) * 100"></div>
-              </div>
-              <div class="w-full bg-gray-300 h-4 rounded-full">
-                <div class="bg-yellow-500 h-full rounded-full" [style.width.%]="mask.currentSpeed"></div>
-              </div>
-            </div>
-          </div>
-        </li>
-      </ng-container>
-    </ul>
+
+  <!-- Top Action Buttons: Mobile Layout -->
+  <div *ngIf="isMobile" class="magic-action-bar-mobile">
+    <button *ngIf="userInformation.role !== 'Dungeon Master'" (click)="confirmJoinLeaveBattle()" class="magic-action-button-mobile magic-button-primary">
+        Join/Leave Battle
+    </button>
+    <button *ngIf="userInformation.role !== 'Dungeon Master'" (click)="useMainAction()" [ngClass]="canUseMainAction() ? 'magic-button-primary' : 'magic-button-disabled'" class="magic-action-button-mobile">
+       Use Skill
+    </button>
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="openAddMaskModal()" class="magic-action-button-mobile magic-button-primary">
+      Add a Mask
+    </button>
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="useMask()" class="magic-action-button-mobile magic-button-success">
+      Use a Mask
+    </button>
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="continue()" class="magic-action-button-mobile magic-button-warning">
+        Continue
+    </button>
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="openAssignTeamsModal()" class="magic-action-button-mobile magic-button-purple">
+      Assign Teams
+    </button>
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="removeMask()" class="magic-action-button-mobile magic-button-danger">
+      Remove a Mask
+    </button>
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="clearHealth()" class="magic-action-button-mobile magic-button-orange">
+      Reset Health
+    </button>
+    <button *ngIf="userInformation.role === 'Dungeon Master'" (click)="endBattle()" class="magic-action-button-mobile magic-button-danger">
+      End Battle
+    </button>
+    <button (click)="leaveBattle()" class="magic-action-button-mobile magic-button-exit">
+        Return to Home Page
+    </button>
   </div>
-  <div class="col-span-1">
-    <ul>
-      <ng-container *ngFor="let mask of masksInBattle">
-        <li *ngIf="mask.team === 'Enemy'" (click)="showUseMaskBanner ? selectMaskForUse(mask) : (showRemoveMaskBanner ? selectMaskForRemoval(mask) : selectTarget(mask))" (mouseover)="mask.hover = true" (mouseout)="mask.hover = false" class="transition-transform duration-500 ease-in-out transform hover:scale-105">
-          <div class="flex items-center space-x-2 p-4 my-2 border" [ngClass]="{'animate-border': mask.action && mask.currentSpeed >= 100}" [class]="getBorderColor(mask)" rounded>
-            <div class="w-24 h-24">
-              <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="w-full h-full rounded-full" />
-            </div>
-            <div class="flex flex-col justify-around h-24 w-full">
-              <div class="flex justify-between">
-                <div class="text-blue-700 text-2xl flex items-center" [style.color]="mask.randomColor">
-                  Mask: {{ mask.maskID }}
-                  <i class="fa-solid fa-mask text-blue-700 ml-2 cursor-pointer" (click)="openMaskDetails(mask)"></i>
-                </div>
-                <div class="flex space-x-2 justify-end text-blue-700">
-                  <div class="text-center">
-                    <i class="fa-solid fa-bolt-lightning text-yellow-600"></i>
-                    <div>{{ mask.stunStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-fire text-orange-600"></i>
-                    <div>{{ mask.burnStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-skull text-purple-600"></i>
-                    <div>{{ mask.poisonStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-droplet text-red-600"></i>
-                    <div>{{ mask.bleedStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-layer-group text-green-600"></i>
-                    <div>{{ mask.buffStacks }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="w-full bg-gray-300 h-4 rounded-full">
-                <div class="bg-green-500 h-full rounded-full" [style.width.%]="(mask.currentHealth / mask.health) * 100"></div>
-              </div>
-              <div class="w-full bg-gray-300 h-4 rounded-full">
-                <div class="bg-yellow-500 h-full rounded-full" [style.width.%]="mask.currentSpeed"></div>
-              </div>
-            </div>
-          </div>
-        </li>
-      </ng-container>
-    </ul>
+
+  <!-- Status Banners -->
+  <div *ngIf="showErrorBanner" class="magic-error-banner">
+    <span>{{ errorMessage }}</span>
   </div>
-  <div class="col-span-3">
-    <div class="text-lg font-bold mb-2 text-blue-700">Battle Log</div>
-    <div class="border border-blue-700 bg-stone-950 text-blue-700 p-4 rounded h-64 overflow-y-auto scrollbar-thin" #battleMessagesContainer>
-      <!-- Battle Messages -->
-      <div *ngFor="let message of battleMessages; let i = index" class="mb-2" [attr.data-index]="i">
+
+  <div *ngIf="showTargetBanner && selectedSkill?.isMultiTarget" class="magic-target-banner">
+    <span>Choose target {{ selectedTargets.length + 1 }} of {{ selectedSkill?.amountOfStrikes || 1 }} of skill {{ selectedSkill?.skillName }}</span>
+    <button (click)="cancelSkillSelection()" class="magic-banner-button magic-button-warning">Cancel</button>
+  </div>
+
+  <div *ngIf="showTargetBanner && !selectedSkill?.isMultiTarget" class="magic-target-banner">
+    <span>Choose target of skill {{ selectedSkill?.skillName }}</span>
+    <button (click)="cancelSkillSelection()" class="magic-banner-button magic-button-warning">Cancel</button>
+  </div>
+
+  <div *ngIf="showRemoveMaskBanner" class="magic-remove-banner">
+    <span>Select a mask to remove</span>
+    <button (click)="cancelRemoveMaskSelection()" class="magic-banner-button magic-button-danger">Cancel</button>
+  </div>
+
+  <div *ngIf="showUseMaskBanner" class="magic-use-banner">
+    <span>Select a mask to use</span>
+    <button (click)="showUseMaskBanner = false" class="magic-banner-button magic-button-success">Cancel</button>
+  </div>
+
+  <!-- Battle Grid: Desktop Layout -->
+  <div *ngIf="!isMobile" class="magic-battle-grid">
+    <!-- Ally Team Column -->
+    <div class="magic-team-column magic-ally-column">
+      <h3 class="magic-team-title magic-ally-title">Allies</h3>
+      <ul class="magic-mask-list">
+        <ng-container *ngFor="let mask of masksInBattle">
+          <li *ngIf="mask.team === 'Ally'" (click)="showUseMaskBanner ? selectMaskForUse(mask) : (showRemoveMaskBanner ? selectMaskForRemoval(mask) : selectTarget(mask))" (mouseover)="mask.hover = true" (mouseout)="mask.hover = false" class="magic-mask-item">
+            <div class="magic-mask-card" [ngClass]="{'magic-mask-ready': mask.action && mask.currentSpeed >= 100}" [class]="getBorderColor(mask)">
+              <div class="magic-mask-avatar">
+                <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="magic-mask-image" />
+              </div>
+              <div class="magic-mask-info">
+                <div class="magic-mask-header">
+                  <div class="magic-mask-name" [style.color]="mask.randomColor">
+                    Mask: {{ mask.maskID }}
+                    <i class="fa-solid fa-mask magic-details-icon" (click)="openMaskDetails(mask)"></i>
+                  </div>
+                  <div class="magic-status-effects">
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-bolt-lightning text-yellow-500"></i>
+                      <div>{{ mask.stunStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-fire text-orange-500"></i>
+                      <div>{{ mask.burnStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-skull text-purple-500"></i>
+                      <div>{{ mask.poisonStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-droplet text-red-500"></i>
+                      <div>{{ mask.bleedStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-layer-group text-green-500"></i>
+                      <div>{{ mask.buffStacks }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="magic-health-bar">
+                  <div class="magic-bar-bg">
+                    <div class="magic-health-fill" [style.width.%]="(mask.currentHealth / mask.health) * 100"></div>
+                  </div>
+                </div>
+                <div class="magic-speed-bar">
+                  <div class="magic-bar-bg">
+                    <div class="magic-speed-fill" [style.width.%]="mask.currentSpeed"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ng-container>
+      </ul>
+    </div>
+
+    <!-- Neutral Team Column -->
+    <div class="magic-team-column magic-neutral-column">
+      <h3 class="magic-team-title magic-neutral-title">Neutral</h3>
+      <ul class="magic-mask-list">
+        <ng-container *ngFor="let mask of masksInBattle">
+          <li *ngIf="mask.team === 'Neutral'" (click)="showUseMaskBanner ? selectMaskForUse(mask) : (showRemoveMaskBanner ? selectMaskForRemoval(mask) : selectTarget(mask))" (mouseover)="mask.hover = true" (mouseout)="mask.hover = false" class="magic-mask-item">
+            <div class="magic-mask-card" [ngClass]="{'magic-mask-ready': mask.action && mask.currentSpeed >= 100}" [class]="getBorderColor(mask)">
+              <div class="magic-mask-avatar">
+                <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="magic-mask-image" />
+              </div>
+              <div class="magic-mask-info">
+                <div class="magic-mask-header">
+                  <div class="magic-mask-name" [style.color]="mask.randomColor">
+                    Mask: {{ mask.maskID }}
+                    <i class="fa-solid fa-mask magic-details-icon" (click)="openMaskDetails(mask)"></i>
+                  </div>
+                  <div class="magic-status-effects">
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-bolt-lightning text-yellow-500"></i>
+                      <div>{{ mask.stunStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-fire text-orange-500"></i>
+                      <div>{{ mask.burnStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-skull text-purple-500"></i>
+                      <div>{{ mask.poisonStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-droplet text-red-500"></i>
+                      <div>{{ mask.bleedStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-layer-group text-green-500"></i>
+                      <div>{{ mask.buffStacks }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="magic-health-bar">
+                  <div class="magic-bar-bg">
+                    <div class="magic-health-fill" [style.width.%]="(mask.currentHealth / mask.health) * 100"></div>
+                  </div>
+                </div>
+                <div class="magic-speed-bar">
+                  <div class="magic-bar-bg">
+                    <div class="magic-speed-fill" [style.width.%]="mask.currentSpeed"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ng-container>
+      </ul>
+    </div>
+
+    <!-- Enemy Team Column -->
+    <div class="magic-team-column magic-enemy-column">
+      <h3 class="magic-team-title magic-enemy-title">Enemies</h3>
+      <ul class="magic-mask-list">
+        <ng-container *ngFor="let mask of masksInBattle">
+          <li *ngIf="mask.team === 'Enemy'" (click)="showUseMaskBanner ? selectMaskForUse(mask) : (showRemoveMaskBanner ? selectMaskForRemoval(mask) : selectTarget(mask))" (mouseover)="mask.hover = true" (mouseout)="mask.hover = false" class="magic-mask-item">
+            <div class="magic-mask-card" [ngClass]="{'magic-mask-ready': mask.action && mask.currentSpeed >= 100}" [class]="getBorderColor(mask)">
+              <div class="magic-mask-avatar">
+                <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="magic-mask-image" />
+              </div>
+              <div class="magic-mask-info">
+                <div class="magic-mask-header">
+                  <div class="magic-mask-name" [style.color]="mask.randomColor">
+                    Mask: {{ mask.maskID }}
+                    <i class="fa-solid fa-mask magic-details-icon" (click)="openMaskDetails(mask)"></i>
+                  </div>
+                  <div class="magic-status-effects">
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-bolt-lightning text-yellow-500"></i>
+                      <div>{{ mask.stunStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-fire text-orange-500"></i>
+                      <div>{{ mask.burnStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-skull text-purple-500"></i>
+                      <div>{{ mask.poisonStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-droplet text-red-500"></i>
+                      <div>{{ mask.bleedStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-layer-group text-green-500"></i>
+                      <div>{{ mask.buffStacks }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="magic-health-bar">
+                  <div class="magic-bar-bg">
+                    <div class="magic-health-fill" [style.width.%]="(mask.currentHealth / mask.health) * 100"></div>
+                  </div>
+                </div>
+                <div class="magic-speed-bar">
+                  <div class="magic-bar-bg">
+                    <div class="magic-speed-fill" [style.width.%]="mask.currentSpeed"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ng-container>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Battle Log Section: Desktop -->
+  <div *ngIf="!isMobile" class="magic-battle-log">
+    <div class="magic-log-title">Battle Log</div>
+    <div class="magic-log-container" #battleMessagesContainer>
+      <div *ngFor="let message of battleMessages; let i = index" class="magic-log-message" [attr.data-index]="i">
         <ng-container *ngIf="getMaskPrefixAndColor(message) as prefixAndColor">
           <span *ngIf="prefixAndColor.prefix" [style.color]="prefixAndColor.color">{{ prefixAndColor.prefix }}</span><span *ngIf="prefixAndColor.prefix">{{ message.slice(prefixAndColor.prefix.length) }}</span>
           <span *ngIf="!prefixAndColor.prefix">{{ message }}</span>
@@ -248,361 +275,404 @@
       </div>
     </div>
   </div>
-</div>
 
-<div *ngIf="isMobile" class="flex flex-col gap-2 p-2">
-  <div class="p-4 border border-green-600 rounded">
-    <ul>
-      <ng-container *ngFor="let mask of masksInBattle">
-        <li *ngIf="mask.team === 'Ally'" (click)="showUseMaskBanner ? selectMaskForUse(mask) : (showRemoveMaskBanner ? selectMaskForRemoval(mask) : selectTarget(mask))" class="transition-transform duration-500 ease-in-out transform">
-          <div class="flex items-center space-x-2 p-4 my-2 border" [ngClass]="{'animate-border': mask.action && mask.currentSpeed >= 100}" [class]="getBorderColor(mask)" rounded>
-            <div class="w-24 h-24">
-              <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="w-full h-full rounded-full" />
-            </div>
-            <div class="flex flex-col justify-around h-24 w-full">
-              <div class="flex justify-between">
-                <div class="text-blue-700 text-2xl flex items-center" [style.color]="mask.randomColor">
-                  Mask: {{ mask.maskID }}
-                  <i class="fa-solid fa-mask text-blue-700 ml-2 cursor-pointer" (click)="openMaskDetails(mask)"></i>
-                </div>
-                <div class="flex space-x-2 justify-end text-blue-700">
-                  <div class="text-center">
-                    <i class="fa-solid fa-bolt-lightning text-yellow-600"></i>
-                    <div>{{ mask.stunStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-fire text-orange-600"></i>
-                    <div>{{ mask.burnStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-skull text-purple-600"></i>
-                    <div>{{ mask.poisonStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-droplet text-red-600"></i>
-                    <div>{{ mask.bleedStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-layer-group text-green-600"></i>
-                    <div>{{ mask.buffStacks }}</div>
-                  </div>
-                </div>
+  <!-- Mobile Battle Layout -->
+  <div *ngIf="isMobile" class="magic-mobile-layout">
+    <!-- Ally Team Section -->
+    <div class="magic-mobile-team magic-ally-section">
+      <h3 class="magic-mobile-team-title magic-ally-title">Allies</h3>
+      <ul class="magic-mobile-mask-list">
+        <ng-container *ngFor="let mask of masksInBattle">
+          <li *ngIf="mask.team === 'Ally'" (click)="showUseMaskBanner ? selectMaskForUse(mask) : (showRemoveMaskBanner ? selectMaskForRemoval(mask) : selectTarget(mask))" class="magic-mobile-mask-item">
+            <div class="magic-mask-card magic-mobile-mask-card" [ngClass]="{'magic-mask-ready': mask.action && mask.currentSpeed >= 100}" [class]="getBorderColor(mask)">
+              <div class="magic-mask-avatar">
+                <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="magic-mask-image" />
               </div>
-              <div class="w-full bg-gray-300 h-4 rounded-full">
-                <div class="bg-green-500 h-full rounded-full" [style.width.%]="(mask.currentHealth / mask.health) * 100"></div>
-              </div>
-              <div class="w-full bg-gray-300 h-4 rounded-full">
-                <div class="bg-yellow-500 h-full rounded-full" [style.width.%]="mask.currentSpeed"></div>
-              </div>
-            </div>
-          </div>
-        </li>
-      </ng-container>
-    </ul>
-  </div>
-  <div class="p-4 border border-yellow-600 rounded">
-    <ul>
-      <ng-container *ngFor="let mask of masksInBattle">
-        <li *ngIf="mask.team === 'Neutral'" (click)="showUseMaskBanner ? selectMaskForUse(mask) : (showRemoveMaskBanner ? selectMaskForRemoval(mask) : selectTarget(mask))" class="transition-transform duration-500 ease-in-out transform">
-          <div class="flex items-center space-x-2 p-4 my-2 border" [ngClass]="{'animate-border': mask.action && mask.currentSpeed >= 100}" [class]="getBorderColor(mask)" rounded>
-            <div class="w-24 h-24">
-              <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="w-full h-full rounded-full" />
-            </div>
-            <div class="flex flex-col justify-around h-24 w-full">
-              <div class="flex justify-between">
-                <div class="text-blue-700 text-2xl flex items-center" [style.color]="mask.randomColor">
-                  Mask: {{ mask.maskID }}
-                  <i class="fa-solid fa-mask text-blue-700 ml-2 cursor-pointer" (click)="openMaskDetails(mask)"></i>
+              <div class="magic-mask-info">
+                <div class="magic-mask-header">
+                  <div class="magic-mask-name" [style.color]="mask.randomColor">
+                    Mask: {{ mask.maskID }}
+                    <i class="fa-solid fa-mask magic-details-icon" (click)="openMaskDetails(mask)"></i>
+                  </div>
+                  <div class="magic-status-effects">
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-bolt-lightning text-yellow-500"></i>
+                      <div>{{ mask.stunStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-fire text-orange-500"></i>
+                      <div>{{ mask.burnStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-skull text-purple-500"></i>
+                      <div>{{ mask.poisonStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-droplet text-red-500"></i>
+                      <div>{{ mask.bleedStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-layer-group text-green-500"></i>
+                      <div>{{ mask.buffStacks }}</div>
+                    </div>
+                  </div>
                 </div>
-                <div class="flex space-x-2 justify-end text-blue-700">
-                  <div class="text-center">
-                    <i class="fa-solid fa-bolt-lightning text-yellow-600"></i>
-                    <div>{{ mask.stunStacks }}</div>
+                <div class="magic-health-bar">
+                  <div class="magic-bar-bg">
+                    <div class="magic-health-fill" [style.width.%]="(mask.currentHealth / mask.health) * 100"></div>
                   </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-fire text-orange-600"></i>
-                    <div>{{ mask.burnStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-skull text-purple-600"></i>
-                    <div>{{ mask.poisonStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-droplet text-red-600"></i>
-                    <div>{{ mask.bleedStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-layer-group text-green-600"></i>
-                    <div>{{ mask.buffStacks }}</div>
+                </div>
+                <div class="magic-speed-bar">
+                  <div class="magic-bar-bg">
+                    <div class="magic-speed-fill" [style.width.%]="mask.currentSpeed"></div>
                   </div>
                 </div>
               </div>
-              <div class="w-full bg-gray-300 h-4 rounded-full">
-                <div class="bg-green-500 h-full rounded-full" [style.width.%]="(mask.currentHealth / mask.health) * 100"></div>
-              </div>
-              <div class="w-full bg-gray-300 h-4 rounded-full">
-                <div class="bg-yellow-500 h-full rounded-full" [style.width.%]="mask.currentSpeed"></div>
-              </div>
             </div>
-          </div>
-        </li>
-      </ng-container>
-    </ul>
-  </div>
-  <div class="p-4 border border-red-600 rounded">
-    <ul>
-      <ng-container *ngFor="let mask of masksInBattle">
-        <li *ngIf="mask.team === 'Enemy'" (click)="showUseMaskBanner ? selectMaskForUse(mask) : (showRemoveMaskBanner ? selectMaskForRemoval(mask) : selectTarget(mask))" class="transition-transform duration-500 ease-in-out transform">
-          <div class="flex items-center space-x-2 p-4 my-2 border" [ngClass]="{'animate-border': mask.action && mask.currentSpeed >= 100}" [class]="getBorderColor(mask)" rounded>
-            <div class="w-24 h-24">
-              <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="w-full h-full rounded-full" />
-            </div>
-            <div class="flex flex-col justify-around h-24 w-full">
-              <div class="flex justify-between">
-                <div class="text-blue-700 text-2xl flex items-center" [style.color]="mask.randomColor">
-                  Mask: {{ mask.maskID }}
-                  <i class="fa-solid fa-mask text-blue-700 ml-2 cursor-pointer" (click)="openMaskDetails(mask)"></i>
-                </div>
-                <div class="flex space-x-2 justify-end text-blue-700">
-                  <div class="text-center">
-                    <i class="fa-solid fa-bolt-lightning text-yellow-600"></i>
-                    <div>{{ mask.stunStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-fire text-orange-600"></i>
-                    <div>{{ mask.burnStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-skull text-purple-600"></i>
-                    <div>{{ mask.poisonStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-droplet text-red-600"></i>
-                    <div>{{ mask.bleedStacks }}</div>
-                  </div>
-                  <div class="text-center">
-                    <i class="fa-solid fa-layer-group text-green-600"></i>
-                    <div>{{ mask.buffStacks }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="w-full bg-gray-300 h-4 rounded-full">
-                <div class="bg-green-500 h-full rounded-full" [style.width.%]="(mask.currentHealth / mask.health) * 100"></div>
-              </div>
-              <div class="w-full bg-gray-300 h-4 rounded-full">
-                <div class="bg-yellow-500 h-full rounded-full" [style.width.%]="mask.currentSpeed"></div>
-              </div>
-            </div>
-          </div>
-        </li>
-      </ng-container>
-    </ul>
-  </div>
-  <div class="col-span-1">
-    <div class="text-lg font-bold mb-2 text-blue-700">Battle Log</div>
-    <div class="border border-blue-700 bg-stone-950 text-blue-700 p-4 rounded h-64 overflow-y-auto scrollbar-thin" #battleMessagesContainer>
-      <!-- Battle Messages -->
-      <div *ngFor="let message of battleMessages; let i = index" class="mb-2" [attr.data-index]="i">
-        <ng-container *ngIf="getMaskPrefixAndColor(message) as prefixAndColor">
-          <span *ngIf="prefixAndColor.prefix" [style.color]="prefixAndColor.color">{{ prefixAndColor.prefix }}</span><span *ngIf="prefixAndColor.prefix">{{ message.slice(prefixAndColor.prefix.length) }}</span>
-          <span *ngIf="!prefixAndColor.prefix">{{ message }}</span>
+          </li>
         </ng-container>
-      </div>
+      </ul>
     </div>
-  </div>
-</div>
 
-<div *ngIf="showSkillsModal && !isMobile" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-  <div class="skills-modal w-1/3 p-4 rounded border border-blue-700 bg-blue-900 scrollbar-thin scrollbar-thumb-blue-700 scrollbar-track-stone-900 overflow-y-auto max-h-96">
-    <h2 class="text-xl font-bold mb-4">Skills</h2>
-    <ul>
-      <li *ngFor="let skill of skills" class="mb-2" (click)="selectedMaskForUse ? selectSkillForMask(skill) : selectSkill(skill)" [ngClass]="{'border-red-700 cursor-not-allowed': skill.cooldown > 0}">
-        <div class="p-2 border rounded" [ngClass]="skill.cooldown > 0 ? 'border-red-700 bg-stone-950 text-red-700' : 'border-blue-700 bg-stone-950 text-blue-700'">
-          <div><strong>Name:</strong> {{ skill.skillName }}</div>
-          <div><strong>Description:</strong> {{ skill.description }}</div>
-          <div><strong>Main Stat:</strong> {{ skill.mainStat }}</div>
-          <div><strong>Main Stat Percentage:</strong> {{ skill.mainStatPercentage }}</div>
-          <div><strong>Cooldown:</strong> {{ skill.cooldown }}</div>
-          <div><strong>Amount of Strikes:</strong> {{ skill.amountOfStrikes }}</div>
-          <div><strong>On Hit Effect:</strong> {{ skill.onHitEffect }}</div>
-          <div><strong>Is Multi-Target:</strong> {{ skill.isMultiTarget }}</div>
-        </div>
-      </li>
-    </ul>
-  </div>
-</div>
-
-<div *ngIf="showSkillsModal && isMobile" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-  <div class="skills-modal w-4/5 p-4 rounded border border-blue-700 bg-blue-900 scrollbar-thin scrollbar-thumb-blue-700 scrollbar-track-stone-900 overflow-y-auto max-h-96">
-    <h2 class="text-xl font-bold mb-4">Skills</h2>
-    <ul>
-      <li *ngFor="let skill of skills" class="mb-2" (click)="selectedMaskForUse ? selectSkillForMask(skill) : selectSkill(skill)" [ngClass]="{'border-red-700 cursor-not-allowed': skill.cooldown > 0}">
-        <div class="p-2 border rounded" [ngClass]="skill.cooldown > 0 ? 'border-red-700 bg-stone-950 text-red-700' : 'border-blue-700 bg-stone-950 text-blue-700'">
-          <div><strong>Name:</strong> {{ skill.skillName }}</div>
-          <div><strong>Description:</strong> {{ skill.description }}</div>
-          <div><strong>Main Stat:</strong> {{ skill.mainStat }}</div>
-          <div><strong>Main Stat Percentage:</strong> {{ skill.mainStatPercentage }}</div>
-          <div><strong>Cooldown:</strong> {{ skill.cooldown }}</div>
-          <div><strong>Amount of Strikes:</strong> {{ skill.amountOfStrikes }}</div>
-          <div><strong>On Hit Effect:</strong> {{ skill.onHitEffect }}</div>
-          <div><strong>Is Multi-Target:</strong> {{ skill.isMultiTarget }}</div>
-        </div>
-      </li>
-    </ul>
-  </div>
-</div>
-
-<div *ngIf="showAssignTeamsModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" (click)="closeAssignTeamsModal()">
-  <div class="assign-teams-modal w-2/3 h-1/2 p-4 rounded border border-blue-700 bg-blue-900 scrollbar-thin scrollbar-thumb-blue-700 scrollbar-track-stone-900 overflow-y-auto" (click)="$event.stopPropagation()">
-    <h2 class="text-xl font-bold mb-4">Assign Teams</h2>
-    <div class="grid grid-cols-3 gap-4">
-      <div>
-        <h3 class="text-lg font-bold mb-2">Allies</h3>
-        <ul>
-          <li *ngFor="let mask of allies" class="flex items-center space-x-2">
-            <button (click)="moveLeft(mask)" class="p-1" [disabled]="true">&lt;</button>
-            <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="w-12 h-12 rounded-full" />
-            <button (click)="moveRight(mask)" class="p-1">&gt;</button>
+    <!-- Neutral Team Section -->
+    <div class="magic-mobile-team magic-neutral-section">
+      <h3 class="magic-mobile-team-title magic-neutral-title">Neutral</h3>
+      <ul class="magic-mobile-mask-list">
+        <ng-container *ngFor="let mask of masksInBattle">
+          <li *ngIf="mask.team === 'Neutral'" (click)="showUseMaskBanner ? selectMaskForUse(mask) : (showRemoveMaskBanner ? selectMaskForRemoval(mask) : selectTarget(mask))" class="magic-mobile-mask-item">
+            <div class="magic-mask-card magic-mobile-mask-card" [ngClass]="{'magic-mask-ready': mask.action && mask.currentSpeed >= 100}" [class]="getBorderColor(mask)">
+              <div class="magic-mask-avatar">
+                <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="magic-mask-image" />
+              </div>
+              <div class="magic-mask-info">
+                <div class="magic-mask-header">
+                  <div class="magic-mask-name" [style.color]="mask.randomColor">
+                    Mask: {{ mask.maskID }}
+                    <i class="fa-solid fa-mask magic-details-icon" (click)="openMaskDetails(mask)"></i>
+                  </div>
+                  <div class="magic-status-effects">
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-bolt-lightning text-yellow-500"></i>
+                      <div>{{ mask.stunStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-fire text-orange-500"></i>
+                      <div>{{ mask.burnStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-skull text-purple-500"></i>
+                      <div>{{ mask.poisonStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-droplet text-red-500"></i>
+                      <div>{{ mask.bleedStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-layer-group text-green-500"></i>
+                      <div>{{ mask.buffStacks }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="magic-health-bar">
+                  <div class="magic-bar-bg">
+                    <div class="magic-health-fill" [style.width.%]="(mask.currentHealth / mask.health) * 100"></div>
+                  </div>
+                </div>
+                <div class="magic-speed-bar">
+                  <div class="magic-bar-bg">
+                    <div class="magic-speed-fill" [style.width.%]="mask.currentSpeed"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </li>
-        </ul>
-      </div>
-      <div>
-        <h3 class="text-lg font-bold mb-2">Neutral</h3>
-        <ul>
-          <li *ngFor="let mask of neutral" class="flex items-center space-x-2">
-            <button (click)="moveLeft(mask)" class="p-1">&lt;</button>
-            <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="w-12 h-12 rounded-full" />
-            <button (click)="moveRight(mask)" class="p-1">&gt;</button>
-          </li>
-        </ul>
-      </div>
-      <div>
-        <h3 class="text-lg font-bold mb-2">Enemies</h3>
-        <ul>
-          <li *ngFor="let mask of enemies" class="flex items-center space-x-2">
-            <button (click)="moveLeft(mask)" class="p-1">&lt;</button>
-            <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="w-12 h-12 rounded-full" />
-            <button (click)="moveRight(mask)" class="p-1" [disabled]="true">&gt;</button>
-          </li>
-        </ul>
-      </div>
+        </ng-container>
+      </ul>
     </div>
-  </div>
-</div>
 
-<div *ngIf="showAddMaskModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" (click)="closeAddMaskModal()">
-  <div class="add-mask-modal w-2/3 p-4 rounded border border-blue-700 bg-blue-900 scrollbar-thin scrollbar-thumb-blue-700 scrollbar-track-stone-900 overflow-y-auto h-5/6" (click)="$event.stopPropagation()">
-    <h2 class="text-xl font-bold mb-4">Select a Mask</h2>
-    <input type="text" [(ngModel)]="searchQuery" (input)="filterMaskList()" placeholder="Search masks..." class="w-full p-2 mb-4 border rounded bg-stone-950 text-blue-700" />
-    <div class="grid grid-cols-10 gap-4">
-      <div *ngFor="let mask of filteredMaskList" class="p-4 border rounded bg-stone-950 text-blue-700">
-        <div class="mt-2 text-center">
-          <p><strong>Mask ID:</strong> {{ mask.maskID }}</p>
+    <!-- Enemy Team Section -->
+    <div class="magic-mobile-team magic-enemy-section">
+      <h3 class="magic-mobile-team-title magic-enemy-title">Enemies</h3>
+      <ul class="magic-mobile-mask-list">
+        <ng-container *ngFor="let mask of masksInBattle">
+          <li *ngIf="mask.team === 'Enemy'" (click)="showUseMaskBanner ? selectMaskForUse(mask) : (showRemoveMaskBanner ? selectMaskForRemoval(mask) : selectTarget(mask))" class="magic-mobile-mask-item">
+            <div class="magic-mask-card magic-mobile-mask-card" [ngClass]="{'magic-mask-ready': mask.action && mask.currentSpeed >= 100}" [class]="getBorderColor(mask)">
+              <div class="magic-mask-avatar">
+                <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="magic-mask-image" />
+              </div>
+              <div class="magic-mask-info">
+                <div class="magic-mask-header">
+                  <div class="magic-mask-name" [style.color]="mask.randomColor">
+                    Mask: {{ mask.maskID }}
+                    <i class="fa-solid fa-mask magic-details-icon" (click)="openMaskDetails(mask)"></i>
+                  </div>
+                  <div class="magic-status-effects">
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-bolt-lightning text-yellow-500"></i>
+                      <div>{{ mask.stunStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-fire text-orange-500"></i>
+                      <div>{{ mask.burnStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-skull text-purple-500"></i>
+                      <div>{{ mask.poisonStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-droplet text-red-500"></i>
+                      <div>{{ mask.bleedStacks }}</div>
+                    </div>
+                    <div class="magic-status-item">
+                      <i class="fa-solid fa-layer-group text-green-500"></i>
+                      <div>{{ mask.buffStacks }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="magic-health-bar">
+                  <div class="magic-bar-bg">
+                    <div class="magic-health-fill" [style.width.%]="(mask.currentHealth / mask.health) * 100"></div>
+                  </div>
+                </div>
+                <div class="magic-speed-bar">
+                  <div class="magic-bar-bg">
+                    <div class="magic-speed-fill" [style.width.%]="mask.currentSpeed"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ng-container>
+      </ul>
+    </div>
+
+    <!-- Mobile Battle Log -->
+    <div class="magic-mobile-battle-log">
+      <div class="magic-log-title">Battle Log</div>
+      <div class="magic-log-container" #battleMessagesContainer>
+        <div *ngFor="let message of battleMessages; let i = index" class="magic-log-message" [attr.data-index]="i">
+          <ng-container *ngIf="getMaskPrefixAndColor(message) as prefixAndColor">
+            <span *ngIf="prefixAndColor.prefix" [style.color]="prefixAndColor.color">{{ prefixAndColor.prefix }}</span><span *ngIf="prefixAndColor.prefix">{{ message.slice(prefixAndColor.prefix.length) }}</span>
+            <span *ngIf="!prefixAndColor.prefix">{{ message }}</span>
+          </ng-container>
         </div>
-        <img (click)="selectMask(mask)" [src]="mask.photo" alt="Mask Photo" class="w-full h-auto cursor-pointer" />
       </div>
     </div>
-    <div class="flex justify-end mt-4">
-      <button (click)="closeAddMaskModal()" class="bg-red-500 text-white p-2 rounded">Close</button>
-    </div>
   </div>
-</div>
 
-<div *ngIf="showConfirmationModal && !isMobile" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-  <div class="confirmation-modal w-1/3 p-4 rounded border border-blue-700 bg-blue-900">
-    <h2 class="text-xl font-bold mb-4">Confirm Target</h2>
-    <p>The target is on your team, are you sure you want to target them?</p>
-    <div class="flex justify-end space-x-4 mt-4">
-      <button (click)="confirmTargetSelection()" class="bg-green-500 text-white p-2 rounded">Yes</button>
-      <button (click)="cancelTargetSelection()" class="bg-red-500 text-white p-2 rounded">No</button>
+  <!-- Skills Modal -->
+  <div *ngIf="showSkillsModal && !isMobile" class="magic-modal-overlay">
+    <div class="magic-modal magic-skills-modal">
+      <h2 class="magic-modal-title">Skills</h2>
+      <ul class="magic-skills-list">
+        <li *ngFor="let skill of skills" class="magic-skill-item" (click)="selectedMaskForUse ? selectSkillForMask(skill) : selectSkill(skill)" [ngClass]="{'magic-skill-disabled': skill.cooldown > 0}">
+          <div class="magic-skill-card" [ngClass]="skill.cooldown > 0 ? 'magic-skill-on-cooldown' : 'magic-skill-available'">
+            <div class="magic-skill-name">{{ skill.skillName }}</div>
+            <div class="magic-skill-description">{{ skill.description }}</div>
+            <div class="magic-skill-stats">
+              <div><strong>Main Stat:</strong> {{ skill.mainStat }}</div>
+              <div><strong>Percentage:</strong> {{ skill.mainStatPercentage }}</div>
+              <div><strong>Cooldown:</strong> {{ skill.cooldown }}</div>
+              <div><strong>Strikes:</strong> {{ skill.amountOfStrikes }}</div>
+              <div><strong>On Hit:</strong> {{ skill.onHitEffect }}</div>
+              <div><strong>Multi-Target:</strong> {{ skill.isMultiTarget }}</div>
+            </div>
+          </div>
+        </li>
+      </ul>
     </div>
   </div>
-</div>
-<div *ngIf="showConfirmationModal && isMobile" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-  <div class="confirmation-modal w-4/5 p-4 rounded border border-blue-700 bg-blue-900">
-    <h2 class="text-xl font-bold mb-4">Confirm Target</h2>
-    <p>The target is on your team, are you sure you want to target them?</p>
-    <div class="flex justify-end space-x-4 mt-4">
-      <button (click)="confirmTargetSelection()" class="bg-green-500 text-white p-2 rounded">Yes</button>
-      <button (click)="cancelTargetSelection()" class="bg-red-500 text-white p-2 rounded">No</button>
-    </div>
-  </div>
-</div>
 
-<div *ngIf="showHealConfirmationModal && !isMobile" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-  <div class="confirmation-modal w-1/3 p-4 rounded border border-blue-700 bg-blue-900">
-    <h2 class="text-xl font-bold mb-4">Confirm Target</h2>
-    <p>The target is not on your team, are you sure you want to target them and heal them?</p>
-    <div class="flex justify-end space-x-4 mt-4">
-      <button (click)="confirmTargetSelection()" class="bg-green-500 text-white p-2 rounded">Yes</button>
-      <button (click)="cancelTargetSelection()" class="bg-red-500 text-white p-2 rounded">No</button>
+  <div *ngIf="showSkillsModal && isMobile" class="magic-modal-overlay">
+    <div class="magic-modal magic-skills-modal magic-mobile-modal">
+      <h2 class="magic-modal-title">Skills</h2>
+      <ul class="magic-skills-list">
+        <li *ngFor="let skill of skills" class="magic-skill-item" (click)="selectedMaskForUse ? selectSkillForMask(skill) : selectSkill(skill)" [ngClass]="{'magic-skill-disabled': skill.cooldown > 0}">
+          <div class="magic-skill-card" [ngClass]="skill.cooldown > 0 ? 'magic-skill-on-cooldown' : 'magic-skill-available'">
+            <div class="magic-skill-name">{{ skill.skillName }}</div>
+            <div class="magic-skill-description">{{ skill.description }}</div>
+            <div class="magic-skill-stats">
+              <div><strong>Main Stat:</strong> {{ skill.mainStat }}</div>
+              <div><strong>Percentage:</strong> {{ skill.mainStatPercentage }}</div>
+              <div><strong>Cooldown:</strong> {{ skill.cooldown }}</div>
+              <div><strong>Strikes:</strong> {{ skill.amountOfStrikes }}</div>
+              <div><strong>On Hit:</strong> {{ skill.onHitEffect }}</div>
+              <div><strong>Multi-Target:</strong> {{ skill.isMultiTarget }}</div>
+            </div>
+          </div>
+        </li>
+      </ul>
     </div>
   </div>
-</div>
-<div *ngIf="showHealConfirmationModal && isMobile" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-  <div class="confirmation-modal w-4/5 p-4 rounded border border-blue-700 bg-blue-900">
-    <h2 class="text-xl font-bold mb-4">Confirm Target</h2>
-    <p>The target is not on your team, are you sure you want to target them and heal them?</p>
-    <div class="flex justify-end space-x-4 mt-4">
-      <button (click)="confirmTargetSelection()" class="bg-green-500 text-white p-2 rounded">Yes</button>
-      <button (click)="cancelTargetSelection()" class="bg-red-500 text-white p-2 rounded">No</button>
-    </div>
-  </div>
-</div>
 
-<div *ngIf="showMaskDetailsModal && !isMobile" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-  <div class="mask-details-modal w-1/3 p-4 rounded border border-blue-700 bg-blue-900">
-    <h2 class="text-xl font-bold mb-4">Mask Details</h2>
-    <div *ngIf="selectedMaskDetails">
-      <p><strong>Attack Damage:</strong> {{ Math.ceil(selectedMaskDetails.attackDamage) }}</p>
-      <p><strong>Ability Damage:</strong> {{ Math.ceil(selectedMaskDetails.abilityDamage) }}</p>
-      <p><strong>Protections:</strong> {{ Math.ceil(selectedMaskDetails.protections) }}</p>
-      <p><strong>Magic Resist:</strong> {{ Math.ceil(selectedMaskDetails.magicResist) }}</p>
-      <p><strong>Health:</strong> {{ Math.ceil(selectedMaskDetails.currentHealth) }} / {{ Math.ceil(selectedMaskDetails.health) }}</p>
-      <p><strong>Speed:</strong> {{ Math.ceil(selectedMaskDetails.speed) }}</p>
-      <p><strong>Current Speed:</strong> {{ Math.ceil(selectedMaskDetails.currentSpeed) }} / 100</p>
-    </div>
-    <div class="flex justify-end space-x-4 mt-4">
-      <button (click)="closeMaskDetailsModal()" class="bg-red-500 text-white p-2 rounded">Close</button>
+  <!-- Assign Teams Modal -->
+  <div *ngIf="showAssignTeamsModal" class="magic-modal-overlay" (click)="closeAssignTeamsModal()">
+    <div class="magic-modal magic-assign-teams-modal" (click)="$event.stopPropagation()">
+      <h2 class="magic-modal-title">Assign Teams</h2>
+      <div class="magic-teams-grid">
+        <div class="magic-team-section">
+          <h3 class="magic-team-section-title magic-ally-title">Allies</h3>
+          <ul class="magic-team-member-list">
+            <li *ngFor="let mask of allies" class="magic-team-member">
+              <button (click)="moveLeft(mask)" class="magic-move-button" [disabled]="true">&lt;</button>
+              <div class="magic-member-info">
+                <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="magic-member-avatar" />
+                <span class="magic-member-name">{{ mask.maskID }}</span>
+              </div>
+              <button (click)="moveRight(mask)" class="magic-move-button">&gt;</button>
+            </li>
+          </ul>
+        </div>
+        <div class="magic-team-section">
+          <h3 class="magic-team-section-title magic-neutral-title">Neutral</h3>
+          <ul class="magic-team-member-list">
+            <li *ngFor="let mask of neutral" class="magic-team-member">
+              <button (click)="moveLeft(mask)" class="magic-move-button">&lt;</button>
+              <div class="magic-member-info">
+                <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="magic-member-avatar" />
+                <span class="magic-member-name">{{ mask.maskID }}</span>
+              </div>
+              <button (click)="moveRight(mask)" class="magic-move-button">&gt;</button>
+            </li>
+          </ul>
+        </div>
+        <div class="magic-team-section">
+          <h3 class="magic-team-section-title magic-enemy-title">Enemies</h3>
+          <ul class="magic-team-member-list">
+            <li *ngFor="let mask of enemies" class="magic-team-member">
+              <button (click)="moveLeft(mask)" class="magic-move-button">&lt;</button>
+              <div class="magic-member-info">
+                <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="magic-member-avatar" />
+                <span class="magic-member-name">{{ mask.maskID }}</span>
+              </div>
+              <button (click)="moveRight(mask)" class="magic-move-button" [disabled]="true">&gt;</button>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-<div *ngIf="showMaskDetailsModal && isMobile" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-  <div class="mask-details-modal w-4/5 p-4 rounded border border-blue-700 bg-blue-900">
-    <h2 class="text-xl font-bold mb-4">Mask Details</h2>
-    <div *ngIf="selectedMaskDetails">
-      <p><strong>Attack Damage:</strong> {{ Math.ceil(selectedMaskDetails.attackDamage) }}</p>
-      <p><strong>Ability Damage:</strong> {{ Math.ceil(selectedMaskDetails.abilityDamage) }}</p>
-      <p><strong>Protections:</strong> {{ Math.ceil(selectedMaskDetails.protections) }}</p>
-      <p><strong>Magic Resist:</strong> {{ Math.ceil(selectedMaskDetails.magicResist) }}</p>
-      <p><strong>Speed:</strong> {{ Math.ceil(selectedMaskDetails.speed) }}</p>
-      <p><strong>Current Speed:</strong> {{ Math.ceil(selectedMaskDetails.currentSpeed) }} / 100</p>
-    </div>
-    <div class="flex justify-end space-x-4 mt-4">
-      <button (click)="closeMaskDetailsModal()" class="bg-red-500 text-white p-2 rounded">Close</button>
-    </div>
-  </div>
-</div>
-
-<div *ngIf="showJoinLeaveConfirmationModal && !isMobile" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-  <div class="confirmation-modal w-1/3 p-4 rounded border border-blue-700 bg-blue-900">
-    <h2 class="text-xl font-bold mb-4">Confirm Action</h2>
-    <p>Are you sure you want to join/leave the battle?</p>
-    <div class="flex justify-end space-x-4 mt-4">
-      <button (click)="proceedJoinLeaveBattle()" class="bg-green-500 text-white p-2 rounded">Yes</button>
-      <button (click)="cancelJoinLeaveBattle()" class="bg-red-500 text-white p-2 rounded">No</button>
+  <!-- Add Mask Modal -->
+  <div *ngIf="showAddMaskModal" class="magic-modal-overlay" (click)="closeAddMaskModal()">
+    <div class="magic-modal magic-add-mask-modal" (click)="$event.stopPropagation()">
+      <h2 class="magic-modal-title">Select a Mask</h2>
+      <input type="text" [(ngModel)]="searchQuery" (input)="filterMaskList()" placeholder="Search masks..." class="magic-search-input" />
+      <div class="magic-mask-grid">
+        <div *ngFor="let mask of filteredMaskList" class="magic-mask-selection-card" (click)="selectMask(mask)">
+          <div class="magic-mask-selection-info">
+            <p><strong>Mask ID:</strong> {{ mask.maskID }}</p>
+          </div>
+          <img [src]="mask.photo" alt="Mask Photo" class="magic-mask-selection-image" />
+        </div>
+      </div>
+      <div class="magic-modal-buttons">
+        <button (click)="closeAddMaskModal()" class="magic-button-secondary">Close</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div *ngIf="showJoinLeaveConfirmationModal && isMobile" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-  <div class="confirmation-modal w-4/5 p-4 rounded border border-blue-700 bg-blue-900">
-    <h2 class="text-xl font-bold mb-4">Confirm Action</h2>
-    <p>Are you sure you want to join/leave the battle?</p>
-    <div class="flex justify-end space-x-4 mt-4">
-      <button (click)="proceedJoinLeaveBattle()" class="bg-green-500 text-white p-2 rounded">Yes</button>
-      <button (click)="cancelJoinLeaveBattle()" class="bg-red-500 text-white p-2 rounded">No</button>
+  <!-- Confirmation Modals -->
+  <div *ngIf="showConfirmationModal && !isMobile" class="magic-modal-overlay">
+    <div class="magic-modal magic-confirmation-modal">
+      <h2 class="magic-modal-title">Confirm Target</h2>
+      <p class="magic-modal-text">The target is on your team, are you sure you want to target them?</p>
+      <div class="magic-modal-buttons">
+        <button (click)="confirmTargetSelection()" class="magic-button-primary">Yes</button>
+        <button (click)="cancelTargetSelection()" class="magic-button-secondary">No</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="showConfirmationModal && isMobile" class="magic-modal-overlay">
+    <div class="magic-modal magic-confirmation-modal magic-mobile-modal">
+      <h2 class="magic-modal-title">Confirm Target</h2>
+      <p class="magic-modal-text">The target is on your team, are you sure you want to target them?</p>
+      <div class="magic-modal-buttons">
+        <button (click)="confirmTargetSelection()" class="magic-button-primary">Yes</button>
+        <button (click)="cancelTargetSelection()" class="magic-button-secondary">No</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="showHealConfirmationModal && !isMobile" class="magic-modal-overlay">
+    <div class="magic-modal magic-confirmation-modal">
+      <h2 class="magic-modal-title">Confirm Target</h2>
+      <p class="magic-modal-text">The target is not on your team, are you sure you want to target them and heal them?</p>
+      <div class="magic-modal-buttons">
+        <button (click)="confirmTargetSelection()" class="magic-button-primary">Yes</button>
+        <button (click)="cancelTargetSelection()" class="magic-button-secondary">No</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="showHealConfirmationModal && isMobile" class="magic-modal-overlay">
+    <div class="magic-modal magic-confirmation-modal magic-mobile-modal">
+      <h2 class="magic-modal-title">Confirm Target</h2>
+      <p class="magic-modal-text">The target is not on your team, are you sure you want to target them and heal them?</p>
+      <div class="magic-modal-buttons">
+        <button (click)="confirmTargetSelection()" class="magic-button-primary">Yes</button>
+        <button (click)="cancelTargetSelection()" class="magic-button-secondary">No</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mask Details Modals -->
+  <div *ngIf="showMaskDetailsModal && !isMobile" class="magic-modal-overlay">
+    <div class="magic-modal magic-mask-details-modal">
+      <h2 class="magic-modal-title">Mask Details</h2>
+      <div *ngIf="selectedMaskDetails" class="magic-mask-stats">
+        <div class="magic-stat-row"><strong>Attack Damage:</strong> {{ Math.ceil(selectedMaskDetails.attackDamage) }}</div>
+        <div class="magic-stat-row"><strong>Ability Damage:</strong> {{ Math.ceil(selectedMaskDetails.abilityDamage) }}</div>
+        <div class="magic-stat-row"><strong>Protections:</strong> {{ Math.ceil(selectedMaskDetails.protections) }}</div>
+        <div class="magic-stat-row"><strong>Magic Resist:</strong> {{ Math.ceil(selectedMaskDetails.magicResist) }}</div>
+        <div class="magic-stat-row"><strong>Health:</strong> {{ Math.ceil(selectedMaskDetails.currentHealth) }} / {{ Math.ceil(selectedMaskDetails.health) }}</div>
+        <div class="magic-stat-row"><strong>Speed:</strong> {{ Math.ceil(selectedMaskDetails.speed) }}</div>
+        <div class="magic-stat-row"><strong>Current Speed:</strong> {{ Math.ceil(selectedMaskDetails.currentSpeed) }} / 100</div>
+      </div>
+      <div class="magic-modal-buttons">
+        <button (click)="closeMaskDetailsModal()" class="magic-button-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="showMaskDetailsModal && isMobile" class="magic-modal-overlay">
+    <div class="magic-modal magic-mask-details-modal magic-mobile-modal">
+      <h2 class="magic-modal-title">Mask Details</h2>
+      <div *ngIf="selectedMaskDetails" class="magic-mask-stats">
+        <div class="magic-stat-row"><strong>Attack Damage:</strong> {{ Math.ceil(selectedMaskDetails.attackDamage) }}</div>
+        <div class="magic-stat-row"><strong>Ability Damage:</strong> {{ Math.ceil(selectedMaskDetails.abilityDamage) }}</div>
+        <div class="magic-stat-row"><strong>Protections:</strong> {{ Math.ceil(selectedMaskDetails.protections) }}</div>
+        <div class="magic-stat-row"><strong>Magic Resist:</strong> {{ Math.ceil(selectedMaskDetails.magicResist) }}</div>
+        <div class="magic-stat-row"><strong>Speed:</strong> {{ Math.ceil(selectedMaskDetails.speed) }}</div>
+        <div class="magic-stat-row"><strong>Current Speed:</strong> {{ Math.ceil(selectedMaskDetails.currentSpeed) }} / 100</div>
+      </div>
+      <div class="magic-modal-buttons">
+        <button (click)="closeMaskDetailsModal()" class="magic-button-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Join/Leave Confirmation Modals -->
+  <div *ngIf="showJoinLeaveConfirmationModal && !isMobile" class="magic-modal-overlay">
+    <div class="magic-modal magic-confirmation-modal">
+      <h2 class="magic-modal-title">Confirm Action</h2>
+      <p class="magic-modal-text">Are you sure you want to join/leave the battle?</p>
+      <div class="magic-modal-buttons">
+        <button (click)="proceedJoinLeaveBattle()" class="magic-button-primary">Yes</button>
+        <button (click)="cancelJoinLeaveBattle()" class="magic-button-secondary">No</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="showJoinLeaveConfirmationModal && isMobile" class="magic-modal-overlay">
+    <div class="magic-modal magic-confirmation-modal magic-mobile-modal">
+      <h2 class="magic-modal-title">Confirm Action</h2>
+      <p class="magic-modal-text">Are you sure you want to join/leave the battle?</p>
+      <div class="magic-modal-buttons">
+        <button (click)="proceedJoinLeaveBattle()" class="magic-button-primary">Yes</button>
+        <button (click)="cancelJoinLeaveBattle()" class="magic-button-secondary">No</button>
+      </div>
     </div>
   </div>
 </div>

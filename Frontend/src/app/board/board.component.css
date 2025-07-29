@@ -1,34 +1,269 @@
+/* Magic Board Container - Transparent to use home background */
+.magic-board-container-transparent {
+  padding: 1.5rem;
+  /* No background - uses home component background */
+}
+
+/* Original Magic Board Container (kept for reference) */
+.magic-board-container {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.95) 0%,
+    rgba(30, 41, 59, 0.95) 50%,
+    rgba(51, 65, 85, 0.95) 100%
+  );
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 1.5rem;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+
+/* Magic Panel Styles */
+.magic-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.9) 0%,
+    rgba(30, 41, 59, 0.9) 50%,
+    rgba(51, 65, 85, 0.9) 100%
+  );
+  backdrop-filter: blur(15px);
+}
+
+.magic-border-subtle {
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 
+    0 8px 25px -5px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+
+/* Magic Text Styles */
+.magic-text {
+  color: #3b82f6;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.magic-text-bright {
+  color: #60a5fa;
+  text-shadow: 0 2px 8px rgba(96, 165, 250, 0.4);
+}
+
+.magic-text-secondary {
+  color: #94a3b8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Magic Image Container */
+.magic-image-container {
+  background: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.8) 0%,
+    rgba(51, 65, 85, 0.8) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.magic-upload-zone {
+  padding: 2rem;
+  border: 2px dashed rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.magic-upload-zone:hover {
+  border-color: rgba(59, 130, 246, 0.6);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.magic-mask-icon {
+  color: #3b82f6;
+  font-size: 1.5rem;
+  padding: 0.5rem;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.magic-mask-icon:hover {
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: scale(1.1);
+}
+
+/* Magic Stat Card */
+.magic-stat-card {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.1) 0%,
+    rgba(37, 99, 235, 0.1) 50%,
+    rgba(29, 78, 216, 0.1) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.magic-stat-card:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+}
+
+/* Magic Clickable Elements */
+.magic-clickable-stat {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.15) 0%,
+    rgba(37, 99, 235, 0.15) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+}
+
+.magic-clickable-stat:hover {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.magic-clickable-skill {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.1) 0%,
+    rgba(37, 99, 235, 0.1) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.magic-clickable-skill:hover {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: #000;
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Magic Skill Item */
+.magic-skill-item {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.6) 0%,
+    rgba(30, 41, 59, 0.6) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  transition: all 0.3s ease;
+}
+
+.magic-skill-item:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.1) 0%,
+    rgba(37, 99, 235, 0.1) 100%
+  );
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Magic Skill Detail */
+.magic-skill-detail {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.7) 0%,
+    rgba(30, 41, 59, 0.7) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+.magic-skill-detail:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+/* Magic Mod Item */
+.magic-mod-item {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.6) 0%,
+    rgba(30, 41, 59, 0.6) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  transition: all 0.3s ease;
+}
+
+.magic-mod-item:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.1) 0%,
+    rgba(37, 99, 235, 0.1) 100%
+  );
+  border-color: rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Magic Tooltip */
+.magic-tooltip {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.98) 0%,
+    rgba(30, 41, 59, 0.98) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  backdrop-filter: blur(20px);
+  animation: tooltipFadeIn 0.2s ease-out;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Legacy rarity colors - enhanced with better contrast */
 .text-brown-500 {
-    color: #8B4513; /* Brown */
+    color: #d2691e;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 .text-brown-500:hover {
-    color: #5C3317; /* Darker Brown */
+    color: #ff7f50;
 }
 
 .text-gray-400 {
-    color: #C0C0C0; /* Silver */
+    color: #c0c0c0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 .text-gray-400:hover {
-    color: #A9A9A9; /* Darker Silver */
+    color: #e5e5e5;
 }
 
 .text-yellow-500 {
-    color: #FFD700; /* Gold */
+    color: #ffd700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 .text-yellow-500:hover {
-    color: #E6BE00; /* Darker Gold */
+    color: #ffed4e;
 }
 
 .text-blue-400 {
-    color: #00BFFF; /* Diamond */
+    color: #60a5fa;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 .text-blue-400:hover {
-    color: #009ACD; /* Darker Diamond */
+    color: #93c5fd;
 }
 
 .text-purple-500 {
-    color: #800080; /* Purple */
+    color: #a855f7;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 .text-purple-500:hover {
-    color: #4B0082; /* Darker Purple */
+    color: #c084fc;
 }

@@ -136,8 +136,14 @@ export class SkillsComponent implements OnInit {
 
   rollDice(event: Event) {
     const target = event.currentTarget as HTMLElement;
-    const damageText = target.querySelector('.text-3xl:nth-of-type(1)') as HTMLElement;
-    const modifierText = target.querySelector('.text-3xl:nth-of-type(2)') as HTMLElement;
+    const damageText = target.querySelector('p:nth-of-type(1)') as HTMLElement;
+    const modifierText = target.querySelector('p:nth-of-type(2)') as HTMLElement;
+    
+    if (!damageText || !modifierText) {
+      console.error('Could not find dice elements');
+      return;
+    }
+    
     const diceSizeText = damageText.innerText.trim();
     const modifierValueText = modifierText.innerText.trim();
     let resultMessage = '';

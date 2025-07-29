@@ -1,8 +1,102 @@
 /* Home Screen Theme */
 .home-screen {
-  background: linear-gradient(135deg, #030c22 0%, rgb(0, 0, 0) 100%);
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+  background: linear-gradient(135deg, #0c0a09 0%, #1c1917 50%, #292524 100%);
 }
 
+.background-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, rgba(0, 0, 0, 0.8) 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Navbar Styles */
+.navbar-panel {
+  position: relative;
+  z-index: 10;
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.95) 0%,
+    rgba(30, 41, 59, 0.95) 50%,
+    rgba(51, 65, 85, 0.95) 100%
+  );
+  backdrop-filter: blur(20px);
+  padding: 1rem;
+  box-shadow: 
+    0 8px 25px -5px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(59, 130, 246, 0.2);
+  animation: fadeInDown 0.6s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Container */
+.container {
+  position: relative;
+  z-index: 1; /* Reduced to allow buttons to be above */
+}
+
+/* Navigation Link Styles */
+.navbar-panel a {
+  color: #e2e8f0;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.navbar-panel a:hover {
+  color: #3b82f6;
+  text-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+  transform: translateY(-1px);
+}
+
+.navbar-panel a.underline {
+  color: #3b82f6;
+  text-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+.navbar-panel a.underline::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  border-radius: 1px;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+/* Mobile Menu Button */
+.navbar-panel button {
+  color: #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.navbar-panel button:hover {
+  color: #3b82f6;
+  text-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+/* Modal Styles */
 .modal {
   position: fixed;
   top: 0;
@@ -12,85 +106,193 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.8);
   z-index: 1000;
+  backdrop-filter: blur(5px);
   animation: fadeIn 0.3s ease;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-content {
-  background-color: #1f2937;
-  border: 1px solid #1e40af;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.98) 0%,
+    rgba(30, 41, 59, 0.98) 100%
+  );
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(59, 130, 246, 0.3);
+  backdrop-filter: blur(20px);
   text-align: center;
-  color: #dbeafe;
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .modal-content p {
-  margin-bottom: 1rem;
-  font-size: 1.125rem;
-  font-weight: bold;
-  color: #1e40af;
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #3b82f6;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .modal-content button {
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
   font-size: 1rem;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.modal-content button:first-child {
-  background: linear-gradient(to right, #1d4ed8, #1e40af, #1e3a8a);
-  color: white;
-  margin-right: 0.5rem;
+  transition: all 0.3s ease;
   border: none;
 }
 
+.modal-content button:first-child {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: #000;
+  margin-right: 1rem;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
 .modal-content button:first-child:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
 }
 
 .modal-content button:last-child {
-  background-color: #374151;
-  color: #d1d5db;
-  border: 1px solid #4b5563;
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+  color: #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .modal-content button:last-child:hover {
-  background-color: #4b5563;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 /* Navigation hover effects */
 nav a {
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
-nav a:hover {
-  transform: translateY(-1px);
-}
-
-/* Button hover animations */
+/* Floating Button Styles */
 .vc-button {
-  transition: all 0.2s ease;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+  color: #000 !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.vc-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s;
 }
 
 .vc-button:hover {
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%) !important;
+}
+
+.vc-button:hover::before {
+  left: 100%;
+}
+
+.vc-button:active {
+  transform: translateY(0);
+}
+
+/* Fixed positioning adjustments */
+.fixed {
+  z-index: 15;
+}
+
+/* Button component overrides to ensure visibility */
+app-chat-button,
+app-roll-button,
+app-sound-button {
+  z-index: 9999 !important;
+  position: relative !important;
+}
+
+app-chat-button .chat-button,
+app-roll-button .roll-button,
+app-sound-button .vc-button {
+  z-index: 9999 !important;
+}
+
+/* Ensure button wrapper divs also have high z-index */
+app-chat-button > div,
+app-roll-button > div,
+app-sound-button > div {
+  z-index: 9999 !important;
+  position: relative !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .navbar-panel {
+    padding: 0.75rem;
+  }
+  
+  .modal-content {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .modal-content p {
+    font-size: 1.125rem;
+  }
+  
+  .modal-content button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-panel {
+    padding: 0.5rem;
+  }
+  
+  .vc-button {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+  }
+  
+  .modal-content button:first-child {
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
 }

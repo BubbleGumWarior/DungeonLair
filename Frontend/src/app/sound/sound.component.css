@@ -1,37 +1,218 @@
+/* Magic Button Styles */
+.magic-button {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: #000;
+  font-weight: 700;
+  box-shadow: 
+    0 4px 12px rgba(59, 130, 246, 0.3),
+    0 0 0 1px rgba(59, 130, 246, 0.2);
+  transform: translateY(0);
+  position: relative;
+  z-index: 9999 !important; /* Force extremely high z-index */
+  isolation: isolate; /* Ensure button creates its own stacking context */
+}
+
+.magic-button:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 20px rgba(59, 130, 246, 0.5),
+    0 0 16px rgba(59, 130, 246, 0.3);
+}
+
+/* Magic Panel Styles */
+.magic-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.95) 0%,
+    rgba(30, 41, 59, 0.95) 50%,
+    rgba(51, 65, 85, 0.95) 100%
+  );
+  backdrop-filter: blur(20px);
+  z-index: 999;
+}
+
+.border-magic {
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+
+.magic-arrow {
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid rgba(30, 41, 59, 0.95);
+}
+
+/* Magic Text Styles */
+.magic-text {
+  color: #3b82f6;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.magic-text-secondary {
+  color: #94a3b8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Magic Close Button */
+.magic-close-button {
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.1) 0%,
+    rgba(220, 38, 38, 0.1) 100%
+  );
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.magic-close-button:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.2) 0%,
+    rgba(220, 38, 38, 0.2) 100%
+  );
+  border-color: rgba(239, 68, 68, 0.5);
+  transform: scale(1.1);
+}
+
+/* Magic Sound Button */
+.magic-sound-button {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.15) 0%,
+    rgba(37, 99, 235, 0.15) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #3b82f6;
+}
+
+.magic-sound-button:hover {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+/* Magic Upload Primary */
+.magic-upload-primary {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #000;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.magic-upload-primary:hover {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+/* Magic Modal Panel */
+.magic-modal-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.98) 0%,
+    rgba(30, 41, 59, 0.98) 100%
+  );
+  backdrop-filter: blur(20px);
+}
+
+/* Magic Input Styles */
+.magic-input {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.8) 0%,
+    rgba(30, 41, 59, 0.8) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #e2e8f0;
+  backdrop-filter: blur(10px);
+}
+
+.magic-input:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.placeholder-magic-placeholder::placeholder {
+  color: #64748b;
+}
+
+/* Magic File Input */
+.magic-file-input {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.8) 0%,
+    rgba(30, 41, 59, 0.8) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #e2e8f0;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+}
+
+.magic-file-input:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Magic Button Primary */
+.magic-button-primary {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: #000;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.magic-button-primary:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
 .vc-button {
     position: relative;
-    z-index: 1000;
+    z-index: 9999 !important; /* Force extremely high z-index */
   }
   
   .vc-modal {
-    z-index: 999;
+    z-index: 9998;
   }
   
   .vc-history {
-    max-height: 66vh; /* Set maximum height for vc history */
-    overflow-y: auto; /* Enable vertical scrolling */
+    max-height: 66vh;
+    overflow-y: auto;
   }
   
-  /* Custom scrollbar styles */
+  /* Magic scrollbar styles for vc history */
   .vc-history::-webkit-scrollbar {
-    width: 8px; /* Width of the scrollbar */
+    width: 8px;
   }
   
   .vc-history::-webkit-scrollbar-track {
-    @apply bg-stone-950/* Background of the scrollbar track */
+    background: rgba(15, 23, 42, 0.8);
+    border-radius: 4px;
   }
   
   .vc-history::-webkit-scrollbar-thumb {
-    @apply bg-gradient-to-b from-blue-700 via-blue-800 to-blue-900/* Color of the scrollbar thumb */
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    border-radius: 4px;
   }
   
   .vc-history::-webkit-scrollbar-thumb:hover {
-    background: #555; /* Darker color on hover */
-  }
-  
-  .message {
-    background-color: #f1f1f1;
-    border-radius: 5px;
-    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
   }
   

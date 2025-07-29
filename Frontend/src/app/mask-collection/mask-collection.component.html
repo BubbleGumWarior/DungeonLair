@@ -1,130 +1,138 @@
-<div class="mask-collection-container bg-stone-900 rounded-xl border border-stone-700 p-4">
-  <div class="flex items-center justify-center mb-8">
-    <h1 class="text-4xl font-bold text-blue-700 text-center">All masks in collection</h1>
-  </div>
-  
-  <!-- Add Mask Form - Only for Dungeon Master -->
-  <div *ngIf="isDungeonMaster" class="add-mask-section bg-stone-800 p-6 rounded-lg mb-8">
-    <h2 class="text-2xl font-bold text-blue-700 mb-4">Add New Mask</h2>
-    
-    <div *ngIf="errorMessage" class="bg-red-600 text-blue-700 p-3 rounded mb-4">
-      {{ errorMessage }}
-      <button (click)="clearMessages()" class="float-right text-red-200 hover:text-white">&times;</button>
+<div class="magic-mask-collection-container-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <!-- Header -->
+    <div class="mb-8 text-center">
+      <h1 class="text-4xl font-bold magic-text mb-2">All masks in collection</h1>
+      <p class="magic-text-secondary">Browse and manage your mask collection</p>
     </div>
     
-    <div *ngIf="successMessage" class="bg-green-600 text-blue-700 p-3 rounded mb-4">
-      {{ successMessage }}
-    </div>
-    
-    <div class="flex items-center gap-4">
-      <div class="flex-1">
-        <label for="maskID" class="block text-blue-700 text-sm font-medium mb-2">Mask ID:</label>
-        <input 
-          id="maskID"
-          type="number" 
-          [(ngModel)]="newMaskID" 
-          placeholder="Enter mask ID"
-          class="w-full p-3 bg-stone-700 text-blue-700 border border-stone-600 rounded"
-          min="1"
-          [disabled]="isLoading"
-        />
+    <!-- Add Mask Form - Only for Dungeon Master -->
+    <div *ngIf="isDungeonMaster" class="magic-panel magic-border-subtle rounded-2xl p-6 mb-8">
+      <h2 class="text-2xl font-bold magic-text mb-4">Add New Mask</h2>
+      
+      <div *ngIf="errorMessage" class="magic-error-message p-3 rounded-lg mb-4">
+        {{ errorMessage }}
+        <button (click)="clearMessages()" class="float-right magic-text-secondary hover:magic-text transition-colors">&times;</button>
       </div>
-      <button 
-        (click)="addMask()" 
-        [disabled]="isLoading || !newMaskID"
-        class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-500 text-stone-900 px-6 py-3 rounded"
-      >
-        <span *ngIf="!isLoading">Add Mask</span>
-        <span *ngIf="isLoading">Adding...</span>
-      </button>
-    </div>
-  </div>
-  
-  <div *ngIf="isLoading && maskCollection.length === 0" class="text-center text-blue-700">
-    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
-    <p class="mt-2">Loading mask collection...</p>
-  </div>
-  
-  <div *ngIf="!isLoading || maskCollection.length > 0" class="masks-grid">
-    <div *ngIf="maskCollection.length === 0 && !isLoading" class="text-center text-gray-400 py-8">
-      <p class="text-xl">No masks in collection yet.</p>
-      <p>Add your first mask using the form above!</p>
+      
+      <div *ngIf="successMessage" class="magic-success-message p-3 rounded-lg mb-4">
+        {{ successMessage }}
+      </div>
+      
+      <div class="flex items-center gap-4">
+        <div class="flex-1">
+          <label for="maskID" class="block magic-text text-sm font-medium mb-2">Mask ID:</label>
+          <input 
+            id="maskID"
+            type="number" 
+            [(ngModel)]="newMaskID" 
+            placeholder="Enter mask ID"
+            class="w-full p-3 magic-input rounded-lg focus:outline-none"
+            min="1"
+            [disabled]="isLoading"
+          />
+        </div>
+        <button 
+          (click)="addMask()" 
+          [disabled]="isLoading || !newMaskID"
+          class="magic-add-button px-6 py-3 rounded-lg transition-all duration-300 disabled:opacity-50"
+        >
+          <span *ngIf="!isLoading">Add Mask</span>
+          <span *ngIf="isLoading">Adding...</span>
+        </button>
+      </div>
     </div>
     
-    <div *ngIf="maskCollection.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      <div 
-        *ngFor="let mask of maskCollection; trackBy: trackByMaskId" 
-        class="mask-card bg-stone-800 rounded-lg border border-stone-600 hover:border-blue-500 transition duration-200 relative overflow-hidden"
-      >
-        <!-- Remove button - Only for Dungeon Master -->
-        <div *ngIf="isDungeonMaster" class="absolute top-2 right-2 z-10">
-          <button 
-            (click)="removeMask(mask.id, mask.maskID)"
-            class="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1 rounded"
-            title="Remove from collection"
-          >
-            ✕
-          </button>
-        </div>
-        
-        <!-- Card Content -->
-        <div class="p-4">
-          <!-- Mask Image - Full Width at Top -->
-          <div class="w-full mb-4">
-            <ng-container *ngIf="getMaskDetail(mask.maskID); let maskDetail">
-              <img 
-                [src]="maskDetail.photo || 'assets/images/placeholder-mask.png'" 
-                [alt]="'Mask ' + mask.maskID"
-                class="w-full h-48 object-cover rounded-lg"
-                (error)="onImageError($event)"
-              />
-            </ng-container>
-            <ng-container *ngIf="!getMaskDetail(mask.maskID)">
-              <img 
-                src="assets/images/placeholder-mask.png" 
-                [alt]="'Mask ' + mask.maskID"
-                class="w-full h-48 object-cover rounded-lg"
-              />
-            </ng-container>
-          </div>
-          <!-- Mask ID - Centered -->
-          <div class="text-blue-400 text-lg font-bold mb-4 text-center">
-            Mask ID: {{ mask.maskID }}
+    <div *ngIf="isLoading && maskCollection.length === 0" class="text-center magic-text">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      <p class="mt-2">Loading mask collection...</p>
+    </div>
+    
+    <div *ngIf="!isLoading || maskCollection.length > 0" class="masks-grid">
+      <div *ngIf="maskCollection.length === 0 && !isLoading" class="text-center magic-text-secondary py-8">
+        <p class="text-xl">No masks in collection yet.</p>
+        <p class="magic-text-secondary">Add your first mask using the form above!</p>
+      </div>
+      
+      <div *ngIf="maskCollection.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div 
+          *ngFor="let mask of maskCollection; trackBy: trackByMaskId" 
+          class="magic-mask-card magic-border-subtle rounded-2xl transition-all duration-300 relative overflow-hidden shadow-2xl hover:shadow-blue-500/20"
+        >
+          <!-- Remove button - Only for Dungeon Master -->
+          <div *ngIf="isDungeonMaster" class="absolute top-2 right-2 z-10">
+            <button 
+              (click)="removeMask(mask.id, mask.maskID)"
+              class="magic-remove-button text-xs px-2 py-1 rounded transition-all duration-300"
+              title="Remove from collection"
+            >
+              ✕
+            </button>
           </div>
           
-          <!-- Mask Stats - Two Columns -->
-          <ng-container *ngIf="getMaskDetail(mask.maskID); let maskDetail">
-            <div class="grid grid-cols-2 gap-3 text-sm">
-              <div class="flex flex-col items-center p-2 bg-stone-700 rounded">
-                <span class="text-xs text-gray-400 uppercase mb-1">Health</span>
-                <span class="text-green-400 font-bold text-lg">{{ maskDetail.health }}</span>
-              </div>
-              <div class="flex flex-col items-center p-2 bg-stone-700 rounded">
-                <span class="text-xs text-gray-400 uppercase mb-1">Speed</span>
-                <span class="text-yellow-400 font-bold text-lg">{{ maskDetail.speed }}</span>
-              </div>
-              <div class="flex flex-col items-center p-2 bg-stone-700 rounded">
-                <span class="text-xs text-gray-400 uppercase mb-1">Attack</span>
-                <span class="text-red-400 font-bold text-lg">{{ maskDetail.attackDamage }}</span>
-              </div>
-              <div class="flex flex-col items-center p-2 bg-stone-700 rounded">
-                <span class="text-xs text-gray-400 uppercase mb-1">Ability</span>
-                <span class="text-purple-400 font-bold text-lg">{{ maskDetail.abilityDamage }}</span>
-              </div>
-              <div class="flex flex-col items-center p-2 bg-stone-700 rounded">
-                <span class="text-xs text-gray-400 uppercase mb-1">Protections</span>
-                <span class="text-blue-400 font-bold text-lg">{{ maskDetail.protections }}</span>
-              </div>
-              <div class="flex flex-col items-center p-2 bg-stone-700 rounded">
-                <span class="text-xs text-gray-400 uppercase mb-1">Magic Resist</span>
-                <span class="text-cyan-400 font-bold text-lg">{{ maskDetail.magicResist }}</span>
-              </div>
+          <!-- Card Content -->
+          <div class="p-4">
+            <!-- Mask Image - Full Width at Top -->
+            <div class="w-full mb-4">
+              <ng-container *ngIf="getMaskDetail(mask.maskID); let maskDetail">
+                <div class="magic-image-container rounded-lg overflow-hidden">
+                  <img 
+                    [src]="maskDetail.photo || 'assets/images/placeholder-mask.png'" 
+                    [alt]="'Mask ' + mask.maskID"
+                    class="w-full h-48 object-contain"
+                    (error)="onImageError($event)"
+                  />
+                </div>
+              </ng-container>
+              <ng-container *ngIf="!getMaskDetail(mask.maskID)">
+                <div class="magic-image-container rounded-lg overflow-hidden">
+                  <img 
+                    src="assets/images/placeholder-mask.png" 
+                    [alt]="'Mask ' + mask.maskID"
+                    class="w-full h-48 object-contain"
+                  />
+                </div>
+              </ng-container>
             </div>
-          </ng-container>
-          
-          <!-- Show message if mask details not found -->
-          <div *ngIf="!getMaskDetail(mask.maskID)" class="text-red-400 text-sm text-center">
-            Mask details not found
+            <!-- Mask ID - Centered -->
+            <div class="magic-text text-lg font-bold mb-4 text-center">
+              Mask ID: {{ mask.maskID }}
+            </div>
+            
+            <!-- Mask Stats - Two Columns -->
+            <ng-container *ngIf="getMaskDetail(mask.maskID); let maskDetail">
+              <div class="grid grid-cols-2 gap-3 text-sm">
+                <div class="flex flex-col items-center p-2 magic-stat-mini rounded-lg">
+                  <span class="text-xs magic-text-secondary uppercase mb-1">Health</span>
+                  <span class="text-green-400 font-bold text-lg">{{ maskDetail.health }}</span>
+                </div>
+                <div class="flex flex-col items-center p-2 magic-stat-mini rounded-lg">
+                  <span class="text-xs magic-text-secondary uppercase mb-1">Speed</span>
+                  <span class="text-yellow-400 font-bold text-lg">{{ maskDetail.speed }}</span>
+                </div>
+                <div class="flex flex-col items-center p-2 magic-stat-mini rounded-lg">
+                  <span class="text-xs magic-text-secondary uppercase mb-1">Attack</span>
+                  <span class="text-red-400 font-bold text-lg">{{ maskDetail.attackDamage }}</span>
+                </div>
+                <div class="flex flex-col items-center p-2 magic-stat-mini rounded-lg">
+                  <span class="text-xs magic-text-secondary uppercase mb-1">Ability</span>
+                  <span class="text-purple-400 font-bold text-lg">{{ maskDetail.abilityDamage }}</span>
+                </div>
+                <div class="flex flex-col items-center p-2 magic-stat-mini rounded-lg">
+                  <span class="text-xs magic-text-secondary uppercase mb-1">Protections</span>
+                  <span class="text-blue-400 font-bold text-lg">{{ maskDetail.protections }}</span>
+                </div>
+                <div class="flex flex-col items-center p-2 magic-stat-mini rounded-lg">
+                  <span class="text-xs magic-text-secondary uppercase mb-1">Magic Resist</span>
+                  <span class="text-cyan-400 font-bold text-lg">{{ maskDetail.magicResist }}</span>
+                </div>
+              </div>
+            </ng-container>
+            
+            <!-- Show message if mask details not found -->
+            <div *ngIf="!getMaskDetail(mask.maskID)" class="text-red-400 text-sm text-center">
+              Mask details not found
+            </div>
           </div>
         </div>
       </div>

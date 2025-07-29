@@ -1,20 +1,22 @@
-<div class="bg-stone-900 rounded-xl border border-stone-700 p-4">
+<div class="magic-family-container-transparent">
   <div class="max-w-6xl mx-auto px-6">
     <!-- Header -->
     <div class="mb-8 text-center">
-      <h1 class="text-4xl font-bold text-blue-800 mb-2">Family</h1>
-      <p class="text-gray-300">Your character's family members</p>
+      <h1 class="text-4xl font-bold magic-text mb-2">Family</h1>
+      <p class="magic-text-secondary">Your character's family members</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div *ngFor="let character of Characters" class="bg-gray-900 rounded-lg border border-gray-700 shadow-lg overflow-hidden hover:border-blue-500 transition duration-200">
-            <div class="p-6">
-                <div class="text-center">
-                    <div class="mb-4 flex items-center justify-center">
-                        <img [src]="character.photo" alt="{{ character.characterName }}" class="h-32 w-32 object-cover rounded-lg border-2 border-gray-600">
+        <div *ngFor="let character of Characters" class="magic-character-card rounded-2xl magic-border-subtle shadow-2xl overflow-hidden transition-all duration-300">
+            <div class="p-6 h-full flex flex-col">
+                <div class="flex-1 flex items-center justify-center mb-4">
+                    <div class="magic-image-container rounded-xl overflow-hidden" style="width: 100%; max-width: 200px; aspect-ratio: auto; min-height: 150px;">
+                        <img [src]="character.photo" alt="{{ character.characterName }}" class="w-full h-full object-contain">
                     </div>
-                    <h2 class="text-2xl font-bold text-blue-800 mb-2">{{ character.characterName }}</h2>
-                    <p class="text-gray-300">Race: {{ character.race }}</p>
+                </div>
+                <div class="text-center mt-auto">
+                    <h2 class="text-2xl font-bold magic-text mb-2">{{ character.characterName }}</h2>
+                    <p class="magic-text-secondary">Race: {{ character.race }}</p>
                 </div>
             </div>
         </div>    

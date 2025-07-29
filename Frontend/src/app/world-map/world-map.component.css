@@ -1,19 +1,636 @@
-.toggleButton {
-    position: relative;
-    width: 40px;
-    height: 20px;
-    display: inline-block;
+/* Main container styles */
+.world-map-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+/* Map Toggle Styles */
+.map-toggle-container {
+  position: relative;
+  z-index: 3;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.toggle-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.95) 0%,
+    rgba(30, 41, 59, 0.95) 50%,
+    rgba(51, 65, 85, 0.95) 100%
+  );
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 
+    0 8px 25px -5px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+
+.map-label {
+  color: #94a3b8;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.map-label.active {
+  color: #3b82f6;
+  text-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+/* Magic Switch Styles */
+.magic-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 32px;
+}
+
+.magic-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.magic-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+  transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 34px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.magic-slider:before {
+  position: absolute;
+  content: "";
+  height: 24px;
+  width: 24px;
+  left: 4px;
+  bottom: 4px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.magic-switch input:checked + .magic-slider {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.2),
+    0 0 16px rgba(59, 130, 246, 0.4);
+}
+
+.magic-switch input:checked + .magic-slider:before {
+  transform: translateX(28px);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+}
+
+/* Map Container Styles */
+.map-container {
+  position: relative;
+  z-index: -1; /* Negative z-index to ensure it's below everything */
+  width: 80%;
+  max-width: 1200px;
+  margin: 0 auto 2rem auto;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(59, 130, 246, 0.2);
+  animation: fadeIn 1s ease-out;
+  /* Prevent any visual overflow that might affect buttons */
+  clip-path: inset(0);
+}
+
+.map-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.3s ease;
+  transform-origin: 100% center; /* Scale from far right to avoid left-side buttons completely */
+}
+
+.map-image:hover {
+  /* Temporarily disable all hover effects to prevent button overlap */
+  transform: none;
+}
+
+/* Completely disable map scaling effect to prevent button interference */
+@media (max-width: 1024px) {
+  .map-image:hover {
+    transform: none; /* Disable hover effect on smaller screens where buttons are more likely to be affected */
+  }
+}
+
+/* Prevent map hover effect in button area */
+.world-map-container::after {
+  content: '';
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 150px;
+  height: 200px;
+  z-index: 1001;
+  pointer-events: none;
+}
+
+/* Clock Panel Styles */
+.clock-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.95) 0%,
+    rgba(30, 41, 59, 0.95) 50%,
+    rgba(51, 65, 85, 0.95) 100%
+  );
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 
+    0 8px 25px -5px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(59, 130, 246, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.clock-panel.desktop {
+  position: fixed;
+  left: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+.clock-panel.mobile {
+  position: relative;
+  z-index: 3;
+  width: 90%;
+  max-width: 400px;
+  margin-bottom: 2rem;
+}
+
+.celestial-icon-container {
+  position: relative;
+  width: 4rem;
+  height: 4rem;
+}
+
+.celestial-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.7s ease-in-out;
+}
+
+.icon-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.sun-icon .icon-svg {
+  color: #fbbf24;
+  filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.5));
+}
+
+.moon-icon .icon-svg {
+  color: #93c5fd;
+  filter: drop-shadow(0 0 8px rgba(147, 197, 253, 0.5));
+}
+
+.time-display {
+  color: #3b82f6;
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-family: 'Digital-7', 'Orbitron', 'Courier New', monospace;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 16px rgba(59, 130, 246, 0.5);
+  margin: 0;
+}
+
+.day-display {
+  color: #3b82f6;
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-family: 'Dancing Script', 'Pacifico', cursive;
+  letter-spacing: 0.025em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin: 0;
+}
+
+.time-controls {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.time-btn {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  border: none;
+  border-radius: 50%;
+  color: #000;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.time-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+}
+
+.time-btn:active {
+  transform: translateY(0);
+}
+
+/* Live Users Panel Styles */
+.live-users-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.95) 0%,
+    rgba(30, 41, 59, 0.95) 50%,
+    rgba(51, 65, 85, 0.95) 100%
+  );
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 
+    0 8px 25px -5px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(59, 130, 246, 0.2);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.live-users-panel.desktop {
+  position: fixed;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 20rem;
+}
+
+.live-users-panel.mobile {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  border-radius: 16px 16px 0 0;
+}
+
+.panel-content {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.panel-title {
+  color: #3b82f6;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 1.5rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.panel-title.mobile {
+  font-size: 1.5rem;
+  margin: 0 0 1rem 0;
+}
+
+.users-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.users-list.mobile {
+  flex-direction: row;
+  overflow-x: auto;
+  gap: 1.5rem;
+  padding: 0.5rem;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.user-item.mobile {
+  flex-direction: column;
+  min-width: 5rem;
+  text-align: center;
+  gap: 0.5rem;
+  padding: 1rem 0.5rem;
+}
+
+.user-item:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.user-item.master {
+  background: rgba(236, 72, 153, 0.1);
+  border-color: rgba(236, 72, 153, 0.3);
+}
+
+.user-item.master:hover {
+  background: rgba(236, 72, 153, 0.2);
+  border-color: rgba(236, 72, 153, 0.5);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
+}
+
+.user-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+.user-avatar.mobile {
+  width: 3rem;
+  height: 3rem;
+}
+
+.user-item.master .user-avatar {
+  border-color: rgba(236, 72, 153, 0.5);
+}
+
+.user-name {
+  color: #3b82f6;
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0;
+  transition: color 0.3s ease;
+}
+
+.user-name.mobile {
+  font-size: 0.8rem;
+}
+
+.user-item.master .user-name {
+  color: #ec4899;
+}
+
+/* Character Modal Styles */
+.character-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease;
+}
+
+.character-modal-content {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.98) 0%,
+    rgba(30, 41, 59, 0.98) 100%
+  );
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 50vw;
+  max-height: 66vh;
+  width: 90%;
+  overflow-y: auto;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(59, 130, 246, 0.3);
+  backdrop-filter: blur(20px);
+  animation: modalSlideIn 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.modal-close-btn:hover {
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.1);
+  transform: scale(1.1);
+}
+
+.character-images {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.character-image {
+  max-height: 50vh;
+  width: auto;
+  height: auto;
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  object-fit: cover;
+  transition: all 0.3s ease;
+}
+
+.character-image.dual {
+  max-width: 45%;
+}
+
+.character-image.single {
+  max-width: 60%;
+}
+
+.character-image:hover {
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+}
+
+.character-name {
+  color: #3b82f6;
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin: 0;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .world-map-container {
+    padding: 1rem;
   }
   
-.toggleButton input {
-    display: none;
+  .map-container {
+    width: 95%;
   }
+  
+  /* Reduce map hover effect on smaller screens to prevent button overlap */
+  .map-image:hover {
+    transform: scaleX(1.005) scaleY(1.005) translateX(-5px); /* Much smaller effect on mobile */
+  }
+  
+  .toggle-content {
+    padding: 0.75rem 1.5rem;
+    gap: 1rem;
+  }
+  
+  .map-label {
+    font-size: 1rem;
+  }
+  
+  .time-display {
+    font-size: 2rem;
+  }
+  
+  .day-display {
+    font-size: 1.25rem;
+  }
+  
+  .panel-title {
+    font-size: 1.5rem;
+  }
+  
+  .character-modal-content {
+    max-width: 95vw;
+    padding: 1.5rem;
+  }
+  
+  .character-name {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .clock-panel.mobile {
+    padding: 1rem;
+  }
+  
+  .time-display {
+    font-size: 1.75rem;
+  }
+  
+  .time-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.25rem;
+  }
+  
+  /* Further reduce map hover effect on very small screens */
+  .map-image:hover {
+    transform: none; /* Disable hover scaling on very small screens */
+  }
+  
+  .character-image.single,
+  .character-image.dual {
+    max-width: 80%;
+  }
+}
+
+/* Legacy styles for compatibility */
+.toggleButton {
+  position: relative;
+  width: 40px;
+  height: 20px;
+  display: inline-block;
+}
+
+.toggleButton input {
+  display: none;
+}
 
 .switch {
   position: relative;
   display: inline-block;
-  width: 40px; /* Reduced width */
-  height: 20px; /* Reduced height */
+  width: 40px;
+  height: 20px;
 }
 
 .switch input {
@@ -36,20 +653,20 @@
 .slider:before {
   position: absolute;
   content: "";
-  height: 16px; /* Reduced height */
-  width: 16px; /* Reduced width */
-  left: 2px; /* Adjusted position */
-  bottom: 2px; /* Adjusted position */
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
   background-color: white;
   transition: .4s;
 }
 
 input:checked + .slider {
-  background-color: #1D4ED8; /* Tailwind blue-700 */
+  background-color: #1D4ED8;
 }
 
 input:checked + .slider:before {
-  transform: translateX(20px); /* Adjusted translation */
+  transform: translateX(20px);
 }
 
 .slider.round {
@@ -61,7 +678,7 @@ input:checked + .slider:before {
 }
 
 span {
-  transition: color 0.4s ease; /* Add transition for color change */
+  transition: color 0.4s ease;
 }
 
 .fade-in {
@@ -69,18 +686,12 @@ span {
   animation: fadeIn 1s forwards;
 }
 
-@keyframes fadeIn {
-  to {
-    opacity: 1;
-  }
-}
-
 .centered-image {
   display: block;
   margin-left: auto;
   margin-right: auto;
   width: 80%;
-  height: auto; /* Maintain aspect ratio */
+  height: auto;
 }
 
 .my-4 {
@@ -88,7 +699,7 @@ span {
   justify-content: center;
   align-items: center;
   width: 100%;
-  max-width: 600px; /* Adjust max-width as needed */
+  max-width: 600px;
   margin: 0 auto;
 }
 
@@ -98,7 +709,7 @@ span {
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none; /* Ensure canvas does not block other interactions */
+  pointer-events: none;
 }
 
 .absolute {
@@ -112,12 +723,15 @@ span {
 .opacity-0 {
   opacity: 0;
 }
+
 .opacity-100 {
   opacity: 1;
 }
+
 .transition-opacity {
   transition: opacity 0.7s;
 }
+
 .duration-700 {
   transition-duration: 0.7s;
 }

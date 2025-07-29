@@ -1,22 +1,129 @@
-<div *ngIf="role === 'Dungeon Master'" class="flex justify-center items-center mb-4">
-  <span [class.text-blue-700]="!isUniversityMap" [class.text-blue-950]="isUniversityMap" class="mr-2">City Map</span>
-  <label class="switch">
-    <input type="checkbox" (change)="toggleMap()">
-    <span class="slider round"></span>
-  </label>
-  <span [class.text-blue-700]="isUniversityMap" [class.text-blue-950]="!isUniversityMap" class="ml-2">University Map</span>
-</div>
+<div class="world-map-container">
+  <div *ngIf="role === 'Dungeon Master'" class="map-toggle-container">
+    <div class="toggle-content">
+      <span class="map-label" [class.active]="!isUniversityMap">City Map</span>
+      <label class="magic-switch">
+        <input type="checkbox" (change)="toggleMap()">
+        <span class="magic-slider"></span>
+      </label>
+      <span class="map-label" [class.active]="isUniversityMap">University Map</span>
+    </div>
+  </div>
 
-<!-- Mobile clock above map -->
-<div *ngIf="isMobile" class="w-full flex justify-center mb-4">
-  <div class="border-2 border-blue-700 rounded-lg bg-stone-950 px-6 py-2 shadow-lg flex flex-col items-center space-y-3 w-full max-w-md">
-    <div class="relative h-16 w-16 mb-2">
+  <!-- Mobile clock above map -->
+  <div *ngIf="isMobile" class="mobile-clock-container">
+    <div class="clock-panel mobile">
+      <div class="celestial-icon-container">
+        <div 
+          class="celestial-icon sun-icon"
+          [style.opacity]="sunOpacity">
+          <!-- Sun SVG Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <circle cx="12" cy="12" r="5" fill="currentColor"/>
+            <g stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="3"/>
+              <line x1="12" y1="21" x2="12" y2="23"/>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+              <line x1="1" y1="12" x2="3" y2="12"/>
+              <line x1="21" y1="12" x2="23" y2="12"/>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </g>
+          </svg>
+        </div>
+        <div 
+          class="celestial-icon moon-icon"
+          [style.opacity]="moonOpacity">
+          <!-- Moon SVG Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon-svg" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 0111.21 3a7 7 0 100 18 9 9 0 009.79-8.21z"/>
+          </svg>
+        </div>
+      </div>
+      <p class="time-display">{{ currentTime }}</p>
+      <div *ngIf="role === 'Dungeon Master'" class="time-controls">
+        <button (click)="decrementHour()" class="time-btn">−</button>
+        <button (click)="incrementHour()" class="time-btn">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="map-container">
+    <img *ngIf="!isUniversityMap" src="https://dungeonlair.ddns.net:443/assets/images/CityMap.jpg" alt="City Map" class="map-image city-map">
+    <img *ngIf="isUniversityMap" src="https://dungeonlair.ddns.net:443/assets/images/UniMap.jpg" alt="University Map" class="map-image uni-map">
+  </div>
+
+  <!-- Desktop floating live users -->
+  <div *ngIf="liveUsers.length > 0 && !isMobile" class="live-users-panel desktop">
+    <div class="panel-content">
+      <h3 class="panel-title">Live Adventurers</h3>
+      <ul class="users-list">
+        <li *ngFor="let user of liveUsers"
+            class="user-item"
+            [ngClass]="{'master': user.username === 'BubbleGumWarior'}"
+            (click)="onUserClick(user, $event)">
+          <img [src]="user.photoPath" alt="User Photo" class="user-avatar"/>
+          <p class="user-name">{{ user.username === 'BubbleGumWarior' ? 'Dungeon Master' : user.username }}</p>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Mobile live users at bottom -->
+  <div *ngIf="liveUsers.length > 0 && isMobile" class="live-users-panel mobile">
+    <div class="panel-content">
+      <h3 class="panel-title mobile">Live Adventurers</h3>
+      <ul class="users-list mobile">
+        <li *ngFor="let user of liveUsers"
+            class="user-item mobile"
+            [ngClass]="{'master': user.username === 'BubbleGumWarior'}"
+            (click)="onUserClick(user, $event)">
+          <img [src]="user.photoPath" alt="User Photo" class="user-avatar mobile"/>
+          <p class="user-name mobile">{{ user.username === 'BubbleGumWarior' ? 'Dungeon Master' : user.username }}</p>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Character info modal -->
+  <div *ngIf="modalVisible && hoveredCharacter" class="character-modal-overlay" (click)="onUserLeave()">
+    <div class="character-modal-content" (click)="$event.stopPropagation()">
+      <button class="modal-close-btn" (click)="onUserLeave()" aria-label="Close">
+        &times;
+      </button>
+      <div class="character-images">
+        <ng-container *ngIf="hoveredCharacter.equippedItemPath !== 'https://dungeonlair.ddns.net:443'; else singleImage">
+          <img *ngIf="hoveredCharacter.characterName"
+            [src]="hoveredCharacter.photo"
+            alt="Character Photo"
+            class="character-image dual"/>
+          <img *ngIf="hoveredCharacter.equippedItemPath"
+            [src]="hoveredCharacter.equippedItemPath"
+            alt="Equipped Item"
+            class="character-image dual"/>
+        </ng-container>
+        <ng-template #singleImage>
+          <img *ngIf="hoveredCharacter.equippedItemPath"
+            [src]="hoveredCharacter.photo"
+            alt="Character Photo"
+            class="character-image single"/>
+        </ng-template>
+      </div>
+      <div class="character-name">
+        {{ hoveredCharacter.characterName }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop floating clock -->
+  <div *ngIf="!isMobile" class="clock-panel desktop">
+    <div class="celestial-icon-container">
       <div 
-        class="absolute inset-0 transition-opacity duration-700"
-        [style.opacity]="sunOpacity"
-        style="will-change: opacity;">
+        class="celestial-icon sun-icon"
+        [style.opacity]="sunOpacity">
         <!-- Sun SVG Icon -->
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <circle cx="12" cy="12" r="5" fill="currentColor"/>
           <g stroke="currentColor" stroke-width="2">
             <line x1="12" y1="1" x2="12" y2="3"/>
@@ -31,132 +138,19 @@
         </svg>
       </div>
       <div 
-        class="absolute inset-0 transition-opacity duration-700"
-        [style.opacity]="moonOpacity"
-        style="will-change: opacity;">
+        class="celestial-icon moon-icon"
+        [style.opacity]="moonOpacity">
         <!-- Moon SVG Icon -->
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-300" fill="currentColor" viewBox="0 0 24 24">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon-svg" fill="currentColor" viewBox="0 0 24 24">
           <path d="M21 12.79A9 9 0 0111.21 3a7 7 0 100 18 9 9 0 009.79-8.21z"/>
         </svg>
       </div>
     </div>
-    <p class="text-blue-700 text-4xl font-mono tracking-widest" style="font-family: 'Digital-7', 'Orbitron', 'Courier New', monospace;">{{ currentTime }}</p>
-    <div *ngIf="role === 'Dungeon Master'" class="flex flex-row space-x-4 mt-2">
-      <button (click)="decrementHour()" class="bg-blue-700 hover:bg-blue-900 text-white rounded-full w-10 h-10 text-2xl flex items-center justify-center" style="line-height: 2.5rem; font-family: inherit; padding: 0;">−</button>
-      <button (click)="incrementHour()" class="bg-blue-700 hover:bg-blue-900 text-white rounded-full w-10 h-10 text-2xl flex items-center justify-center" style="line-height: 2.5rem; font-family: inherit; padding: 0;">+</button>
+    <p class="time-display">{{ currentTime }}</p>
+    <p class="day-display">{{ currentDay }}</p>
+    <div *ngIf="role === 'Dungeon Master'" class="time-controls">
+      <button (click)="decrementHour()" class="time-btn">−</button>
+      <button (click)="incrementHour()" class="time-btn">+</button>
     </div>
-  </div>
-</div>
-
-<div class="relative pb-4">
-  <img *ngIf="!isUniversityMap" src="https://dungeonlair.ddns.net:443/assets/images/CityMap.jpg" alt="City Map" class="fade-in city-map centered-image">
-  <img *ngIf="isUniversityMap" src="https://dungeonlair.ddns.net:443/assets/images/UniMap.jpg" alt="University Map" class="fade-in uni-map centered-image">
-  <!-- <div class="absolute top-0 left-0 flex space-x-2">
-    <img *ngFor="let user of liveUsers" [src]="user.photoPath" alt="User Photo" class="w-8 h-8 rounded-full cursor-pointer">
-  </div> -->
-</div>
-
-<!-- Desktop floating live users -->
-<div *ngIf="liveUsers.length > 0 && !isMobile" class="fixed top-1/2 right-4 transform -translate-y-1/2 border border-blue-700 rounded p-4 w-80 text-center bg-stone-950 shadow-lg">
-  <h3 class="text-blue-700 text-3xl mb-4">Live Users:</h3>
-  
-  <ul>
-    <li *ngFor="let user of liveUsers"
-        class="flex items-center justify-center cursor-pointer"
-        [ngClass]="{'text-pink-500': user.username === 'BubbleGumWarior', 'text-blue-700': user.username !== 'BubbleGumWarior'}"
-        (click)="onUserClick(user, $event)">
-      <img [src]="user.photoPath" alt="User Photo" class="w-8 h-8 mr-2 rounded-full mb-4"/>
-      <p class="mb-4">{{ user.username === 'BubbleGumWarior' ? 'Dungeon Master' : user.username }}</p>
-    </li>
-  </ul>
-</div>
-
-<!-- Mobile live users at bottom -->
-<div *ngIf="liveUsers.length > 0 && isMobile" class="w-full border border-blue-700 rounded-t bg-stone-950 shadow-lg px-4 pb-4 pt-4" style="border-width:2px;">
-  <h3 class="text-blue-700 text-2xl mt-2 mb-2 text-center">Live Users:</h3>
-  <ul class="flex flex-row overflow-x-auto px-2 pb-2">
-    <li *ngFor="let user of liveUsers"
-        class="flex flex-col items-center justify-center cursor-pointer mx-2"
-        [ngClass]="{'text-pink-500': user.username === 'BubbleGumWarior', 'text-blue-700': user.username !== 'BubbleGumWarior'}"
-        (click)="onUserClick(user, $event)">
-      <img [src]="user.photoPath" alt="User Photo" class="w-10 h-10 rounded-full mb-1"/>
-      <p class="text-xs">{{ user.username === 'BubbleGumWarior' ? 'Dungeon Master' : user.username }}</p>
-    </li>
-  </ul>
-</div>
-
-<!-- Modal for character info on hover -->
-<div *ngIf="modalVisible && hoveredCharacter"
-  class="fixed left-1/2 bottom-8 transform -translate-x-1/2 z-50 bg-stone-900 border border-blue-700 rounded-lg shadow-lg p-8 flex flex-col items-center"
-  style="min-width: 33vw; max-width: 50vw; max-height: 66vh; overflow-y: auto;">
-  <button
-    class="absolute top-2 right-2 pr-4 text-blue-700 hover:text-blue-300 text-2xl font-bold focus:outline-none"
-    (click)="onUserLeave()"
-    aria-label="Close"
-    style="z-index: 10;"
-  >&times;</button>
-  <div class="flex items-center justify-center w-full mb-4">
-    <ng-container *ngIf="hoveredCharacter.equippedItemPath !== 'https://dungeonlair.ddns.net:443'; else singleImage">
-      <img *ngIf="hoveredCharacter.characterName"
-        [src]="hoveredCharacter.photo"
-        alt="Character Photo"
-        class="max-h-[50vh] w-auto h-auto mb-0 border border-blue-700 object-cover mr-6 rounded-none"
-        style="max-width: 50%;"/>
-      <img *ngIf="hoveredCharacter.equippedItemPath"
-        [src]="hoveredCharacter.equippedItemPath"
-        alt="Equipped Item"
-        class="max-h-[50vh] w-auto h-auto mb-0 border border-blue-700 object-cover ml-6 rounded-none"
-        style="max-width: 50%;"/>
-    </ng-container>
-    <ng-template #singleImage>
-      <img *ngIf="hoveredCharacter.equippedItemPath"
-        [src]="hoveredCharacter.photo"
-        alt="Character Photo"
-        class="max-h-[50vh] w-auto h-auto mb-0 border border-blue-700 object-cover rounded-none mx-auto"
-        style="max-width: 50%;"/>
-    </ng-template>
-  </div>
-  <div class="text-blue-300 text-2xl font-bold mx-4 text-center">
-    {{ hoveredCharacter.characterName }}
-  </div>
-</div>
-
-<!-- Desktop floating clock -->
-<div *ngIf="!isMobile" class="fixed left-5 top-1/2 transform -translate-y-1/2 border-2 border-blue-700 rounded-lg bg-stone-950 px-6 py-2 shadow-lg flex flex-col items-center space-y-3">
-  <div class="relative h-16 w-16 mb-2">
-    <div 
-      class="absolute inset-0 transition-opacity duration-700"
-      [style.opacity]="sunOpacity"
-      style="will-change: opacity;">
-      <!-- Sun SVG Icon -->
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <circle cx="12" cy="12" r="5" fill="currentColor"/>
-        <g stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="1" x2="12" y2="3"/>
-          <line x1="12" y1="21" x2="12" y2="23"/>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-          <line x1="1" y1="12" x2="3" y2="12"/>
-          <line x1="21" y1="12" x2="23" y2="12"/>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-        </g>
-      </svg>
-    </div>
-    <div 
-      class="absolute inset-0 transition-opacity duration-700"
-      [style.opacity]="moonOpacity"
-      style="will-change: opacity;">
-      <!-- Moon SVG Icon -->
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-300" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M21 12.79A9 9 0 0111.21 3a7 7 0 100 18 9 9 0 009.79-8.21z"/>
-      </svg>
-    </div>
-  </div>
-  <p class="text-blue-700 text-4xl font-mono tracking-widest" style="font-family: 'Digital-7', 'Orbitron', 'Courier New', monospace;">{{ currentTime }}</p>
-  <p class="text-blue-700 text-2xl tracking-widest" style="font-family: 'Dancing Script', 'Pacifico', 'Segoe Script', 'Comic Sans MS', cursive;">{{ currentDay }}</p>
-  <div *ngIf="role === 'Dungeon Master'" class="flex flex-row space-x-4 mt-2">
-    <button (click)="decrementHour()" class="bg-blue-700 hover:bg-blue-900 text-white rounded-full w-10 h-10 text-2xl flex items-center justify-center" style="line-height: 2.5rem; font-family: inherit; padding: 0;">−</button>
-    <button (click)="incrementHour()" class="bg-blue-700 hover:bg-blue-900 text-white rounded-full w-10 h-10 text-2xl flex items-center justify-center" style="line-height: 2.5rem; font-family: inherit; padding: 0;">+</button>
   </div>
 </div>

@@ -1,60 +1,60 @@
 <div *ngIf="!isOpen" class="fixed bottom-4 left-4 mb-0">
   <button
-    [ngClass]="{'bg-red-500': isNewMessage, 'bg-blue-800': !isNewMessage}"
-    class="chat-button p-3 w-12 h-12 text-black rounded-full shadow-lg hover:bg-blue-900 transition duration-200"
+    [ngClass]="{'magic-button-alert': isNewMessage, 'magic-button': !isNewMessage}"
+    class="chat-button p-3 w-12 h-12 rounded-full transition-all duration-300"
     (click)="toggleChat()"
   >
-    <i class="fas fa-comment"></i>
+    <i class="fas fa-comment text-xl"></i>
   </button>
 </div>
 
-<div *ngIf="isOpen" [ngClass]="{'w-1/3 h-1/2': !isMobile, 'w-3/4 h-3/4': isMobile}" class="chat-modal fixed bottom-4 left-20 bg-stone-950 shadow-lg rounded-lg border border-blue-800">
-  <div class="absolute -left-4 bottom-6 w-0 h-0 border-t-8 border-b-8 border-r-8 border-t-transparent border-b-transparent border-r-stone-950"></div>
-  <div class="p-4 h-full">
-    <div class="flex justify-between items-center mb-2">
-      <h2 class="font-bold text-blue-800">Chat</h2>
+<div *ngIf="isOpen" [ngClass]="{'w-1/3 h-1/2': !isMobile, 'w-11/12 h-5/6': isMobile}" class="chat-modal fixed magic-panel shadow-2xl rounded-2xl border-magic" [ngStyle]="{'bottom': !isMobile ? '16px' : '8px', 'left': !isMobile ? '80px' : '50%', 'transform': isMobile ? 'translateX(-50%)' : 'none'}">
+  <div class="magic-arrow"></div>
+  <div class="p-6 h-full flex flex-col">
+    <div class="flex justify-between items-center mb-4 flex-shrink-0">
+      <h2 class="font-bold text-2xl magic-text">Chat</h2>
       <div class="flex items-center">
-        <p class="mr-2 text-blue-800">Public Rolls</p>
-        <label class="toggleButton">
+        <p class="mr-3 magic-text-secondary">Public Rolls</p>
+        <label class="magic-switch">
           <input type="checkbox" [checked]="isPublicRollsEnabled" (change)="togglePublicRolls()">
-          <div class="toggle-slider"></div>
+          <div class="magic-slider"></div>
         </label>        
       </div>
     </div>
-    <div #scrollContainer class="chat-history h-5/6 overflow-y-auto border-b border-black mb-2">
-      <div *ngFor="let chat of chatHistory" class="mb-1">
+    <div #scrollContainer class="chat-history magic-scrollbar flex-1 overflow-y-auto border-b border-magic-subtle mb-4 min-h-0">
+      <div *ngFor="let chat of chatHistory" class="mb-2">
         <div 
           class="relative w-full flex"
           [ngClass]="{'justify-end': chat.username === 'System'}"
         >
           <div 
-            class="message p-2 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 inline-block break-words"
+            class="message p-3 magic-message-bg inline-block break-words rounded-lg"
             [ngClass]="[
               isMobile ? 'max-w-[90%]' : 'max-w-[70%]',
-              chat.username === 'System' ? 'ml-4 mr-0' : 'mr-4'
+              chat.username === 'System' ? 'ml-4 mr-3' : 'mr-4'
             ]"
             style="min-width: 4rem;"
           >
             <div>
               <ng-container *ngIf="chat.username.startsWith('Photo - '); else normalSender">
-                <span class="block underline font-bold">{{ chat.username.split('Photo - ')[1] }}</span>
+                <span class="block underline font-bold magic-text">{{ chat.username.split('Photo - ')[1] }}</span>
               </ng-container>
               <ng-template #normalSender>
-                <span class="block underline font-bold">{{ chat.username }}</span>
+                <span class="block underline font-bold magic-text">{{ chat.username }}</span>
               </ng-template>
             </div>
             <ng-container *ngIf="chat.username.startsWith('Photo - '); else normalMessage">
               <img 
                 [src]="'https://dungeonlair.ddns.net:443' + chat.message"
                 alt="Photo Message"
-                class="max-h-40 w-auto rounded border border-blue-700 my-2"
+                class="max-h-40 w-auto rounded border border-magic-accent my-2"
               />
             </ng-container>
             <ng-template #normalMessage>
-              {{ chat.message }}
+              <span class="magic-text-content">{{ chat.message }}</span>
             </ng-template>
             <div class="flex justify-end">
-              <span class="text-xs text-gray-500 whitespace-nowrap mt-1 block flex items-center">
+              <span class="text-xs magic-text-muted whitespace-nowrap mt-2 flex items-center">
                 <i class="fas fa-arrow-right mr-1"></i>
                 {{ chat.timestamp | date:'yyyy-MM-dd HH:mm' }}
               </span>
@@ -63,21 +63,19 @@
         </div>
       </div>
     </div>
-    <form (ngSubmit)="sendMessage()" class="flex w-full">
+    <form (ngSubmit)="sendMessage()" class="flex w-full gap-3 flex-shrink-0">
       <input
         type="text"
         placeholder="Type a message..."
         [(ngModel)]="messageValue"  
         name="message" 
-        class="flex-1 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 rounded p-2 mr-2 text-black placeholder-black"
+        class="flex-1 magic-input rounded-lg p-3 placeholder-magic-placeholder"
         autocomplete="off"
-        [ngClass]="{'mr-2': !isMobile, 'mr-1': isMobile}"
       />
-      <button type="submit" class="send-button bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-black rounded p-2"
-        [ngClass]="{'p-2': !isMobile, 'p-1': isMobile}">
+      <button type="submit" class="magic-button-primary rounded-lg px-4 py-3 font-semibold transition-all duration-300">
         Send
       </button>
-      <label class="ml-2 cursor-pointer flex items-center text-blue-700">
+      <label class="cursor-pointer flex items-center magic-upload-button p-3 rounded-lg transition-all duration-300">
         <i class="fas fa-upload"></i>
         <input type="file" accept="image/*" (change)="onImageUpload($event)" class="hidden" />
       </label>

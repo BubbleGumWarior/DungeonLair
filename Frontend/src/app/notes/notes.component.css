@@ -1,0 +1,171 @@
+/* Magic Notes Container - Transparent to use home background */
+.magic-notes-container-transparent {
+  padding: 1.5rem;
+  /* No background - uses home component background */
+}
+
+/* Magic Text Styles */
+.magic-text {
+  color: #3b82f6;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.magic-text-secondary {
+  color: #94a3b8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.magic-border-subtle {
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 
+    0 8px 25px -5px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+
+/* Magic Add Note Button */
+.magic-add-note-button {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #1e3a8a 100%);
+  color: white;
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.magic-add-note-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  opacity: 0.9;
+}
+
+/* Magic Note Card */
+.magic-note-card {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.9) 0%,
+    rgba(30, 41, 59, 0.9) 50%,
+    rgba(51, 65, 85, 0.9) 100%
+  );
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+.magic-note-card:hover {
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(59, 130, 246, 0.4),
+    0 8px 25px rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Magic Modal */
+.magic-modal {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.95) 0%,
+    rgba(30, 41, 59, 0.95) 50%,
+    rgba(51, 65, 85, 0.95) 100%
+  );
+  backdrop-filter: blur(20px);
+}
+
+/* Magic Input */
+.magic-input {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.8) 0%,
+    rgba(30, 41, 59, 0.8) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #3b82f6;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.magic-input::placeholder {
+  color: #64748b;
+}
+
+.magic-input:focus {
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Magic Textarea */
+.magic-textarea {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.8) 0%,
+    rgba(30, 41, 59, 0.8) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #3b82f6;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.magic-textarea:focus {
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Magic Submit Button */
+.magic-submit-button {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #1e3a8a 100%);
+  color: white;
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.magic-submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  opacity: 0.9;
+}
+
+/* Magic Cancel Button */
+.magic-cancel-button {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.1) 0%,
+    rgba(37, 99, 235, 0.1) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #3b82f6;
+  backdrop-filter: blur(10px);
+}
+
+.magic-cancel-button:hover {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: #000;
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Magic Close Button */
+.magic-close-button {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #1e3a8a 100%);
+  color: white;
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.magic-close-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  opacity: 0.9;
+}
+
+/* Magic Delete Icon */
+.magic-delete-icon {
+  color: #ef4444;
+  transition: all 0.3s ease;
+}
+
+.magic-delete-icon:hover {
+  color: #dc2626;
+  transform: scale(1.1);
+  text-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}

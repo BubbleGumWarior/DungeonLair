@@ -1,41 +1,53 @@
-<div class="bg-stone-900 rounded-xl border border-stone-700 p-4">
+<div class="magic-skills-container-transparent">
   <div class="max-w-6xl mx-auto px-6">
     <!-- Header -->
     <div class="mb-8 text-center">
-      <h1 class="text-4xl font-bold text-blue-800 mb-2">Skills</h1>
-      <p class="text-gray-300">Your character's abilities and skills</p>
+      <h1 class="text-4xl font-bold magic-text mb-2">Skills</h1>
+      <p class="magic-text-secondary">Your character's abilities and skills</p>
     </div>
 
     <!-- Search and Filters -->
-    <div class="mb-6 bg-gray-900 rounded-lg p-6 border border-gray-700">
-      <input type="text" [(ngModel)]="searchQuery" placeholder="Search skills..." class="w-full p-3 mb-4 border border-blue-800 rounded-lg bg-stone-800 text-blue-300 placeholder-gray-400 focus:outline-none focus:border-blue-600">
-      <div class="flex space-x-3">
-        <button (click)="setSortCriteria('alphabetically')" [class.bg-blue-800]="sortCriteria === 'alphabetically'" [class.text-white]="sortCriteria === 'alphabetically'" class="px-4 py-2 border border-blue-800 rounded-lg text-blue-300 hover:bg-blue-800 hover:text-white transition-colors">Alphabetically</button>
-        <button (click)="setSortCriteria('diceRoll')" [class.bg-blue-800]="sortCriteria === 'diceRoll'" [class.text-white]="sortCriteria === 'diceRoll'" class="px-4 py-2 border border-blue-800 rounded-lg text-blue-300 hover:bg-blue-800 hover:text-white transition-colors">Damage</button>
-        <button (click)="setSortCriteria('mainStat')" [class.bg-blue-800]="sortCriteria === 'mainStat'" [class.text-white]="sortCriteria === 'mainStat'" class="px-4 py-2 border border-blue-800 rounded-lg text-blue-300 hover:bg-blue-800 hover:text-white transition-colors">Stat Modifier</button>
+    <div class="mb-6 magic-panel magic-border-subtle rounded-2xl p-6">
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Search skills..." class="w-full p-3 mb-4 magic-input rounded-lg focus:outline-none">
+      <div class="flex flex-wrap gap-3">
+        <button 
+          (click)="setSortCriteria('alphabetically')" 
+          [class]="sortCriteria === 'alphabetically' ? 'magic-button-active' : 'magic-button'" 
+          class="px-4 py-2 rounded-lg transition-all duration-300 whitespace-nowrap"
+        >Alphabetically</button>
+        <button 
+          (click)="setSortCriteria('diceRoll')" 
+          [class]="sortCriteria === 'diceRoll' ? 'magic-button-active' : 'magic-button'"
+          class="px-4 py-2 rounded-lg transition-all duration-300 whitespace-nowrap"
+        >Damage</button>
+        <button 
+          (click)="setSortCriteria('mainStat')" 
+          [class]="sortCriteria === 'mainStat' ? 'magic-button-active' : 'magic-button'"
+          class="px-4 py-2 rounded-lg transition-all duration-300 whitespace-nowrap"
+        >Stat Modifier</button>
       </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div *ngFor="let skill of filteredSkills" 
-            class="bg-gray-900 rounded-lg border border-gray-700 shadow-lg p-6 hover:border-blue-500 transition duration-200">
+            class="magic-skill-card magic-border-subtle rounded-2xl shadow-2xl p-6 transition-all duration-300 hover:shadow-blue-500/20">
             
             <!-- Top content -->
             <div class="text-center mb-6">
-                <h2 class="text-2xl font-bold text-blue-800 mb-3">{{ skill.skillName }}</h2>                         
-                <p class="text-lg text-blue-300 mb-2">Stat Modifier: {{ skill.mainStat }}</p> 
-                <p class="text-gray-300 text-sm">{{ skill.description }}</p>       
+                <h2 class="text-2xl font-bold magic-text mb-3">{{ skill.skillName }}</h2>                         
+                <p class="text-lg magic-text-bright mb-2">Stat Modifier: {{ skill.mainStat }}</p> 
+                <p class="magic-text-secondary text-sm">{{ skill.description }}</p>       
             </div>
 
             <!-- Spacer to push content to the bottom -->
             <div class="flex-grow"></div>
 
             <!-- Bottom content -->
-            <div class="text-center bg-stone-800 p-4 rounded-lg">
-                <p class="text-lg font-semibold text-blue-300 mb-2">Damage</p>    
-                <div class="flex justify-center items-center space-x-2 hover:text-blue-200 cursor-pointer transition-colors" (click)="rollDice($event)">
-                    <p class="text-2xl font-bold text-blue-300">d{{ skill.diceRoll }}</p>
-                    <p class="text-2xl font-bold text-blue-300">{{ skill.modifier }}</p>
+            <div class="text-center magic-stat-card p-4 rounded-lg">
+                <p class="text-lg font-semibold magic-text mb-2">Damage</p>    
+                <div class="flex justify-center items-center space-x-2 magic-clickable-stat cursor-pointer transition-all duration-300 px-4 py-2 rounded-lg" (click)="rollDice($event)">
+                    <p class="text-2xl font-bold magic-text-bright">d{{ skill.diceRoll }}</p>
+                    <p class="text-2xl font-bold magic-text-bright">{{ skill.modifier }}</p>
                 </div>
             </div>            
         </div>    

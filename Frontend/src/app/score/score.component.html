@@ -1,52 +1,52 @@
-<div class="bg-stone-900 rounded-xl border border-stone-700 p-4">
+<div class="magic-score-container-transparent">
   <div class="max-w-6xl mx-auto px-6">
     <!-- Header -->
     <div class="mb-8 text-center">
-      <h1 class="text-4xl font-bold text-blue-800 mb-2">Scores</h1>
-      <p class="text-gray-300">Player scores and achievements</p>
+      <h1 class="text-4xl font-bold magic-text mb-2">Scores</h1>
+      <p class="magic-text-secondary">Player scores and achievements</p>
     </div>
 
     <!-- Desktop Table -->
-    <div class="bg-gray-900 rounded-lg shadow-lg overflow-hidden" *ngIf="!isMobile">
+    <div class="magic-table-panel magic-border-subtle rounded-2xl shadow-2xl overflow-hidden" *ngIf="!isMobile">
       <table class="w-full">
-        <thead class="bg-gray-800">
+        <thead class="magic-table-header">
           <tr>
-            <th class="p-4 text-2xl font-bold text-blue-300 text-left">Character Name</th>
-            <th class="p-4 text-2xl font-bold text-blue-300 text-center">Wishes</th>
-            <th class="p-4 text-2xl font-bold text-blue-300 text-center">Anti-Wishes</th>
-            <th class="p-4 text-2xl font-bold text-blue-300 text-center">Inspiration</th>
-            <th class="p-4 text-2xl font-bold text-blue-300 text-center">Discouragement</th>
+            <th class="p-4 text-2xl font-bold magic-text text-left">Character Name</th>
+            <th class="p-4 text-2xl font-bold magic-text text-center">Wishes</th>
+            <th class="p-4 text-2xl font-bold magic-text text-center">Anti-Wishes</th>
+            <th class="p-4 text-2xl font-bold magic-text text-center">Inspiration</th>
+            <th class="p-4 text-2xl font-bold magic-text text-center">Discouragement</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-700">
-          <tr *ngFor="let score of scores" class="hover:bg-gray-800 transition-colors" [ngClass]="{'bg-blue-900': score.characterName === characterName}">
-            <td class="p-4 text-white font-medium">{{ score.characterName }}</td>
+        <tbody class="magic-table-body">
+          <tr *ngFor="let score of scores" class="magic-table-row transition-all duration-300" [ngClass]="{'magic-current-character': score.characterName === characterName}">
+            <td class="p-4 magic-text font-medium">{{ score.characterName }}</td>
             <td class="p-4 text-center">
               <div class="flex items-center justify-center space-x-2">
-                <button *ngIf="role === 'Dungeon Master'" class="px-3 py-1 rounded-full text-white bg-red-600 hover:bg-red-700 transition-colors" (click)="decrementScore(score.characterName, 'wishes')">-</button>
-                <span class="text-white font-bold text-lg">{{ score.wishes }}</span>
-                <button *ngIf="role === 'Dungeon Master'" class="px-3 py-1 rounded-full text-white bg-green-600 hover:bg-green-700 transition-colors" (click)="incrementScore(score.characterName, 'wishes')">+</button>
+                <button *ngIf="role === 'Dungeon Master'" class="magic-decrement-button px-3 py-1 rounded-full transition-all duration-300" (click)="decrementScore(score.characterName, 'wishes')">-</button>
+                <span class="magic-text-bright font-bold text-lg">{{ score.wishes }}</span>
+                <button *ngIf="role === 'Dungeon Master'" class="magic-increment-button px-3 py-1 rounded-full transition-all duration-300" (click)="incrementScore(score.characterName, 'wishes')">+</button>
               </div>
             </td>
             <td class="p-4 text-center">
               <div class="flex items-center justify-center space-x-2">
-                <button *ngIf="role === 'Dungeon Master'" class="px-3 py-1 rounded-full text-white bg-red-600 hover:bg-red-700 transition-colors" (click)="decrementScore(score.characterName, 'antiWishes')">-</button>
-                <span class="text-white font-bold text-lg">{{ score.antiWishes }}</span>
-                <button *ngIf="role === 'Dungeon Master'" class="px-3 py-1 rounded-full text-white bg-green-600 hover:bg-green-700 transition-colors" (click)="incrementScore(score.characterName, 'antiWishes')">+</button>
+                <button *ngIf="role === 'Dungeon Master'" class="magic-decrement-button px-3 py-1 rounded-full transition-all duration-300" (click)="decrementScore(score.characterName, 'antiWishes')">-</button>
+                <span class="magic-text-bright font-bold text-lg">{{ score.antiWishes }}</span>
+                <button *ngIf="role === 'Dungeon Master'" class="magic-increment-button px-3 py-1 rounded-full transition-all duration-300" (click)="incrementScore(score.characterName, 'antiWishes')">+</button>
               </div>
             </td>
             <td class="p-4 text-center">
               <div class="flex items-center justify-center space-x-2">
-                <button *ngIf="role === 'Dungeon Master'" class="px-3 py-1 rounded-full text-white bg-red-600 hover:bg-red-700 transition-colors" (click)="decrementScore(score.characterName, 'inspiration')">-</button>
-                <span class="text-white font-bold text-lg">{{ score.inspiration }}</span>
-                <button *ngIf="role === 'Dungeon Master'" class="px-3 py-1 rounded-full text-white bg-green-600 hover:bg-green-700 transition-colors" (click)="incrementScore(score.characterName, 'inspiration')">+</button>
+                <button *ngIf="role === 'Dungeon Master'" class="magic-decrement-button px-3 py-1 rounded-full transition-all duration-300" (click)="decrementScore(score.characterName, 'inspiration')">-</button>
+                <span class="magic-text-bright font-bold text-lg">{{ score.inspiration }}</span>
+                <button *ngIf="role === 'Dungeon Master'" class="magic-increment-button px-3 py-1 rounded-full transition-all duration-300" (click)="incrementScore(score.characterName, 'inspiration')">+</button>
               </div>
             </td>
             <td class="p-4 text-center">
               <div class="flex items-center justify-center space-x-2">
-                <button *ngIf="role === 'Dungeon Master'" class="px-3 py-1 rounded-full text-white bg-red-600 hover:bg-red-700 transition-colors" (click)="decrementScore(score.characterName, 'discouragement')">-</button>
-                <span class="text-white font-bold text-lg">{{ score.discouragement }}</span>
-                <button *ngIf="role === 'Dungeon Master'" class="px-3 py-1 rounded-full text-white bg-green-600 hover:bg-green-700 transition-colors" (click)="incrementScore(score.characterName, 'discouragement')">+</button>
+                <button *ngIf="role === 'Dungeon Master'" class="magic-decrement-button px-3 py-1 rounded-full transition-all duration-300" (click)="decrementScore(score.characterName, 'discouragement')">-</button>
+                <span class="magic-text-bright font-bold text-lg">{{ score.discouragement }}</span>
+                <button *ngIf="role === 'Dungeon Master'" class="magic-increment-button px-3 py-1 rounded-full transition-all duration-300" (click)="incrementScore(score.characterName, 'discouragement')">+</button>
               </div>
             </td>
           </tr>
@@ -56,43 +56,43 @@
 
     <!-- Mobile Cards -->
     <div *ngIf="isMobile" class="space-y-4">
-      <div *ngFor="let score of scores" class="bg-gray-900 rounded-lg border border-gray-700 p-4 shadow-lg" [ngClass]="{'border-blue-500': score.characterName === characterName}">
-        <div class="text-2xl text-center mb-4 text-blue-800 font-bold">{{ score.characterName }}</div>
+      <div *ngFor="let score of scores" class="magic-score-card magic-border-subtle rounded-2xl p-4 shadow-2xl transition-all duration-300" [ngClass]="{'magic-current-character': score.characterName === characterName}">
+        <div class="text-2xl text-center mb-4 magic-text font-bold">{{ score.characterName }}</div>
         
         <div class="grid grid-cols-2 gap-4">
-          <div class="text-center bg-stone-800 p-3 rounded-lg">
-            <span class="block text-blue-300 font-semibold mb-2">Wishes</span>
+          <div class="text-center magic-stat-mini p-3 rounded-lg">
+            <span class="block magic-text font-semibold mb-2">Wishes</span>
             <div class="flex items-center justify-center space-x-2">
-              <button *ngIf="role === 'Dungeon Master'" class="px-2 py-1 rounded-full text-white bg-red-600 hover:bg-red-700 transition-colors text-sm" (click)="decrementScore(score.characterName, 'wishes')">-</button>
-              <span class="text-white font-bold">{{ score.wishes }}</span>
-              <button *ngIf="role === 'Dungeon Master'" class="px-2 py-1 rounded-full text-white bg-green-600 hover:bg-green-700 transition-colors text-sm" (click)="incrementScore(score.characterName, 'wishes')">+</button>
+              <button *ngIf="role === 'Dungeon Master'" class="magic-decrement-button-small px-2 py-1 rounded-full transition-all duration-300 text-sm" (click)="decrementScore(score.characterName, 'wishes')">-</button>
+              <span class="magic-text-bright font-bold">{{ score.wishes }}</span>
+              <button *ngIf="role === 'Dungeon Master'" class="magic-increment-button-small px-2 py-1 rounded-full transition-all duration-300 text-sm" (click)="incrementScore(score.characterName, 'wishes')">+</button>
             </div>
           </div>
           
-          <div class="text-center bg-stone-800 p-3 rounded-lg">
-            <span class="block text-blue-300 font-semibold mb-2">Anti-Wishes</span>
+          <div class="text-center magic-stat-mini p-3 rounded-lg">
+            <span class="block magic-text font-semibold mb-2">Anti-Wishes</span>
             <div class="flex items-center justify-center space-x-2">
-              <button *ngIf="role === 'Dungeon Master'" class="px-2 py-1 rounded-full text-white bg-red-600 hover:bg-red-700 transition-colors text-sm" (click)="decrementScore(score.characterName, 'antiWishes')">-</button>
-              <span class="text-white font-bold">{{ score.antiWishes }}</span>
-              <button *ngIf="role === 'Dungeon Master'" class="px-2 py-1 rounded-full text-white bg-green-600 hover:bg-green-700 transition-colors text-sm" (click)="incrementScore(score.characterName, 'antiWishes')">+</button>
+              <button *ngIf="role === 'Dungeon Master'" class="magic-decrement-button-small px-2 py-1 rounded-full transition-all duration-300 text-sm" (click)="decrementScore(score.characterName, 'antiWishes')">-</button>
+              <span class="magic-text-bright font-bold">{{ score.antiWishes }}</span>
+              <button *ngIf="role === 'Dungeon Master'" class="magic-increment-button-small px-2 py-1 rounded-full transition-all duration-300 text-sm" (click)="incrementScore(score.characterName, 'antiWishes')">+</button>
             </div>
           </div>
           
-          <div class="text-center bg-stone-800 p-3 rounded-lg">
-            <span class="block text-blue-300 font-semibold mb-2">Inspiration</span>
+          <div class="text-center magic-stat-mini p-3 rounded-lg">
+            <span class="block magic-text font-semibold mb-2">Inspiration</span>
             <div class="flex items-center justify-center space-x-2">
-              <button *ngIf="role === 'Dungeon Master'" class="px-2 py-1 rounded-full text-white bg-red-600 hover:bg-red-700 transition-colors text-sm" (click)="decrementScore(score.characterName, 'inspiration')">-</button>
-              <span class="text-white font-bold">{{ score.inspiration }}</span>
-              <button *ngIf="role === 'Dungeon Master'" class="px-2 py-1 rounded-full text-white bg-green-600 hover:bg-green-700 transition-colors text-sm" (click)="incrementScore(score.characterName, 'inspiration')">+</button>
+              <button *ngIf="role === 'Dungeon Master'" class="magic-decrement-button-small px-2 py-1 rounded-full transition-all duration-300 text-sm" (click)="decrementScore(score.characterName, 'inspiration')">-</button>
+              <span class="magic-text-bright font-bold">{{ score.inspiration }}</span>
+              <button *ngIf="role === 'Dungeon Master'" class="magic-increment-button-small px-2 py-1 rounded-full transition-all duration-300 text-sm" (click)="incrementScore(score.characterName, 'inspiration')">+</button>
             </div>
           </div>
           
-          <div class="text-center bg-stone-800 p-3 rounded-lg">
-            <span class="block text-blue-300 font-semibold mb-2">Discouragement</span>
+          <div class="text-center magic-stat-mini p-3 rounded-lg">
+            <span class="block magic-text font-semibold mb-2">Discouragement</span>
             <div class="flex items-center justify-center space-x-2">
-              <button *ngIf="role === 'Dungeon Master'" class="px-2 py-1 rounded-full text-white bg-red-600 hover:bg-red-700 transition-colors text-sm" (click)="decrementScore(score.characterName, 'discouragement')">-</button>
-              <span class="text-white font-bold">{{ score.discouragement }}</span>
-              <button *ngIf="role === 'Dungeon Master'" class="px-2 py-1 rounded-full text-white bg-green-600 hover:bg-green-700 transition-colors text-sm" (click)="incrementScore(score.characterName, 'discouragement')">+</button>
+              <button *ngIf="role === 'Dungeon Master'" class="magic-decrement-button-small px-2 py-1 rounded-full transition-all duration-300 text-sm" (click)="decrementScore(score.characterName, 'discouragement')">-</button>
+              <span class="magic-text-bright font-bold">{{ score.discouragement }}</span>
+              <button *ngIf="role === 'Dungeon Master'" class="magic-increment-button-small px-2 py-1 rounded-full transition-all duration-300 text-sm" (click)="incrementScore(score.characterName, 'discouragement')">+</button>
             </div>
           </div>
         </div>

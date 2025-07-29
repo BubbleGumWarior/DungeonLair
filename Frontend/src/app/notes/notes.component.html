@@ -1,23 +1,26 @@
-<div class="bg-stone-900 rounded-xl border border-stone-700 p-4">
+<div class="magic-notes-container-transparent">
   <div class="max-w-7xl mx-auto px-6">
     <!-- Header -->
     <div class="mb-8 text-center">
-      <h1 class="text-4xl font-bold text-blue-800 mb-2">Notes</h1>
-      <p class="text-gray-300">Your character's personal notes and memories</p>
+      <h1 class="text-4xl font-bold magic-text mb-2">Notes</h1>
+      <p class="magic-text-secondary">Your character's personal notes and memories</p>
     </div>
 
     <!-- Add Note Button -->
     <div class="mb-6">
-      <button class="bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white px-6 py-3 rounded-lg w-full hover:opacity-90 transition-opacity" (click)="showAddNoteModal = true">
+      <button class="magic-add-note-button w-full px-6 py-3 rounded-lg transition-all duration-300" (click)="showAddNoteModal = true">
         <i class="fas fa-plus mr-2"></i> Add Note
       </button>
     </div>
 
     <!-- Notes Grid -->
     <div class="grid grid-cols-1 md:grid-cols-6 gap-6 pb-40">
-      <div *ngFor="let note of notes" class="bg-gray-900 border border-gray-700 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition duration-200 shadow-lg" (click)="openNoteModal(note)" style="height: 200px; overflow: hidden;">
-        <div class="text-xl border-b-2 border-blue-800 text-center text-blue-800 font-bold mb-3">{{ note.name }}</div>
-        <div class="text-gray-300 overflow-hidden" style="height: 140px;">{{ note.description }}</div>
+      <div *ngFor="let note of notes" 
+           class="magic-note-card magic-border-subtle rounded-2xl p-4 cursor-pointer transition-all duration-300 hover:shadow-blue-500/20" 
+           (click)="openNoteModal(note)" 
+           style="height: 200px; overflow: hidden;">
+        <div class="text-xl border-b-2 border-blue-500 text-center magic-text font-bold mb-3">{{ note.name }}</div>
+        <div class="magic-text-secondary overflow-hidden" style="height: 140px;">{{ note.description }}</div>
       </div>
     </div>
   </div>
@@ -25,27 +28,27 @@
 
 <!-- Add Note Modal -->
 <div *ngIf="showAddNoteModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-  <div class="modal-content bg-gray-900 border border-blue-800 p-6 rounded-lg shadow-xl text-center max-w-md w-full mx-4">
-    <p class="text-2xl font-bold mb-6 text-blue-800">Add Note</p>
+  <div class="modal-content magic-modal magic-border-subtle p-6 rounded-2xl shadow-2xl text-center max-w-md w-full mx-4">
+    <p class="text-2xl font-bold mb-6 magic-text">Add Note</p>
     <div class="mb-6 text-left">
-      <label class="block text-blue-300 font-bold mb-2">Note Name</label>
-      <input type="text" [(ngModel)]="newNoteName" class="w-full bg-stone-800 text-blue-300 px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-600" />
+      <label class="block magic-text font-bold mb-2">Note Name</label>
+      <input type="text" [(ngModel)]="newNoteName" class="w-full magic-input px-3 py-2 rounded-lg focus:outline-none" />
     </div>
     <div class="flex space-x-3">
-      <button class="flex-1 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity" (click)="addNote()">Submit</button>
-      <button class="flex-1 bg-stone-800 text-blue-300 border border-blue-800 px-4 py-2 rounded-lg hover:bg-stone-700 transition-colors" (click)="showAddNoteModal = false">Cancel</button>
+      <button class="flex-1 magic-submit-button px-4 py-2 rounded-lg transition-all duration-300" (click)="addNote()">Submit</button>
+      <button class="flex-1 magic-cancel-button px-4 py-2 rounded-lg transition-all duration-300" (click)="showAddNoteModal = false">Cancel</button>
     </div>
   </div>
 </div>
 
 <!-- Note Modal -->
 <div *ngIf="showNoteModal" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" (click)="closeNoteModal()">
-  <div class="modal-content bg-gray-900 border border-blue-800 p-6 rounded-lg shadow-xl w-3/4 h-3/4 max-w-4xl" (click)="$event.stopPropagation()">
+  <div class="modal-content magic-modal magic-border-subtle p-6 rounded-2xl shadow-2xl w-3/4 h-3/4 max-w-4xl" (click)="$event.stopPropagation()">
     <div class="flex justify-between items-center mb-4">
-      <p class="text-2xl font-bold text-blue-800">{{ selectedNote?.name }}</p>
-      <i class="fas fa-trash text-red-400 cursor-pointer hover:text-red-300 transition-colors" (click)="deleteNote()" title="Delete note"></i>
+      <p class="text-2xl font-bold magic-text">{{ selectedNote?.name }}</p>
+      <i class="fas fa-trash magic-delete-icon cursor-pointer transition-all duration-300" (click)="deleteNote()" title="Delete note"></i>
     </div>
-    <textarea *ngIf="selectedNote" [(ngModel)]="selectedNote.description" class="w-full h-5/6 p-4 rounded-lg bg-stone-800 text-blue-300 border border-gray-600 focus:outline-none focus:border-blue-600 resize-none"></textarea>
-    <button class="bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white px-6 py-2 rounded-lg mt-4 hover:opacity-90 transition-opacity" (click)="closeNoteModal()">Close</button>
+    <textarea *ngIf="selectedNote" [(ngModel)]="selectedNote.description" class="w-full h-5/6 p-4 rounded-lg magic-textarea focus:outline-none resize-none"></textarea>
+    <button class="magic-close-button px-6 py-2 rounded-lg mt-4 transition-all duration-300" (click)="closeNoteModal()">Close</button>
   </div>
 </div>

@@ -1,32 +1,42 @@
-<div class="bg-stone-900 rounded-xl border border-stone-700 p-4">
+<div class="magic-inventory-container-transparent">
   <div class="max-w-7xl mx-auto px-6">
     <!-- Header -->
     <div class="mb-8 text-center">
-      <h1 class="text-4xl font-bold text-blue-800 mb-2">Inventory</h1>
-      <p class="text-gray-300">Your character's items and equipment</p>
+      <h1 class="text-4xl font-bold magic-text mb-2">Inventory</h1>
+      <p class="magic-text-secondary">Your character's items and equipment</p>
     </div>
 
     <!-- Search and Filters -->
-    <div class="mb-6 bg-gray-900 rounded-lg p-6 border border-gray-700">
-      <input type="text" [(ngModel)]="searchQuery" placeholder="Search items..." class="w-full p-3 mb-4 border border-blue-800 rounded-lg bg-stone-800 text-blue-300 placeholder-gray-400 focus:outline-none focus:border-blue-600">
-      <div class="flex flex-wrap gap-3">
-        <div class="flex space-x-3">
+    <div class="mb-6 magic-panel magic-border-subtle rounded-2xl p-6">
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Search items..." class="w-full p-3 mb-4 magic-input rounded-lg focus:outline-none">
+      <div class="flex flex-col space-y-3 md:flex-row md:space-y-0 md:space-x-3">
+        <div class="flex flex-wrap gap-3 flex-1">
           <button
             (click)="setSortCriteria('alphabetically')"
-            [class.bg-blue-800]="sortCriteria === 'alphabetically'"
-            [class.text-white]="sortCriteria === 'alphabetically'"
-            class="px-4 py-2 border border-blue-800 rounded-lg text-blue-300 hover:bg-blue-800 hover:text-white transition-colors"
+            [class]="sortCriteria === 'alphabetically' ? 'magic-button-active' : 'magic-button'"
+            class="px-4 py-2 rounded-lg transition-all duration-300 whitespace-nowrap"
           >Alphabetically</button>
-          <button (click)="setSortCriteria('damage')" [class.bg-blue-800]="sortCriteria === 'damage'" [class.text-white]="sortCriteria === 'damage'" class="px-4 py-2 border border-blue-800 rounded-lg text-blue-300 hover:bg-blue-800 hover:text-white transition-colors">Damage</button>
-          <button (click)="setSortCriteria('type')" [class.bg-blue-800]="sortCriteria === 'type'" [class.text-white]="sortCriteria === 'type'" class="px-4 py-2 border border-blue-800 rounded-lg text-blue-300 hover:bg-blue-800 hover:text-white transition-colors">Type</button>
-          <button (click)="setSortCriteria('mainStat')" [class.bg-blue-800]="sortCriteria === 'mainStat'" [class.text-white]="sortCriteria === 'mainStat'" class="px-4 py-2 border border-blue-800 rounded-lg text-blue-300 hover:bg-blue-800 hover:text-white transition-colors">Main Stat</button>
+          <button 
+            (click)="setSortCriteria('damage')" 
+            [class]="sortCriteria === 'damage' ? 'magic-button-active' : 'magic-button'" 
+            class="px-4 py-2 rounded-lg transition-all duration-300 whitespace-nowrap"
+          >Damage</button>
+          <button 
+            (click)="setSortCriteria('type')" 
+            [class]="sortCriteria === 'type' ? 'magic-button-active' : 'magic-button'" 
+            class="px-4 py-2 rounded-lg transition-all duration-300 whitespace-nowrap"
+          >Type</button>
+          <button 
+            (click)="setSortCriteria('mainStat')" 
+            [class]="sortCriteria === 'mainStat' ? 'magic-button-active' : 'magic-button'" 
+            class="px-4 py-2 rounded-lg transition-all duration-300 whitespace-nowrap"
+          >Main Stat</button>
         </div>
-        <div class="flex-1 flex justify-end">
+        <div class="flex justify-center md:justify-end">
           <button
             (click)="setSortCriteria('clothing')"
-            [class.bg-yellow-600]="sortCriteria === 'clothing'"
-            [class.text-white]="sortCriteria === 'clothing'"
-            class="px-4 py-2 border border-yellow-600 rounded-lg text-yellow-400 hover:bg-yellow-600 hover:text-white font-bold transition-colors"
+            [class]="sortCriteria === 'clothing' ? 'magic-clothing-button-active' : 'magic-clothing-button'"
+            class="px-4 py-2 rounded-lg font-bold transition-all duration-300 whitespace-nowrap"
           >
             Clothing
           </button>
@@ -36,30 +46,30 @@
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div *ngFor="let item of ItemFiltered"
-             class="bg-gray-900 rounded-lg border shadow-lg overflow-hidden hover:border-blue-500 transition duration-200"
-             [ngClass]="item.equipped ? 'border-yellow-400' : 'border-gray-700'">
-            <div class="p-6">
-                <div class="flex-grow flex items-center justify-center mb-4 bg-stone-800 rounded-lg" style="height: 200px;">
+             class="magic-item-card rounded-2xl magic-border-subtle shadow-2xl overflow-hidden transition-all duration-300"
+             [ngClass]="item.equipped ? 'magic-equipped-border' : ''">
+            <div class="p-6 h-full flex flex-col">
+                <div class="flex-1 flex items-center justify-center mb-4 magic-image-container rounded-xl" style="min-height: 200px;">
                     <img 
                         [src]="item.photo" 
                         alt="{{ item.itemName }}" 
-                        class="max-h-full h-auto w-full object-contain rounded-lg"> 
+                        class="max-h-full h-auto w-full object-contain"> 
                 </div>
-                <div class="text-center mb-4">
-                    <h2 class="text-2xl font-bold text-blue-800 mb-2">{{ item.itemName }}</h2>
-                    <p class="text-gray-300 text-sm mb-1">Type: {{ item.type }}</p>
-                    <p class="text-gray-300 text-sm mb-1">Main Stat: {{ item.mainStat }}</p>                
-                    <p [innerHTML]="formatDescription(item.description)" class="text-gray-300 text-sm"></p>
+                <div class="text-center mb-4 mt-auto">
+                    <h2 class="text-2xl font-bold magic-text mb-2">{{ item.itemName }}</h2>
+                    <p class="magic-text-secondary text-sm mb-1">Type: {{ item.type }}</p>
+                    <p class="magic-text-secondary text-sm mb-1">Main Stat: {{ item.mainStat }}</p>                
+                    <p [innerHTML]="formatDescription(item.description)" class="magic-text-secondary text-sm"></p>
                 </div>
-                <div class="text-center bg-stone-800 p-3 rounded-lg">
-                    <p class="text-blue-300 text-lg font-semibold mb-2">Damage</p>
-                    <div class="flex justify-center items-center space-x-2 hover:text-blue-200 cursor-pointer transition-colors" (click)="rollDice($event)">
-                        <p class="text-2xl font-bold text-blue-300">d{{ item.damage }}</p>
-                        <p class="text-2xl font-bold text-blue-300">{{ +item.modifier >= 0 ? '+' + item.modifier : item.modifier }}</p>
+                <div class="text-center magic-stat-card p-3 rounded-lg">
+                    <p class="magic-text text-lg font-semibold mb-2">Damage</p>
+                    <div class="flex justify-center items-center space-x-2 magic-clickable-stat cursor-pointer transition-all duration-300 px-3 py-1 rounded-lg" (click)="rollDice($event)">
+                        <p class="text-2xl font-bold magic-text-bright">d{{ item.damage }}</p>
+                        <p class="text-2xl font-bold magic-text-bright">{{ +item.modifier >= 0 ? '+' + item.modifier : item.modifier }}</p>
                     </div>
                 </div>
                 <button *ngIf="item.type === 'Clothing' && !item.equipped"
-                        class="mt-4 w-full bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white py-2 px-4 rounded-lg font-bold hover:opacity-90 transition-opacity"
+                        class="mt-4 w-full magic-equip-button py-2 px-4 rounded-lg font-bold transition-all duration-300"
                         (click)="onEquipClick(item)">
                     Equip?
                 </button>

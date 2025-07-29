@@ -1,29 +1,28 @@
 <div class="fixed bottom-32 left-4 mb-4" *ngIf="!isOpen">
     <button
-      class="vc-button p-3 w-12 h-12 bg-blue-800 text-black rounded-full shadow-lg hover:bg-blue-900 transition duration-200"
-      
+      class="magic-button vc-button p-3 w-12 h-12 rounded-full transition-all duration-300"
       (click)="openModal()"
     >
-    <i class="fa fa-volume-up" aria-hidden="true"></i>
+    <i class="fa fa-volume-up text-xl" aria-hidden="true"></i>
     </button>
 </div>
 
-<div *ngIf="isOpen" class="sound-modal fixed bottom-4 left-1/2 -translate-x-1/2 bg-stone-950 shadow-lg rounded-lg border border-blue-800 w-2/3 max-h-[75vh] z-50 flex flex-col">
-  <div class="absolute -left-4 bottom-6 w-0 h-0 border-t-8 border-b-8 border-r-8 border-t-transparent border-b-transparent border-r-stone-950"></div>
-  <div class="p-4 flex flex-col flex-1 min-h-0">
-    <div class="flex justify-between items-center mb-2">
-      <h2 class="font-bold text-blue-800">Sound Settings</h2>
-      <button class="text-blue-800 hover:text-red-500" (click)="closeModal()">
-        <i class="fas fa-times"></i>
+<div *ngIf="isOpen" class="sound-modal fixed bottom-4 left-1/2 -translate-x-1/2 magic-panel shadow-2xl rounded-2xl border-magic w-2/3 max-h-[75vh] z-50 flex flex-col">
+  <div class="magic-arrow"></div>
+  <div class="p-6 flex flex-col flex-1 min-h-0">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="font-bold text-2xl magic-text">Sound Settings</h2>
+      <button class="magic-close-button rounded-lg p-2 transition-all duration-300" (click)="closeModal()">
+        <i class="fas fa-times text-xl"></i>
       </button>
     </div>
     <div class="flex-1 flex flex-col justify-center items-center min-h-0 overflow-y-auto">
       <!-- Sound controls go here -->
-      <div class="grid grid-cols-4 gap-2 w-full mb-2">
+      <div class="grid grid-cols-4 gap-3 w-full mb-4">
         <div *ngFor="let sound of sounds">
           <button
             (click)="logSound(sound)"
-            class="w-full p-2 bg-blue-800 text-white rounded-lg shadow-md hover:bg-blue-900 transition duration-200"
+            class="magic-sound-button w-full p-3 rounded-lg font-semibold transition-all duration-300"
           >
             {{ sound.id }}
           </button>
@@ -31,7 +30,7 @@
       </div>
       <!-- Upload button -->
       <button
-        class="w-full p-2 mt-4 bg-green-700 text-white rounded-lg shadow-md hover:bg-green-800 transition duration-200"
+        class="magic-upload-primary w-full p-4 mt-4 rounded-lg font-semibold transition-all duration-300"
         (click)="openUploadModal()"
       >
         Upload
@@ -41,32 +40,32 @@
 </div>
 
 <!-- Upload Modal -->
-<div *ngIf="showUploadModal" class="upload-modal fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-  <div class="bg-stone-950 p-6 rounded-lg border border-blue-800 w-96 relative">
-    <button class="absolute top-2 right-2 text-blue-800 hover:text-red-500" (click)="closeUploadModal()">
-      <i class="fas fa-times"></i>
+<div *ngIf="showUploadModal" class="upload-modal fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm" style="background: rgba(0, 0, 0, 0.7);">
+  <div class="magic-modal-panel p-8 rounded-2xl border-magic w-96 relative">
+    <button class="absolute top-4 right-4 magic-close-button rounded-lg p-2 transition-all duration-300" (click)="closeUploadModal()">
+      <i class="fas fa-times text-xl"></i>
     </button>
-    <h2 class="font-bold text-blue-800 mb-4">Upload New Sound</h2>
-    <div class="mb-4">
-      <label class="block text-white mb-2">Sound ID</label>
+    <h2 class="font-bold text-2xl magic-text mb-6">Upload New Sound</h2>
+    <div class="mb-6">
+      <label class="block magic-text-secondary mb-3 font-semibold">Sound ID</label>
       <input
         type="text"
         [(ngModel)]="uploadSoundId"
-        class="w-full p-2 rounded border border-blue-800 bg-stone-900 text-white"
+        class="magic-input w-full p-3 rounded-lg placeholder-magic-placeholder"
         placeholder="Enter sound ID"
       />
     </div>
-    <div class="mb-4">
-      <label class="block text-white mb-2">Sound File</label>
+    <div class="mb-6">
+      <label class="block magic-text-secondary mb-3 font-semibold">Sound File</label>
       <input
         type="file"
         accept="audio/*"
         (change)="onFileSelected($event)"
-        class="w-full text-white"
+        class="magic-file-input w-full p-3 rounded-lg"
       />
     </div>
     <button
-      class="w-full p-2 bg-blue-800 text-white rounded-lg shadow-md hover:bg-blue-900 transition duration-200"
+      class="magic-button-primary w-full p-4 rounded-lg font-semibold transition-all duration-300"
       (click)="uploadSound()"
     >
       Upload
