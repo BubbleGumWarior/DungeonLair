@@ -10,7 +10,7 @@
 
 <!-- Modal backdrop -->
 <div *ngIf="isOpen" class="fixed inset-0 z-[9998] bg-black bg-opacity-50" (click)="onBackdropClick($event)">
-  <div [ngClass]="{'w-1/3 h-1/2': !isMobile(), 'w-3/4 h-3/4': isMobile()}" class="voice-modal fixed bottom-4 left-20 magic-panel shadow-2xl rounded-2xl border-magic z-[9999] flex flex-col" style="z-index: 9999 !important;" (click)="$event.stopPropagation()">
+  <div [ngClass]="{'w-1/3': !isMobile(), 'w-3/4': isMobile()}" class="voice-modal fixed bottom-4 left-20 magic-panel shadow-2xl rounded-2xl border-magic z-[9999] flex flex-col max-h-[85vh] min-h-[300px]" style="z-index: 9999 !important;" (click)="$event.stopPropagation()">
     <div class="magic-arrow"></div>
     <div class="p-6 flex flex-col flex-1 min-h-0">
       <div class="flex justify-between items-center mb-4">
@@ -61,11 +61,11 @@
       </div>
 
       <!-- Connected Users List -->
-      <div *ngIf="vcMembers.length > 0" class="w-full">
+      <div *ngIf="vcMembers.length > 0" class="w-full flex-1 min-h-0">
         <h3 class="text-lg magic-text-secondary mb-3 text-center">Connected Users:</h3>
-        <div class="space-y-2 max-h-40 overflow-y-auto voice-users-list">
+        <div class="voice-users-list flex-1 min-h-0">
           <div *ngFor="let member of vcMembers" 
-               class="flex items-center justify-between p-3 rounded-lg border border-blue-400/20 bg-slate-700/30">
+               class="flex items-center justify-between p-3 rounded-lg border border-blue-400/20 bg-slate-700/30 mb-2">
             <div class="flex items-center">
               <i class="fa fa-user mr-3 text-blue-400"></i>
               <span class="magic-text-secondary font-medium">{{ member.username }}</span>

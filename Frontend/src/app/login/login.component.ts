@@ -26,6 +26,8 @@ export class LoginComponent {
   }
 
   onSubmit() {
+    // Convert email to lowercase before processing
+    this.email = this.email.toLowerCase();
     console.log('Login form submitted with email:', this.email);
     const sanitizedEmail = DOMPurify.sanitize(this.email);
     const sanitizedPassword = DOMPurify.sanitize(this.password);
@@ -85,5 +87,9 @@ export class LoginComponent {
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
+  }
+
+  onEmailInput() {
+    this.email = this.email.toLowerCase();
   }
 }

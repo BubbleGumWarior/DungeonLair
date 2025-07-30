@@ -190,31 +190,69 @@
 
 .voice-modal {
   z-index: 9999;
+  /* Dynamic positioning to ensure modal stays within viewport */
+  bottom: 1rem !important;
+  max-height: 85vh;
+  min-height: 300px;
+  /* Allow modal to grow/shrink based on content */
+  height: auto;
+  /* Ensure modal doesn't go off-screen on smaller viewports */
+  top: auto;
+}
+
+/* Adjust modal positioning for mobile */
+@media (max-width: 768px) {
+  .voice-modal {
+    left: 50% !important;
+    transform: translateX(-50%);
+    bottom: 1rem !important;
+    width: 90% !important;
+    max-width: none !important;
+  }
 }
 
 /* Voice Users List */
 .voice-users-list {
-  max-height: 66vh;
   overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(85vh - 280px); /* Dynamic height calculation: 85vh - header/controls height */
+  min-height: 100px;
+  padding-right: 4px; /* Space for scrollbar */
+}
+
+/* For mobile devices, adjust the calculation */
+@media (max-width: 768px) {
+  .voice-users-list {
+    max-height: calc(85vh - 320px); /* More space for mobile controls */
+  }
 }
 
 /* Magic scrollbar styles for voice users list */
 .voice-users-list::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 
 .voice-users-list::-webkit-scrollbar-track {
-  background: rgba(51, 65, 85, 0.3);
-  border-radius: 4px;
+  background: rgba(51, 65, 85, 0.4);
+  border-radius: 6px;
+  margin: 4px 0;
 }
 
 .voice-users-list::-webkit-scrollbar-thumb {
   background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-  border-radius: 4px;
+  border-radius: 6px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .voice-users-list::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+  box-shadow: 0 0 4px rgba(59, 130, 246, 0.4);
+}
+
+/* Firefox scrollbar styling */
+.voice-users-list {
+  scrollbar-width: thin;
+  scrollbar-color: #3b82f6 rgba(51, 65, 85, 0.4);
 }
 
 /* User connection status indicators */

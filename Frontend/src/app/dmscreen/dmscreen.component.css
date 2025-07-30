@@ -165,6 +165,7 @@
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%);
   border: 2px solid rgba(59, 130, 246, 0.3);
   object-fit: cover;
+  object-position: center top;
 }
 
 .magic-character-name {
@@ -551,6 +552,7 @@
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%);
   border: 2px solid rgba(59, 130, 246, 0.3);
   object-fit: cover;
+  object-position: center top;
 }
 
 .magic-member-info {

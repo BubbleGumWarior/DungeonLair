@@ -42,6 +42,13 @@ export class RegisterComponent {
   onSubmit(): void {
     this.submitted = true;
     this.errorMessage = null;
+    
+    // Convert email to lowercase before processing
+    const currentEmail = this.registerForm.get('email')?.value;
+    if (currentEmail) {
+      this.registerForm.patchValue({ email: currentEmail.toLowerCase() });
+    }
+    
     console.log('Form submitted:', this.registerForm.value);
 
     if (this.registerForm.invalid) {
@@ -174,5 +181,10 @@ export class RegisterComponent {
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
+  }
+
+  onEmailInput(event: any) {
+    const emailValue = event.target.value.toLowerCase();
+    this.registerForm.patchValue({ email: emailValue });
   }
 }

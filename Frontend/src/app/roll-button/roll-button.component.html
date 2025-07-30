@@ -7,8 +7,8 @@
     </button>
 </div>
   
-<div *ngIf="isOpen" [ngClass]="{'w-1/3 h-1/2': !isMobile, 'w-3/4 h-3/4': isMobile}" class="roll-modal fixed bottom-4 left-20 magic-panel shadow-2xl rounded-2xl border-magic">
-    <div class="container mx-auto my-auto p-6 h-full grid grid-cols-2 gap-6">
+<div *ngIf="isOpen" [ngClass]="{'w-1/3': !isMobile, 'w-3/4': isMobile}" class="roll-modal fixed bottom-4 left-20 magic-panel shadow-2xl rounded-2xl border-magic max-h-[85vh] min-h-[300px] flex flex-col">
+    <div class="container mx-auto my-auto p-6 flex-1 min-h-0 grid grid-cols-2 gap-6">
         <!-- Left Column: Dice Roll -->
         <div>
             <h2 class="text-center text-2xl mb-6 magic-text font-bold">Do a Custom Roll</h2>

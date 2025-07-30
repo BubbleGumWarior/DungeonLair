@@ -3,14 +3,7 @@
   background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: #000;
   font-weight: 700;
-  b.roll-button {
-    position: relative;
-    z-index: 9999 !important; /* Force extremely high z-index */
-  }
-  
-  .roll-modal {
-    z-index: 9998;
-  }w: 
+  box-shadow: 
     0 4px 12px rgba(59, 130, 246, 0.3),
     0 0 0 1px rgba(59, 130, 246, 0.2);
   transform: translateY(0);
@@ -162,7 +155,31 @@
   
   .roll-modal {
     z-index: 9998;
+    /* Dynamic positioning to ensure modal stays within viewport */
+    bottom: 1rem !important;
+    max-height: 85vh;
+    min-height: 300px;
+    /* Allow modal to grow/shrink based on content */
+    height: auto;
+    /* Ensure modal doesn't go off-screen on smaller viewports */
+    top: auto;
   }
+
+/* Adjust modal positioning for mobile */
+@media (max-width: 768px) {
+  .roll-modal {
+    left: 50% !important;
+    transform: translateX(-50%);
+    bottom: 1rem !important;
+    width: 90% !important;
+    max-width: none !important;
+  }
+  
+  .roll-modal .container {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+}
   
   .roll-history {
     max-height: 66vh;
