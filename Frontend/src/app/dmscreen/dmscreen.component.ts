@@ -13,6 +13,16 @@ import { WebSocketService } from '../services/websocket.service'; // Import WebS
   styleUrls: ['./dmscreen.component.css']
 })
 export class DMScreenComponent implements OnInit {
+  // Main Navigation Properties
+  selectedMainView: string = 'characters'; // Main navigation: 'characters', 'masks', 'skills', 'inventory'
+  selectedCharacterView: string = 'stats'; // Character sub-nav: 'stats', 'family', 'friends', 'inventory', 'skills', 'mask-assignment'
+  selectedMaskView: string = 'browse'; // Mask sub-nav: 'browse', 'create', 'skills', 'mods'
+  
+  // Form state properties
+  showNewMaskSkillForm: boolean = false;
+  showNewMaskModForm: boolean = false;
+  editingMask: any = null;
+  
   characters: { name: string, photo: string }[] = [];
   currentlySelectedCharacter: string | null = null; // Add this variable
   currentlySelectedCharacterID: string | null = null; // Add this variable
@@ -68,12 +78,18 @@ export class DMScreenComponent implements OnInit {
   characterCurrentMaskId: number | null = null; // Store the character's current mask ID
   localIP = localIP; // Make localIP accessible in template
 
+  // Global management properties
+  allSkills: any[] = []; // Store all skills from database
+  allItems: any[] = []; // Store all items from database
+
   constructor(private http: HttpClient, private websocketService: WebSocketService) {} // Inject WebSocketService
 
   ngOnInit() {
     this.fetchCharacterNames();
     this.fetchAllCharacters(); // Fetch all characters on initialization
     this.fetchMasks(); // Fetch all masks on initialization
+    this.fetchAllSkills(); // Fetch all skills on initialization
+    this.fetchAllItems(); // Fetch all items on initialization
   }
 
   fetchCharacterNames() {
@@ -126,7 +142,7 @@ export class DMScreenComponent implements OnInit {
         this.maskList = data.map(mask => ({
           ...mask,
           characterName: this.allCharacters.find(character => character.id === mask.maskID)?.name || 'Unknown Character'
-        }));
+        })).sort((a, b) => a.maskID - b.maskID); // Sort by mask ID
       },
       (error) => {
         console.error('Error fetching masks:', error);
@@ -135,6 +151,37 @@ export class DMScreenComponent implements OnInit {
     
     // for each mask in masklist look at the characterInfo table and search for the maskID then save the characterName associated with the maskID and console log "CharacterName: MaskID"
     // Then display the masks in the drop down in manage mask skill by the characterName. Only use the characterName for display. The maskID should still be used for other functions.
+  }
+
+  fetchAllSkills() {
+    this.http.get<any[]>(`https://${localIP}:443/all-skills`).subscribe(
+      (data) => {
+        this.allSkills = data.sort((a, b) => a.skillName.localeCompare(b.skillName)); // Sort skills alphabetically by name
+        console.log('Loaded', this.allSkills.length, 'global skills');
+      },
+      (error) => {
+        console.error('Error fetching all skills:', error);
+        // Fallback to empty array if endpoint doesn't exist
+        this.allSkills = [];
+      }
+    );
+  }
+
+  fetchAllItems() {
+    this.http.get<any[]>(`https://${localIP}:443/all-items`).subscribe(
+      (data) => {
+        this.allItems = data.map(item => ({
+          ...item,
+          photo: item.photo ? `https://${localIP}:443${item.photo}` : ''
+        })).sort((a, b) => a.itemName.localeCompare(b.itemName)); // Sort items alphabetically by name
+        console.log('Loaded', this.allItems.length, 'global items');
+      },
+      (error) => {
+        console.error('Error fetching all items:', error);
+        // Fallback to empty array if endpoint doesn't exist
+        this.allItems = [];
+      }
+    );
   }
 
   selectCharacter(name: string) {
@@ -180,6 +227,7 @@ export class DMScreenComponent implements OnInit {
     this.http.get<any[]>(`https://${localIP}:443/family-member/${characterID}`).subscribe(
       (data) => {
         this.familyMembers = data.map(member => ({
+          ...member, // Preserve all original properties including IDs
           characterName: member.characterName,
           photo: member.photo ? `https://${localIP}:443${member.photo}` : ''
         }));
@@ -194,6 +242,7 @@ export class DMScreenComponent implements OnInit {
     this.http.get<any[]>(`https://${localIP}:443/friend-member/${characterID}`).subscribe(
       (data) => {
         this.friendMembers = data.map(member => ({
+          ...member, // Preserve all original properties including IDs
           characterName: member.characterName,
           photo: member.photo ? `https://${localIP}:443${member.photo}` : ''
         }));
@@ -427,9 +476,22 @@ export class DMScreenComponent implements OnInit {
   }
 
   createMask() {
+    // Handle activeSkills conversion - it could be a string, array, or other type
+    let activeSkillsArray: number[] = [];
+    if (typeof this.newMask.activeSkills === 'string') {
+      activeSkillsArray = this.newMask.activeSkills
+        .split(',')
+        .map((skill: string) => parseInt(skill.trim(), 10))
+        .filter((skill: number) => !isNaN(skill)); // Filter out invalid numbers
+    } else if (Array.isArray(this.newMask.activeSkills)) {
+      activeSkillsArray = this.newMask.activeSkills.map((skill: any) => 
+        typeof skill === 'number' ? skill : parseInt(skill, 10)
+      ).filter((skill: number) => !isNaN(skill));
+    }
+
     const maskData = { 
       ...this.newMask, 
-      activeSkills: this.newMask.activeSkills.split(',').map((skill: string) => parseInt(skill.trim(), 10)), // Convert activeSkills to array of integers
+      activeSkills: activeSkillsArray,
       attackDamage: this.newMask.attackDamage,
       abilityDamage: this.newMask.abilityDamage,
       magicResist: this.newMask.magicResist,
@@ -439,76 +501,98 @@ export class DMScreenComponent implements OnInit {
       speed: this.newMask.speed
     };
 
-    // Check if the new /masks endpoint exists, otherwise use fallback
-    this.http.post(`https://${localIP}:443/masks`, maskData).subscribe(
-      (data: any) => {
-        console.log('Mask created successfully:', data);
-        alert(`Mask created with ID: ${data.maskID}`);
-        this.newMask = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magicResist: 0, protections: 0, health: 0, speed: 0 }; // Reset the newMask with default values
-      },
-      (error) => {
-        console.error('Error creating mask with /masks endpoint:', error);
-        
-        // Fallback: Create mask by temporarily assigning to current character
-        if (this.currentlySelectedCharacterID) {
-          // First, store the current mask ID if any
-          const originalMaskId = this.characterCurrentMaskId;
-          
-          this.http.post(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/mask`, maskData).subscribe(
-            (data: any) => {
-              console.log('Mask created successfully via fallback:', data);
-              const newMaskId = data.maskID;
-              
-              // If character originally had a mask, restore it
-              if (originalMaskId) {
-                // Fetch the original mask data and reassign it
-                this.http.get<any>(`https://${localIP}:443/mask-details/${originalMaskId}`).subscribe(
-                  (originalMaskData) => {
-                    const originalMaskPayload = {
-                      photo: originalMaskData.photo || '',
-                      passiveSkill: originalMaskData.passiveSkill || '',
-                      activeSkills: originalMaskData.activeSkills || [],
-                      attackDamage: originalMaskData.attackDamage || 0,
-                      abilityDamage: originalMaskData.abilityDamage || 0,
-                      magicResist: originalMaskData.magicResist || 0,
-                      protections: originalMaskData.protections || 0,
-                      health: originalMaskData.health || 0,
-                      speed: originalMaskData.speed || 0
-                    };
-                    
-                    this.http.post(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/mask`, originalMaskPayload).subscribe(
-                      () => {
-                        alert(`Mask created with ID: ${newMaskId}. Original mask restored.`);
-                        this.selectCharacter(this.currentlySelectedCharacter!);
-                      },
-                      (restoreError) => {
-                        console.error('Error restoring original mask:', restoreError);
-                        alert(`Mask created with ID: ${newMaskId}, but failed to restore original mask.`);
-                      }
-                    );
-                  }
-                );
-              } else {
-                // Character had no original mask, remove the newly created one
-                this.websocketService.removeMaskFromUser(newMaskId);
-                setTimeout(() => {
-                  alert(`Mask created with ID: ${newMaskId}`);
-                  this.selectCharacter(this.currentlySelectedCharacter!);
-                }, 500);
-              }
-              
-              this.newMask = { photo: '', passiveSkill: '', activeSkills: '', attackDamage: 0, abilityDamage: 0, magicResist: 0, protections: 0, health: 0, speed: 0 }; // Reset the newMask with default values
-            },
-            (fallbackError) => {
-              console.error('Error creating mask via fallback:', fallbackError);
-              alert('Error creating mask. Please try again.');
-            }
-          );
-        } else {
-          alert('Please select a character first to create a mask.');
+    // Check if we're editing an existing mask or creating a new one
+    if (this.editingMask && this.editingMask.maskID) {
+      // Update existing mask
+      this.http.put(`https://${localIP}:443/masks/${this.editingMask.maskID}`, maskData).subscribe(
+        (data: any) => {
+          console.log('Mask updated successfully:', data);
+          this.resetMaskForm();
+          this.selectedMaskView = 'browse';
+          this.fetchMasks(); // Refresh mask list
+        },
+        (error) => {
+          console.error('Error updating mask:', error);
+          if (error.status === 404) {
+            alert('Mask not found. It may have been deleted.');
+          } else {
+            alert('Error updating mask. Please try again.');
+          }
         }
-      }
-    );
+      );
+    } else {
+      // Create new mask
+      this.http.post(`https://${localIP}:443/masks`, maskData).subscribe(
+        (data: any) => {
+          console.log('Mask created successfully:', data);
+          alert(`Mask created with ID: ${data.maskID}`);
+          this.resetMaskForm();
+          this.fetchMasks(); // Refresh mask list
+        },
+        (error) => {
+          console.error('Error creating mask with /masks endpoint:', error);
+          
+          // Fallback: Create mask by temporarily assigning to current character
+          if (this.currentlySelectedCharacterID) {
+            // First, store the current mask ID if any
+            const originalMaskId = this.characterCurrentMaskId;
+            
+            this.http.post(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/mask`, maskData).subscribe(
+              (data: any) => {
+                console.log('Mask created successfully via fallback:', data);
+                const newMaskId = data.maskID;
+                
+                // If character originally had a mask, restore it
+                if (originalMaskId) {
+                  // Fetch the original mask data and reassign it
+                  this.http.get<any>(`https://${localIP}:443/mask-details/${originalMaskId}`).subscribe(
+                    (originalMaskData) => {
+                      const originalMaskPayload = {
+                        photo: originalMaskData.photo || '',
+                        passiveSkill: originalMaskData.passiveSkill || '',
+                        activeSkills: originalMaskData.activeSkills || [],
+                        attackDamage: originalMaskData.attackDamage || 0,
+                        abilityDamage: originalMaskData.abilityDamage || 0,
+                        magicResist: originalMaskData.magicResist || 0,
+                        protections: originalMaskData.protections || 0,
+                        health: originalMaskData.health || 0,
+                        speed: originalMaskData.speed || 0
+                      };
+                      
+                      this.http.post(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/mask`, originalMaskPayload).subscribe(
+                        () => {
+                          alert(`Mask created with ID: ${newMaskId}. Original mask restored.`);
+                          this.selectCharacter(this.currentlySelectedCharacter!);
+                        },
+                        (restoreError) => {
+                          console.error('Error restoring original mask:', restoreError);
+                          alert(`Mask created with ID: ${newMaskId}, but failed to restore original mask.`);
+                        }
+                      );
+                    }
+                  );
+                } else {
+                  // Character had no original mask, remove the newly created one
+                  this.websocketService.removeMaskFromUser(newMaskId);
+                  setTimeout(() => {
+                    alert(`Mask created with ID: ${newMaskId}`);
+                    this.selectCharacter(this.currentlySelectedCharacter!);
+                  }, 500);
+                }
+                
+                this.resetMaskForm();
+              },
+              (fallbackError) => {
+                console.error('Error creating mask via fallback:', fallbackError);
+                alert('Error creating mask. Please try again.');
+              }
+            );
+          } else {
+            alert('Please select a character first to create a mask.');
+          }
+        }
+      );
+    }
   }
 
   saveFamilyMember() {
@@ -658,12 +742,15 @@ export class DMScreenComponent implements OnInit {
     this.selectedInventoryItem = item;
   }
 
-  deleteSkill() {
-    if (this.selectedSkill) {
-      this.http.delete(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/skill/${this.selectedSkill.skillID}`).subscribe(
+  deleteSkill(skillToDelete?: any) {
+    const skill = skillToDelete || this.selectedSkill;
+    if (skill) {
+      this.http.delete(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/skill/${skill.skillID}`).subscribe(
         () => {
-          this.skillList = this.skillList.filter(skill => skill !== this.selectedSkill);
-          this.selectedSkill = null;
+          this.skillList = this.skillList.filter(s => s !== skill);
+          if (this.selectedSkill === skill) {
+            this.selectedSkill = null;
+          }
         },
         (error) => {
           console.error('Error deleting skill:', error);
@@ -672,12 +759,15 @@ export class DMScreenComponent implements OnInit {
     }
   }
 
-  deleteInventoryItem() {
-    if (this.selectedInventoryItem) {
-      this.http.delete(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/inventory-item/${this.selectedInventoryItem.itemID}`).subscribe(
+  deleteInventoryItem(itemToDelete?: any) {
+    const item = itemToDelete || this.selectedInventoryItem;
+    if (item) {
+      this.http.delete(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/inventory-item/${item.itemID}`).subscribe(
         () => {
-          this.inventoryItems = this.inventoryItems.filter(item => item !== this.selectedInventoryItem);
-          this.selectedInventoryItem = null;
+          this.inventoryItems = this.inventoryItems.filter(i => i !== item);
+          if (this.selectedInventoryItem === item) {
+            this.selectedInventoryItem = null;
+          }
         },
         (error) => {
           console.error('Error deleting inventory item:', error);
@@ -737,7 +827,6 @@ export class DMScreenComponent implements OnInit {
           { maskID: Number(this.manageMaskId) }).subscribe(
           (response) => {
             console.log('Mask assigned successfully:', response);
-            alert(`Mask ${this.manageMaskId} assigned to ${this.currentlySelectedCharacter}`);
             
             // Update the character's current mask ID immediately
             this.characterCurrentMaskId = this.manageMaskId;
@@ -755,7 +844,6 @@ export class DMScreenComponent implements OnInit {
               
               // Update UI immediately (optimistic update)
               this.characterCurrentMaskId = this.manageMaskId;
-              alert(`Mask ${this.manageMaskId} assigned to ${this.currentlySelectedCharacter} via WebSocket`);
               
               // Refresh character data
               setTimeout(() => {
@@ -786,8 +874,6 @@ export class DMScreenComponent implements OnInit {
     if (this.characterCurrentMaskId) {
       this.websocketService.removeMaskFromUser(this.characterCurrentMaskId);
       
-      alert(`Mask removed from ${this.currentlySelectedCharacter}`);
-      
       // Update the character's current mask ID immediately
       this.characterCurrentMaskId = null;
       
@@ -801,5 +887,300 @@ export class DMScreenComponent implements OnInit {
     } else {
       alert('Character has no mask to remove');
     }
+  }
+
+  // Navigation Methods
+  selectMainView(view: string) {
+    this.selectedMainView = view;
+  }
+
+  selectCharacterView(view: string) {
+    this.selectedCharacterView = view;
+  }
+
+  selectMaskView(view: string) {
+    this.selectedMaskView = view;
+  }
+
+  // Cancel methods for forms
+  cancelAddingFamily() {
+    this.newFamilyMember = null;
+  }
+
+  cancelAddingFriend() {
+    this.newFriendMember = null;
+  }
+
+  cancelAddingInventory() {
+    this.newInventoryItem = null;
+  }
+
+  cancelAddingSkill() {
+    this.newSkill = null;
+  }
+
+  cancelEditingStats() {
+    if (this.currentlySelectedCharacterID) {
+      this.fetchStatsSheet(this.currentlySelectedCharacterID);
+    }
+  }
+
+  cancelMaskCreation() {
+    this.newMask = { 
+      photo: '', 
+      passiveSkill: '', 
+      activeSkills: '', 
+      attackDamage: 0, 
+      abilityDamage: 0, 
+      magicResist: 0,
+      protections: 0, 
+      health: 0, 
+      speed: 0 
+    };
+  }
+
+  // Family/Friends management
+  selectFamilyMember(member: any) {
+    this.selectedFamilyMember = member.characterID || member.id;
+  }
+
+  selectFriendMember(member: any) {
+    this.selectedFriendMember = member.characterID || member.id;
+  }
+
+  // Skill management
+  selectSkillItem(skill: any) {
+    this.selectedSkill = skill;
+  }
+
+  // Missing methods for family management
+  deleteFamilyMember(index: number) {
+    if (this.familyMembers && this.familyMembers[index]) {
+      const member = this.familyMembers[index];
+      console.log('Deleting family member:', member); // Debug log
+      
+      // Try to find the correct ID property - common variations
+      const memberId = member.familyID || member.id || member.characterID || member.familyMemberID;
+      
+      if (!memberId) {
+        console.error('No valid ID found for family member:', member);
+        alert('Cannot delete family member: missing ID');
+        return;
+      }
+      
+      this.http.delete(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/family/${memberId}`).subscribe(
+        () => {
+          this.familyMembers.splice(index, 1);
+        },
+        (error) => {
+          console.error('Error deleting family member:', error);
+        }
+      );
+    }
+  }
+
+  cancelFamilyMember() {
+    this.newFamilyMember = null;
+  }
+
+  // Missing methods for friend management
+  deleteFriendMember(index: number) {
+    if (this.friendMembers && this.friendMembers[index]) {
+      const member = this.friendMembers[index];
+      console.log('Deleting friend member:', member); // Debug log
+      
+      // Try to find the correct ID property - common variations
+      const memberId = member.friendID || member.id || member.characterID || member.friendMemberID;
+      
+      if (!memberId) {
+        console.error('No valid ID found for friend member:', member);
+        alert('Cannot delete friend member: missing ID');
+        return;
+      }
+      
+      this.http.delete(`https://${localIP}:443/character-info/${this.currentlySelectedCharacterID}/friend/${memberId}`).subscribe(
+        () => {
+          this.friendMembers.splice(index, 1);
+        },
+        (error) => {
+          console.error('Error deleting friend member:', error);
+        }
+      );
+    }
+  }
+
+  cancelFriendMember() {
+    this.newFriendMember = null;
+  }
+
+  // Missing methods for inventory management
+  cancelInventoryItem() {
+    this.newInventoryItem = null;
+  }
+
+  // Missing methods for skill management
+  cancelSkill() {
+    this.newSkill = null;
+  }
+
+  // Missing methods for mask management
+  resetMaskForm() {
+    this.newMask = { 
+      photo: '', 
+      passiveSkill: '', 
+      activeSkills: '', 
+      attackDamage: 0, 
+      abilityDamage: 0, 
+      magicResist: 0,
+      protections: 0, 
+      health: 0, 
+      speed: 0 
+    };
+    this.editingMask = null;
+  }
+
+  editMask(mask: any) {
+    this.editingMask = mask;
+    // Copy mask data to edit form, ensuring activeSkills is a string
+    this.newMask = { 
+      ...mask,
+      activeSkills: Array.isArray(mask.activeSkills) 
+        ? mask.activeSkills.join(', ') 
+        : (mask.activeSkills || '').toString()
+    };
+    this.selectedMaskView = 'create';
+  }
+
+  deleteMask(maskId: number) {
+    if (confirm(`Are you sure you want to delete mask ${maskId}? This action cannot be undone.`)) {
+      this.http.delete(`https://${localIP}:443/masks/${maskId}`).subscribe(
+        (response: any) => {
+          console.log('Mask deleted successfully:', response);
+          this.fetchMasks(); // Refresh mask list
+        },
+        (error) => {
+          console.error('Error deleting mask:', error);
+          if (error.status === 400) {
+            alert(error.error.error || 'Cannot delete mask because it is currently assigned to a character.');
+          } else if (error.status === 404) {
+            alert('Mask not found. It may have already been deleted.');
+          } else {
+            alert('Error deleting mask. Please try again.');
+          }
+        }
+      );
+    }
+  }
+
+  removeMaskImage() {
+    this.newMask.photo = '';
+  }
+
+  cancelMaskEdit() {
+    this.resetMaskForm();
+    this.selectedMaskView = 'browse';
+  }
+
+  // Missing methods for mask skill management
+  cancelMaskSkill() {
+    this.newMaskSkill = { 
+      skillName: '', 
+      description: '', 
+      mainStat: '', 
+      mainStatPercentage: 0, 
+      cooldown: 0,
+      amountOfStrikes: 1,
+      onHitEffect: 'None',
+      isMultiTarget: false
+    };
+    this.showNewMaskSkillForm = false;
+  }
+
+  // Missing methods for mask mod management
+  cancelMaskMod() {
+    this.newMaskMod = { modType: '', modRarity: 0, description: '' };
+    this.showNewMaskModForm = false;
+  }
+
+  // Missing methods for global management
+  addGlobalSkill() {
+    this.newSkill = { skillName: '', mainStat: '', description: '', diceRoll: '' };
+  }
+
+  addGlobalItem() {
+    this.newInventoryItem = { itemName: '', type: '', mainStat: '', description: '', damage: '', photo: '' };
+  }
+
+  saveGlobalSkill() {
+    const skillData = { 
+      ...this.newSkill, 
+      skillName: this.newSkill.skillName,
+      description: this.newSkill.description.replace(/\n/g, '\\n') // Replace new lines with \n
+    };
+    this.http.post(`https://${localIP}:443/skills`, skillData).subscribe(
+      (data: any) => {
+        this.allSkills.push(data); // Add the new skill to the allSkills array
+        this.allSkills.sort((a, b) => a.skillName.localeCompare(b.skillName)); // Re-sort
+        this.newSkill = null; // Reset the newSkill
+      },
+      (error) => {
+        console.error('Error saving global skill:', error);
+      }
+    );
+  }
+
+  saveGlobalItem() {
+    const inventoryItemData = { 
+      ...this.newInventoryItem, 
+      itemName: this.newInventoryItem.itemName,
+      description: this.newInventoryItem.description.replace(/\n/g, '\\n') // Replace new lines with \n
+    };
+    this.http.post(`https://${localIP}:443/items`, inventoryItemData).subscribe(
+      (data: any) => {
+        this.allItems.push({
+          ...data,
+          photo: data.photo ? `https://${localIP}:443${data.photo}` : ''
+        }); // Add the new item to the allItems array
+        this.allItems.sort((a, b) => a.itemName.localeCompare(b.itemName)); // Re-sort
+        this.newInventoryItem = null; // Reset the newInventoryItem
+      },
+      (error) => {
+        console.error('Error saving global item:', error);
+      }
+    );
+  }
+
+  deleteGlobalSkill(skill: any) {
+    if (confirm(`Are you sure you want to delete skill "${skill.skillName}"? This action cannot be undone.`)) {
+      this.http.delete(`https://${localIP}:443/skills/${skill.skillID}`).subscribe(
+        () => {
+          this.allSkills = this.allSkills.filter(s => s !== skill);
+        },
+        (error) => {
+          console.error('Error deleting global skill:', error);
+        }
+      );
+    }
+  }
+
+  deleteGlobalItem(item: any) {
+    if (confirm(`Are you sure you want to delete item "${item.itemName}"? This action cannot be undone.`)) {
+      this.http.delete(`https://${localIP}:443/items/${item.itemID}`).subscribe(
+        () => {
+          this.allItems = this.allItems.filter(i => i !== item);
+        },
+        (error) => {
+          console.error('Error deleting global item:', error);
+        }
+      );
+    }
+  }
+
+  cancelGlobalSkill() {
+    this.newSkill = null;
+  }
+
+  cancelGlobalItem() {
+    this.newInventoryItem = null;
   }
 }

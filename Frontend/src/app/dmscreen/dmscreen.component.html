@@ -1,256 +1,818 @@
-<div class="dm-screen">
-  <!-- Mask Users Section -->
-  <div>
-    <h2 class="text-xl font-bold text-blue-400 mb-2">Mask Users</h2>
-    <hr class="border-blue-700 mb-4">
-    <div class="grid grid-cols-4 gap-4">
-      <div *ngFor="let character of maskUsers" 
-           class="p-4 rounded shadow-md text-white flex items-center cursor-pointer"
-           [ngClass]="{'bg-blue-600': currentlySelectedCharacter === character.name, 'bg-blue-800': currentlySelectedCharacter !== character.name}"
-           (click)="selectCharacter(character.name)">
-        <img *ngIf="character.photo" [src]="character.photo" alt="Character Photo" class="w-12 h-12 rounded-full mr-4" />
-        <span>{{ character.name }}</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Civilians Section -->
-  <div class="mt-8">
-    <h2 class="text-xl font-bold text-blue-400 mb-2">Civilians</h2>
-    <hr class="border-blue-700 mb-4">
-    <div class="grid grid-cols-4 gap-4">
-      <div *ngFor="let character of civilians" 
-           class="p-4 rounded shadow-md text-white flex items-center cursor-pointer"
-           [ngClass]="{'bg-blue-600': currentlySelectedCharacter === character.name, 'bg-blue-800': currentlySelectedCharacter !== character.name}"
-           (click)="selectCharacter(character.name)">
-        <img *ngIf="character.photo" [src]="character.photo" alt="Character Photo" class="w-12 h-12 rounded-full mr-4" />
-        <span>{{ character.name }}</span>
-      </div>
-    </div>
-  </div>
-
-  <div *ngIf="currentlySelectedCharacter" class="mt-4 p-4 bg-stone-950 rounded shadow-md">
-    <h2 class="text-2xl font-bold mb-4 text-blue-700">Manage {{ currentlySelectedCharacter }}</h2>
-    <select [(ngModel)]="selectedView" (ngModelChange)="changeView($event)" class="p-2 mb-4 bg-stone-900 text-white rounded">
-      <option>Edit Stats</option>
-      <option>Manage Family Members</option>
-      <option>Manage Friend Members</option>
-      <option>Manage Inventory</option>
-      <option>Manage Skills</option>
-      <option>Create Mask</option> <!-- Changed from Manage Mask -->
-      <option>Manage Mask</option> <!-- New option for managing existing masks -->
-      <option>Manage Mask Skills</option> <!-- Add this option -->
-      <option value="Manage Mask Mods">Manage Mask Mods</option>
-    </select>
-
-    
-    <div *ngIf="selectedView === 'Edit Stats'">
-      <div class="grid grid-cols-2 gap-4">
-        <div *ngFor="let key of objectKeys(statsSheet)">
-          <p class="font-semibold text-blue-700">{{ key }}</p>
-          <input [(ngModel)]="statsSheet[key]" class="p-2 border rounded w-full bg-stone-900 text-white" />
-        </div>
-      </div>
-      <button (click)="saveStatsSheet()" class="mt-4 p-2 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded">Save</button>
+<div class="magic-dm-container-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <!-- Header -->
+    <div class="mb-8 text-center">
+      <h1 class="text-4xl font-bold magic-text mb-2">Dungeon Master Control Panel</h1>
+      <p class="magic-text-secondary">Manage your campaign, characters, and game assets</p>
     </div>
 
-    <div *ngIf="selectedView === 'Manage Family Members'" class="text-white">
-      <div class="grid grid-cols-3 gap-4">
-        <div *ngFor="let familyMember of familyMembers; let i = index" 
-             class="p-4 rounded shadow-md text-white flex items-center cursor-pointer bg-blue-800">
-          <img *ngIf="familyMember.photo" [src]="familyMember.photo" alt="Family Member Photo" class="w-12 h-12 rounded-full mr-4" />
-          <div>
-            <span>{{ familyMember.characterName }}</span>
-          </div>
-        </div>
-      </div>
-      <button (click)="addFamilyMember()" class="p-2 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded mt-4">+ Add Family Member</button>
-      <div *ngIf="newFamilyMember">
-        <div class="grid grid-cols-2 gap-4 mt-4">
-          <div>
-            <p class="font-semibold text-blue-700">Select Family Member</p>
-            <select [(ngModel)]="selectedFamilyMember" class="p-2 border rounded w-full bg-stone-900 text-white">
-              <option *ngFor="let character of allCharacters" [value]="character.name">{{ character.name }}</option>
-            </select>
-          </div>
-        </div>
-        <button (click)="saveFamilyMember()" class="mt-4 p-2 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded">Submit</button>
+    <!-- Main Navigation -->
+    <div class="magic-panel magic-border-subtle rounded-2xl p-6 mb-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <button 
+          (click)="selectedMainView = 'characters'" 
+          [class.active]="selectedMainView === 'characters'"
+          class="magic-nav-button">
+          <i class="fas fa-users text-2xl mb-2"></i>
+          <span>Characters</span>
+        </button>
+        <button 
+          (click)="selectedMainView = 'masks'" 
+          [class.active]="selectedMainView === 'masks'"
+          class="magic-nav-button">
+          <i class="fas fa-mask text-2xl mb-2"></i>
+          <span>Masks</span>
+        </button>
+        <button 
+          (click)="selectedMainView = 'skills'" 
+          [class.active]="selectedMainView === 'skills'"
+          class="magic-nav-button">
+          <i class="fas fa-magic text-2xl mb-2"></i>
+          <span>Skills</span>
+        </button>
+        <button 
+          (click)="selectedMainView = 'inventory'" 
+          [class.active]="selectedMainView === 'inventory'"
+          class="magic-nav-button">
+          <i class="fas fa-box text-2xl mb-2"></i>
+          <span>Items</span>
+        </button>
       </div>
     </div>
 
-    <div *ngIf="selectedView === 'Manage Friend Members'" class="text-white">
-      <div class="grid grid-cols-3 gap-4">
-        <div *ngFor="let friendMember of friendMembers; let i = index" 
-             class="p-4 rounded shadow-md text-white flex items-center cursor-pointer bg-blue-800">
-          <img *ngIf="friendMember.photo" [src]="friendMember.photo" alt="Friend Member Photo" class="w-12 h-12 rounded-full mr-4" />
-          <div>
-            <span>{{ friendMember.characterName }}</span>
-          </div>
-        </div>
-      </div>
-      <button (click)="addFriendMember()" class="p-2 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded mt-4">+ Add Friend Member</button>
-      <div *ngIf="newFriendMember">
-        <div class="grid grid-cols-2 gap-4 mt-4">
-          <div>
-            <p class="font-semibold text-blue-700">Select Friend Member</p>
-            <select [(ngModel)]="selectedFriendMember" class="p-2 border rounded w-full bg-stone-900 text-white">
-              <option *ngFor="let character of allCharacters" [value]="character.name">{{ character.name }}</option>
-            </select>
-          </div>
-        </div>
-        <button (click)="saveFriendMember()" class="mt-4 p-2 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded">Submit</button>
-      </div>
-    </div>
-
-    <div *ngIf="selectedView === 'Manage Inventory'" class="text-white">
-      <div class="grid grid-cols-3 gap-4">
-        <div *ngFor="let inventoryItem of inventoryItems; let i = index" 
-             class="p-4 rounded shadow-md text-white flex items-center cursor-pointer bg-blue-800 relative"
-             [ngClass]="{'bg-blue-700': selectedInventoryItem === inventoryItem}"
-             (click)="selectInventoryItem(inventoryItem)"
-             (mouseenter)="showItemModal(inventoryItem)" (mouseleave)="hideItemModal()">
-          <img *ngIf="inventoryItem.photo" [src]="inventoryItem.photo" alt="Inventory Item Photo" class="w-12 h-12 rounded-full mr-4" />
-          <div>
-            <span>{{ inventoryItem.itemName }}</span>
-            <p class="text-sm">Type: {{ inventoryItem.type }}</p>
-          </div>
-          <div *ngIf="hoveredItem === inventoryItem" class="absolute bottom-full mb-2 p-4 bg-blue-900 rounded-md shadow-lg z-10 w-full left-0">
-            <div class="flex-grow flex flex-col">
-              <div class="flex-grow flex items-center justify-center mb-4">
-                <img 
-                  [src]="inventoryItem.photo" 
-                  alt="{{ inventoryItem.itemName }}" 
-                  class="max-h-52 h-auto w-full object-contain rounded-md" 
-                  style="max-height: 300px;">
+    <!-- Characters Management -->
+    <div *ngIf="selectedMainView === 'characters'" class="magic-panel magic-border-subtle rounded-2xl p-6">
+      <h2 class="text-2xl font-bold magic-text mb-6">Character Management</h2>
+      
+      <!-- Character Categories -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Mask Users -->
+        <div class="magic-character-section">
+          <h3 class="text-xl font-bold magic-text-bright mb-4">
+            <i class="fas fa-mask mr-2"></i>Mask Users
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div *ngFor="let character of maskUsers" 
+                 class="magic-character-card"
+                 [class.selected]="currentlySelectedCharacter === character.name"
+                 (click)="selectCharacter(character.name)">
+              <img *ngIf="character.photo" [src]="character.photo" alt="Character Photo" class="magic-character-avatar" />
+              <div class="magic-character-avatar" *ngIf="!character.photo">
+                <i class="fas fa-user"></i>
               </div>
-              <div class="text-center">
-                <h2 class="text-3xl font-bold">{{ inventoryItem.itemName }}</h2>
-                <p class="text-sm">Type: {{ inventoryItem.type }}</p>
-                <p class="text-sm">Main Stat: {{ inventoryItem.mainStat }}</p>  
-                <p class="text-sm">Equipped: {{ inventoryItem.equipped }}</p>                
-                <p [innerHTML]="formatDescription(inventoryItem.description)" class="text-sm"></p>
-              </div>
+              <span class="magic-character-name">{{ character.name }}</span>
             </div>
-            <div class="mt-auto text-center">
-              <p class="text-xl">Damage</p>
-              <div class="flex justify-around hover:text-white cursor-pointer">
-                <p class="text-3xl">d{{ inventoryItem.damage }}</p>
+          </div>
+        </div>
+
+        <!-- Civilians -->
+        <div class="magic-character-section">
+          <h3 class="text-xl font-bold magic-text-bright mb-4">
+            <i class="fas fa-users mr-2"></i>Civilians
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div *ngFor="let character of civilians" 
+                 class="magic-character-card"
+                 [class.selected]="currentlySelectedCharacter === character.name"
+                 (click)="selectCharacter(character.name)">
+              <img *ngIf="character.photo" [src]="character.photo" alt="Character Photo" class="magic-character-avatar" />
+              <div class="magic-character-avatar" *ngIf="!character.photo">
+                <i class="fas fa-user"></i>
               </div>
+              <span class="magic-character-name">{{ character.name }}</span>
             </div>
           </div>
         </div>
       </div>
-      <button (click)="addInventoryItem()" class="p-2 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded mt-4">+ Add Inventory Item</button>
-      <button *ngIf="selectedInventoryItem" (click)="deleteInventoryItem()" class="p-2 bg-red-600 text-white rounded mt-4 ml-2">Delete</button>
-      <div *ngIf="newInventoryItem">
-        <div class="grid grid-cols-2 gap-4 mt-4">
-          <div class="col-span-1">
-            <p class="font-semibold text-blue-700">Item Name</p>
-            <input [(ngModel)]="newInventoryItem.itemName" class="p-2 border rounded w-full bg-stone-900 text-white" />
-          </div>
-          <div class="col-span-1">
-            <p class="font-semibold text-blue-700">Type</p>
-            <input [(ngModel)]="newInventoryItem.type" class="p-2 border rounded w-full bg-stone-900 text-white" />
-          </div>
-          <div class="col-span-1">
-            <p class="font-semibold text-blue-700">Main Stat</p>
-            <select [(ngModel)]="newInventoryItem.mainStat" class="p-2 border rounded w-full bg-stone-900 text-white">
-              <option>Strength</option>
-              <option>Athletics</option>
-              <option>Dexterity</option>
-              <option>Acrobatics</option>
-              <option>Sleight Of Hand</option>
-              <option>Stealth</option>
-              <option>Pilot</option>
-              <option>Constitution</option>
-              <option>Intelligence</option>
-              <option>History</option>
-              <option>Investigation</option>
-              <option>Nature</option>
-              <option>Splicing</option>
-              <option>Wisdom</option>
-              <option>Animal Handling</option>
-              <option>Insight</option>
-              <option>Medicine</option>
-              <option>Perception</option>
-              <option>Survival</option>
-              <option>Mapping</option>
-              <option>Charisma</option>
-              <option>Deception</option>
-              <option>Intimidation</option>
-              <option>Performance</option>
-              <option>Persuasion</option>
-            </select>
-          </div>
-          <div class="col-span-1">
-            <p class="font-semibold text-blue-700">Damage</p>
-            <input [(ngModel)]="newInventoryItem.damage" class="p-2 border rounded w-full bg-stone-900 text-white" />
-          </div>
-          <div class="col-span-1">
-            <p class="font-semibold text-blue-700">Equipped</p>
-            <select [(ngModel)]="newInventoryItem.equipped" class="p-2 border rounded w-full bg-stone-900 text-white">
-              <option [ngValue]="true">True</option>
-              <option [ngValue]="false" selected>False</option>
-            </select>
-          </div>
-          <div class="col-span-1 row-span-3">
-            <p class="font-semibold text-blue-700">Description</p>
-            <textarea [(ngModel)]="newInventoryItem.description" class="p-2 border rounded w-full bg-stone-900 text-white h-full"></textarea>
-          </div>
-          <div class="col-span-1">
-            <p class="font-semibold text-blue-700">Photo</p>
-            <div *ngIf="!newInventoryItem.photo" class="flex items-center justify-center h-full">
-              <label class="cursor-pointer">
-                <span class="text-blue-800">Upload Image</span>
-                <input type="file" (change)="onImageUploadInventory($event)" class="hidden" />
-              </label>
-            </div>
-            <img *ngIf="newInventoryItem.photo" [src]="newInventoryItem.photo" alt="Inventory Item Photo" class="w-12 h-12 rounded-full mr-4" />
+
+      <!-- Character Management Panel -->
+      <div *ngIf="currentlySelectedCharacter" class="magic-character-management-panel">
+        <div class="mb-6 p-4 magic-selected-character-panel rounded-lg">
+          <h3 class="text-xl font-bold magic-text mb-2">Managing: {{ currentlySelectedCharacter }}</h3>
+          <div class="flex flex-wrap gap-2">
+            <button 
+              (click)="selectedCharacterView = 'stats'" 
+              [class.active]="selectedCharacterView === 'stats'"
+              class="magic-sub-nav-button">
+              <i class="fas fa-chart-bar mr-2"></i>Stats
+            </button>
+            <button 
+              (click)="selectedCharacterView = 'family'" 
+              [class.active]="selectedCharacterView === 'family'"
+              class="magic-sub-nav-button">
+              <i class="fas fa-home mr-2"></i>Family
+            </button>
+            <button 
+              (click)="selectedCharacterView = 'friends'" 
+              [class.active]="selectedCharacterView === 'friends'"
+              class="magic-sub-nav-button">
+              <i class="fas fa-handshake mr-2"></i>Contacts
+            </button>
+            <button 
+              (click)="selectedCharacterView = 'inventory'" 
+              [class.active]="selectedCharacterView === 'inventory'"
+              class="magic-sub-nav-button">
+              <i class="fas fa-backpack mr-2"></i>Inventory
+            </button>
+            <button 
+              (click)="selectedCharacterView = 'skills'" 
+              [class.active]="selectedCharacterView === 'skills'"
+              class="magic-sub-nav-button">
+              <i class="fas fa-fist-raised mr-2"></i>Skills
+            </button>
+            <button 
+              (click)="selectedCharacterView = 'mask-assignment'" 
+              [class.active]="selectedCharacterView === 'mask-assignment'"
+              class="magic-sub-nav-button">
+              <i class="fas fa-mask mr-2"></i>Mask Assignment
+            </button>
           </div>
         </div>
-        <button (click)="saveInventoryItem()" class="mt-4 p-2 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded">Save</button>
-      </div>
-    </div>
 
-    <div *ngIf="selectedView === 'Manage Skills'" class="text-white">
-      <div class="grid grid-cols-3 gap-4">
-        <div *ngFor="let skill of skillList; let i = index" 
-             class="p-4 rounded shadow-md text-white flex items-center cursor-pointer bg-blue-800 relative"
-             [ngClass]="{'bg-blue-700': selectedSkill === skill}"
-             (click)="selectSkill(skill)"
-             (mouseenter)="showItemModal(skill)" (mouseleave)="hideItemModal()">
-          <div>
-            <span>{{ skill.skillName }}</span>
-            <p class="text-sm">Main Stat: {{ skill.mainStat }}</p>
+        <!-- Character Stats Management -->
+        <div *ngIf="selectedCharacterView === 'stats'" class="magic-management-content">
+          <div class="flex justify-between items-center mb-4">
+            <h4 class="text-lg font-bold magic-text">Character Statistics</h4>
+            <button (click)="saveStatsSheet()" class="magic-save-button">
+              <i class="fas fa-save mr-2"></i>Save Changes
+            </button>
           </div>
-          <div *ngIf="hoveredItem === skill" class="absolute bottom-full mb-2 p-4 bg-blue-900 rounded-md shadow-lg z-10 w-full left-0">
-            <div class="flex-grow flex flex-col">
-              <div class="text-center">
-                <h2 class="text-3xl font-bold">{{ skill.skillName }}</h2>
-                <p class="text-xl">Stat Modifier: {{ skill.mainStat }}</p>
-                <p class="text-sm">{{ skill.description }}</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div *ngFor="let key of objectKeys(statsSheet)" class="magic-input-group">
+              <label class="magic-label">{{ key }}</label>
+              <input [(ngModel)]="statsSheet[key]" class="magic-input" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Family Management -->
+        <div *ngIf="selectedCharacterView === 'family'" class="magic-management-content">
+          <div class="flex justify-between items-center mb-4">
+            <h4 class="text-lg font-bold magic-text">Family Members</h4>
+            <button (click)="addFamilyMember()" class="magic-add-button">
+              <i class="fas fa-plus mr-2"></i>Add Family Member
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div *ngFor="let familyMember of familyMembers; let i = index" class="magic-member-card">
+              <img *ngIf="familyMember.photo" [src]="familyMember.photo" alt="Family Member Photo" class="magic-member-avatar" />
+              <div class="magic-member-avatar" *ngIf="!familyMember.photo">
+                <i class="fas fa-user"></i>
               </div>
-              <div class="mt-auto text-center">
-                <p class="text-xl">Damage</p>
-                <div class="flex justify-around hover:text-white cursor-pointer">
-                  <p class="text-3xl">d{{ skill.diceRoll }}</p>
+              <div class="magic-member-info">
+                <h5 class="magic-member-name">{{ familyMember.characterName }}</h5>
+                <p class="magic-member-detail">Age: {{ familyMember.age }}</p>
+                <p class="magic-member-detail">Race: {{ familyMember.race }}</p>
+              </div>
+              <button class="magic-delete-button" (click)="deleteFamilyMember(i)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div *ngIf="newFamilyMember" class="magic-add-form mt-6">
+            <h5 class="text-md font-bold magic-text mb-4">Add New Family Member</h5>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div class="magic-input-group">
+                <label class="magic-label">Select Character</label>
+                <select [(ngModel)]="selectedFamilyMember" class="magic-select">
+                  <option value="">Choose a character...</option>
+                  <option *ngFor="let character of allCharacters" [value]="character.name">{{ character.name }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button (click)="saveFamilyMember()" class="magic-submit-button">
+                <i class="fas fa-check mr-2"></i>Add Member
+              </button>
+              <button (click)="cancelFamilyMember()" class="magic-cancel-button">
+                <i class="fas fa-times mr-2"></i>Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Friends Management -->
+        <div *ngIf="selectedCharacterView === 'friends'" class="magic-management-content">
+          <div class="flex justify-between items-center mb-4">
+            <h4 class="text-lg font-bold magic-text">Contacts</h4>
+            <button (click)="addFriendMember()" class="magic-add-button">
+              <i class="fas fa-plus mr-2"></i>Add Contact
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div *ngFor="let friendMember of friendMembers; let i = index" class="magic-member-card">
+              <img *ngIf="friendMember.photo" [src]="friendMember.photo" alt="Contact Photo" class="magic-member-avatar" />
+              <div class="magic-member-avatar" *ngIf="!friendMember.photo">
+                <i class="fas fa-user"></i>
+              </div>
+              <div class="magic-member-info">
+                <h5 class="magic-member-name">{{ friendMember.characterName }}</h5>
+              </div>
+              <button class="magic-delete-button" (click)="deleteFriendMember(i)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div *ngIf="newFriendMember" class="magic-add-form mt-6">
+            <h5 class="text-md font-bold magic-text mb-4">Add New Contact</h5>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div class="magic-input-group">
+                <label class="magic-label">Select Character</label>
+                <select [(ngModel)]="selectedFriendMember" class="magic-select">
+                  <option value="">Choose a character...</option>
+                  <option *ngFor="let character of allCharacters" [value]="character.name">{{ character.name }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button (click)="saveFriendMember()" class="magic-submit-button">
+                <i class="fas fa-check mr-2"></i>Add Contact
+              </button>
+              <button (click)="cancelFriendMember()" class="magic-cancel-button">
+                <i class="fas fa-times mr-2"></i>Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Character Inventory Management -->
+        <div *ngIf="selectedCharacterView === 'inventory'" class="magic-management-content">
+          <div class="flex justify-between items-center mb-4">
+            <h4 class="text-lg font-bold magic-text">Character Inventory</h4>
+            <button (click)="addInventoryItem()" class="magic-add-button">
+              <i class="fas fa-plus mr-2"></i>Add Item
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div *ngFor="let inventoryItem of inventoryItems; let i = index" 
+                 class="magic-inventory-card"
+                 [class.selected]="selectedInventoryItem === inventoryItem"
+                 (click)="selectInventoryItem(inventoryItem)">
+              <img *ngIf="inventoryItem.photo" [src]="inventoryItem.photo" alt="Item Photo" class="magic-item-image" />
+              <div class="magic-item-image" *ngIf="!inventoryItem.photo">
+                <i class="fas fa-sword"></i>
+              </div>
+              <div class="magic-item-info">
+                <h5 class="magic-item-name">{{ inventoryItem.itemName }}</h5>
+                <p class="magic-item-type">{{ inventoryItem.type }}</p>
+                <p class="magic-item-stat">{{ inventoryItem.mainStat }}</p>
+                <p class="magic-item-damage">d{{ inventoryItem.damage }}</p>
+                <span class="magic-equipped-badge" *ngIf="inventoryItem.equipped">
+                  <i class="fas fa-check"></i> Equipped
+                </span>
+              </div>
+              <button class="magic-delete-button" (click)="deleteInventoryItem(inventoryItem); $event.stopPropagation()">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div *ngIf="newInventoryItem" class="magic-add-form mt-6">
+            <h5 class="text-md font-bold magic-text mb-4">Add New Item</h5>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div class="magic-input-group">
+                <label class="magic-label">Item Name</label>
+                <input [(ngModel)]="newInventoryItem.itemName" class="magic-input" />
+              </div>
+              <div class="magic-input-group">
+                <label class="magic-label">Item Type</label>
+                <input [(ngModel)]="newInventoryItem.type" class="magic-input" />
+              </div>
+              <div class="magic-input-group">
+                <label class="magic-label">Main Stat</label>
+                <select [(ngModel)]="newInventoryItem.mainStat" class="magic-select">
+                  <option>Strength</option>
+                  <option>Athletics</option>
+                  <option>Dexterity</option>
+                  <option>Acrobatics</option>
+                  <option>Sleight Of Hand</option>
+                  <option>Stealth</option>
+                  <option>Pilot</option>
+                  <option>Constitution</option>
+                  <option>Intelligence</option>
+                  <option>History</option>
+                  <option>Investigation</option>
+                  <option>Nature</option>
+                  <option>Splicing</option>
+                  <option>Wisdom</option>
+                  <option>Animal Handling</option>
+                  <option>Insight</option>
+                  <option>Medicine</option>
+                  <option>Perception</option>
+                  <option>Survival</option>
+                  <option>Mapping</option>
+                  <option>Charisma</option>
+                  <option>Deception</option>
+                  <option>Intimidation</option>
+                  <option>Performance</option>
+                  <option>Persuasion</option>
+                </select>
+              </div>
+              <div class="magic-input-group">
+                <label class="magic-label">Damage</label>
+                <input [(ngModel)]="newInventoryItem.damage" type="number" class="magic-input" />
+              </div>
+              <div class="magic-input-group">
+                <label class="magic-label">Equipped</label>
+                <select [(ngModel)]="newInventoryItem.equipped" class="magic-select">
+                  <option [ngValue]="true">Yes</option>
+                  <option [ngValue]="false" selected>No</option>
+                </select>
+              </div>
+              <div class="magic-input-group">
+                <label class="magic-label">Photo</label>
+                <div *ngIf="!newInventoryItem.photo" class="magic-file-upload">
+                  <label class="magic-file-label">
+                    <i class="fas fa-upload mr-2"></i>Upload Image
+                    <input type="file" (change)="onImageUploadInventory($event)" class="hidden" />
+                  </label>
+                </div>
+                <img *ngIf="newInventoryItem.photo" [src]="newInventoryItem.photo" alt="Item Photo" class="magic-preview-image" />
+              </div>
+            </div>
+            <div class="magic-input-group mb-4">
+              <label class="magic-label">Description</label>
+              <textarea [(ngModel)]="newInventoryItem.description" class="magic-textarea" rows="4"></textarea>
+            </div>
+            <div class="flex gap-2">
+              <button (click)="saveInventoryItem()" class="magic-submit-button">
+                <i class="fas fa-check mr-2"></i>Add Item
+              </button>
+              <button (click)="cancelInventoryItem()" class="magic-cancel-button">
+                <i class="fas fa-times mr-2"></i>Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Character Skills Management -->
+        <div *ngIf="selectedCharacterView === 'skills'" class="magic-management-content">
+          <div class="flex justify-between items-center mb-4">
+            <h4 class="text-lg font-bold magic-text">Character Skills</h4>
+            <button (click)="addSkill()" class="magic-add-button">
+              <i class="fas fa-plus mr-2"></i>Add Skill
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div *ngFor="let skill of skillList; let i = index" 
+                 class="magic-skill-card"
+                 [class.selected]="selectedSkill === skill"
+                 (click)="selectSkill(skill)">
+              <div class="magic-skill-header">
+                <h5 class="magic-skill-name">{{ skill.skillName }}</h5>
+                <span class="magic-skill-dice">d{{ skill.diceRoll }}</span>
+              </div>
+              <p class="magic-skill-stat">{{ skill.mainStat }}</p>
+              <p class="magic-skill-description">{{ skill.description }}</p>
+              <button class="magic-delete-button" (click)="deleteSkill(skill); $event.stopPropagation()">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div *ngIf="newSkill" class="magic-add-form mt-6">
+            <h5 class="text-md font-bold magic-text mb-4">Add New Skill</h5>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div class="magic-input-group">
+                <label class="magic-label">Skill Name</label>
+                <input [(ngModel)]="newSkill.skillName" class="magic-input" />
+              </div>
+              <div class="magic-input-group">
+                <label class="magic-label">Main Stat</label>
+                <select [(ngModel)]="newSkill.mainStat" class="magic-select">
+                  <option>Strength</option>
+                  <option>Athletics</option>
+                  <option>Dexterity</option>
+                  <option>Acrobatics</option>
+                  <option>Sleight Of Hand</option>
+                  <option>Stealth</option>
+                  <option>Pilot</option>
+                  <option>Constitution</option>
+                  <option>Intelligence</option>
+                  <option>History</option>
+                  <option>Investigation</option>
+                  <option>Nature</option>
+                  <option>Splicing</option>
+                  <option>Wisdom</option>
+                  <option>Animal Handling</option>
+                  <option>Insight</option>
+                  <option>Medicine</option>
+                  <option>Perception</option>
+                  <option>Survival</option>
+                  <option>Mapping</option>
+                  <option>Charisma</option>
+                  <option>Deception</option>
+                  <option>Intimidation</option>
+                  <option>Performance</option>
+                  <option>Persuasion</option>
+                </select>
+              </div>
+              <div class="magic-input-group">
+                <label class="magic-label">Dice Roll</label>
+                <input [(ngModel)]="newSkill.diceRoll" type="number" class="magic-input" />
+              </div>
+            </div>
+            <div class="magic-input-group mb-4">
+              <label class="magic-label">Description</label>
+              <textarea [(ngModel)]="newSkill.description" class="magic-textarea" rows="4"></textarea>
+            </div>
+            <div class="flex gap-2">
+              <button (click)="saveSkill()" class="magic-submit-button">
+                <i class="fas fa-check mr-2"></i>Add Skill
+              </button>
+              <button (click)="cancelSkill()" class="magic-cancel-button">
+                <i class="fas fa-times mr-2"></i>Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mask Assignment -->
+        <div *ngIf="selectedCharacterView === 'mask-assignment'" class="magic-management-content">
+          <div class="mb-6">
+            <h4 class="text-lg font-bold magic-text mb-4">Mask Assignment</h4>
+            
+            <div *ngIf="characterCurrentMaskId" class="magic-current-mask-panel mb-6">
+              <h5 class="magic-text-bright mb-2">
+                <i class="fas fa-mask mr-2"></i>Currently Assigned Mask
+              </h5>
+              <p class="magic-text-secondary">{{ currentlySelectedCharacter }} has Mask ID: <span class="magic-text-bright font-bold">{{ characterCurrentMaskId }}</span></p>
+            </div>
+            
+            <div *ngIf="!characterCurrentMaskId" class="magic-no-mask-panel mb-6">
+              <p class="magic-text-secondary">{{ currentlySelectedCharacter }} has no mask assigned</p>
+            </div>
+            
+            <div class="magic-mask-assignment-form">
+              <div class="magic-input-group mb-4">
+                <label class="magic-label">Mask ID</label>
+                <input 
+                  [(ngModel)]="manageMaskId" 
+                  type="number" 
+                  placeholder="Enter mask ID" 
+                  class="magic-input" />
+              </div>
+              
+              <div class="flex gap-2 mb-4">
+                <button (click)="loadMaskDetails()" class="magic-button">
+                  <i class="fas fa-search mr-2"></i>Load Mask Details
+                </button>
+                <button (click)="clearMaskId()" class="magic-button-secondary">
+                  <i class="fas fa-clear mr-2"></i>Clear
+                </button>
+              </div>
+              
+              <div *ngIf="hasKeys(loadedMaskDetails)" class="magic-mask-details mb-6">
+                <h5 class="magic-text-bright mb-3">Mask Details (ID: {{ manageMaskId }})</h5>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="magic-detail-item">
+                    <span class="magic-detail-label">Passive Skill:</span>
+                    <span class="magic-detail-value">{{ loadedMaskDetails.passiveSkill || 'N/A' }}</span>
+                  </div>
+                  <div class="magic-detail-item">
+                    <span class="magic-detail-label">Active Skills:</span>
+                    <span class="magic-detail-value">{{ loadedMaskDetails.activeSkills || 'N/A' }}</span>
+                  </div>
+                  <div class="magic-detail-item">
+                    <span class="magic-detail-label">Attack Damage:</span>
+                    <span class="magic-detail-value">{{ loadedMaskDetails.attackDamage || 0 }}</span>
+                  </div>
+                  <div class="magic-detail-item">
+                    <span class="magic-detail-label">Ability Damage:</span>
+                    <span class="magic-detail-value">{{ loadedMaskDetails.abilityDamage || 0 }}</span>
+                  </div>
+                  <div class="magic-detail-item">
+                    <span class="magic-detail-label">Magic Resist:</span>
+                    <span class="magic-detail-value">{{ loadedMaskDetails.magicResist || 0 }}</span>
+                  </div>
+                  <div class="magic-detail-item">
+                    <span class="magic-detail-label">Protections:</span>
+                    <span class="magic-detail-value">{{ loadedMaskDetails.protections || 0 }}</span>
+                  </div>
+                  <div class="magic-detail-item">
+                    <span class="magic-detail-label">Health:</span>
+                    <span class="magic-detail-value">{{ loadedMaskDetails.health || 0 }}</span>
+                  </div>
+                  <div class="magic-detail-item">
+                    <span class="magic-detail-label">Speed:</span>
+                    <span class="magic-detail-value">{{ loadedMaskDetails.speed || 0 }}</span>
+                  </div>
+                </div>
+                <div *ngIf="loadedMaskDetails.photo" class="mt-4">
+                  <img [src]="'https://' + localIP + ':443' + loadedMaskDetails.photo" alt="Mask Photo" class="magic-mask-preview" />
                 </div>
               </div>
+              
+              <div class="flex gap-2">
+                <button 
+                  (click)="assignMaskToCharacter()" 
+                  [disabled]="!manageMaskId || !currentlySelectedCharacterID"
+                  class="magic-assign-button">
+                  <i class="fas fa-link mr-2"></i>Assign Mask
+                </button>
+                <button 
+                  (click)="removeMaskFromCharacter()" 
+                  [disabled]="!currentlySelectedCharacterID"
+                  class="magic-remove-button">
+                  <i class="fas fa-unlink mr-2"></i>Remove Mask
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <button (click)="addSkill()" class="p-2 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded mt-4">+ Add Skill</button>
-      <button *ngIf="selectedSkill" (click)="deleteSkill()" class="p-2 bg-red-600 text-white rounded mt-4 ml-2">Delete</button>
-      <div *ngIf="newSkill">
-        <div class="grid grid-cols-2 gap-4 mt-4">
-          <div class="col-span-1">
-            <p class="font-semibold text-blue-700">Skill Name</p>
-            <input [(ngModel)]="newSkill.skillName" class="p-2 border rounded w-full bg-stone-900 text-white" />
+    </div>
+
+    <!-- Masks Management -->
+    <div *ngIf="selectedMainView === 'masks'" class="magic-panel magic-border-subtle rounded-2xl p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold magic-text">Mask Management</h2>
+        <button (click)="selectedMaskView = 'create'; resetMaskForm()" class="magic-add-button">
+          <i class="fas fa-plus mr-2"></i>Create New Mask
+        </button>
+      </div>
+
+      <!-- Mask Sub-Navigation -->
+      <div class="flex flex-wrap gap-2 mb-6">
+        <button 
+          (click)="selectedMaskView = 'browse'" 
+          [class.active]="selectedMaskView === 'browse'"
+          class="magic-sub-nav-button">
+          <i class="fas fa-list mr-2"></i>Browse Masks
+        </button>
+        <button 
+          (click)="selectedMaskView = 'create'" 
+          [class.active]="selectedMaskView === 'create'"
+          class="magic-sub-nav-button">
+          <i class="fas fa-plus mr-2"></i>Create Mask
+        </button>
+        <button 
+          (click)="selectedMaskView = 'skills'" 
+          [class.active]="selectedMaskView === 'skills'"
+          class="magic-sub-nav-button">
+          <i class="fas fa-magic mr-2"></i>Mask Skills
+        </button>
+        <button 
+          (click)="selectedMaskView = 'mods'" 
+          [class.active]="selectedMaskView === 'mods'"
+          class="magic-sub-nav-button">
+          <i class="fas fa-cogs mr-2"></i>Mask Mods
+        </button>
+      </div>
+
+      <!-- Browse Masks -->
+      <div *ngIf="selectedMaskView === 'browse'" class="magic-management-content">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div *ngFor="let mask of maskList" class="magic-mask-browse-card">
+            <img *ngIf="mask.photo" [src]="'https://' + localIP + ':443' + mask.photo" alt="Mask Photo" class="magic-mask-image" />
+            <div class="magic-mask-image" *ngIf="!mask.photo">
+              <i class="fas fa-mask"></i>
+            </div>
+            <div class="magic-mask-info">
+              <h5 class="magic-mask-name">Mask ID: {{ mask.maskID }}</h5>
+              <div class="magic-mask-stats">
+                <div class="magic-stat-mini">
+                  <i class="fas fa-heart text-red-400"></i>
+                  <span>{{ mask.health }}</span>
+                </div>
+                <div class="magic-stat-mini">
+                  <i class="fas fa-bolt text-yellow-400"></i>
+                  <span>{{ mask.speed }}</span>
+                </div>
+                <div class="magic-stat-mini">
+                  <i class="fas fa-fist-raised text-orange-400"></i>
+                  <span>{{ mask.attackDamage }}</span>
+                </div>
+                <div class="magic-stat-mini">
+                  <i class="fas fa-magic text-purple-400"></i>
+                  <span>{{ mask.abilityDamage }}</span>
+                </div>
+                <div class="magic-stat-mini">
+                  <i class="fas fa-shield-alt text-blue-400"></i>
+                  <span>{{ mask.magicResist }}</span>
+                </div>
+                <div class="magic-stat-mini">
+                  <i class="fas fa-shield text-green-400"></i>
+                  <span>{{ mask.protections }}</span>
+                </div>
+              </div>
+              <p class="magic-mask-passive">{{ mask.passiveSkill || 'No passive skill' }}</p>
+            </div>
+            <div class="magic-mask-actions">
+              <button class="magic-edit-button" (click)="editMask(mask)">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="magic-delete-button" (click)="deleteMask(mask.maskID)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
           </div>
-          <div class="col-span-1">
-            <p class="font-semibold text-blue-700">Main Stat</p>
-            <select [(ngModel)]="newSkill.mainStat" class="p-2 border rounded w-full bg-stone-900 text-white">
+        </div>
+      </div>
+
+      <!-- Create/Edit Mask -->
+      <div *ngIf="selectedMaskView === 'create'" class="magic-management-content">
+        <h4 class="text-lg font-bold magic-text mb-4">{{ editingMask ? 'Edit Mask' : 'Create New Mask' }}</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div class="magic-input-group">
+            <label class="magic-label">Passive Skill</label>
+            <input [(ngModel)]="newMask.passiveSkill" class="magic-input" placeholder="Enter passive skill description" />
+          </div>
+          <div class="magic-input-group">
+            <label class="magic-label">Active Skills (comma separated IDs)</label>
+            <input [(ngModel)]="newMask.activeSkills" class="magic-input" placeholder="1, 2, 3" />
+          </div>
+          <div class="magic-input-group">
+            <label class="magic-label">Attack Damage</label>
+            <input [(ngModel)]="newMask.attackDamage" type="number" class="magic-input" min="0" />
+          </div>
+          <div class="magic-input-group">
+            <label class="magic-label">Ability Damage</label>
+            <input [(ngModel)]="newMask.abilityDamage" type="number" class="magic-input" min="0" />
+          </div>
+          <div class="magic-input-group">
+            <label class="magic-label">Magic Resistance</label>
+            <input [(ngModel)]="newMask.magicResist" type="number" class="magic-input" min="0" />
+          </div>
+          <div class="magic-input-group">
+            <label class="magic-label">Protections</label>
+            <input [(ngModel)]="newMask.protections" type="number" class="magic-input" min="0" />
+          </div>
+          <div class="magic-input-group">
+            <label class="magic-label">Health</label>
+            <input [(ngModel)]="newMask.health" type="number" class="magic-input" min="1" />
+          </div>
+          <div class="magic-input-group">
+            <label class="magic-label">Speed</label>
+            <input [(ngModel)]="newMask.speed" type="number" class="magic-input" min="1" />
+          </div>
+          <div class="magic-input-group">
+            <label class="magic-label">Mask Photo</label>
+            <div *ngIf="!newMask.photo" class="magic-file-upload">
+              <label class="magic-file-label">
+                <i class="fas fa-upload mr-2"></i>Upload Image
+                <input type="file" (change)="onImageUploadMask($event)" class="hidden" />
+              </label>
+            </div>
+            <div *ngIf="newMask.photo" class="magic-image-preview">
+              <img [src]="newMask.photo" alt="Mask Photo" class="magic-preview-image" />
+              <button class="magic-remove-image" (click)="removeMaskImage()">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button (click)="createMask()" class="magic-submit-button">
+            <i class="fas fa-save mr-2"></i>{{ editingMask ? 'Update Mask' : 'Create Mask' }}
+          </button>
+          <button (click)="cancelMaskEdit()" class="magic-cancel-button">
+            <i class="fas fa-times mr-2"></i>Cancel
+          </button>
+        </div>
+      </div>
+
+      <!-- Mask Skills Management -->
+      <div *ngIf="selectedMaskView === 'skills'" class="magic-management-content">
+        <div class="flex justify-between items-center mb-4">
+          <h4 class="text-lg font-bold magic-text">Mask Skills</h4>
+          <button (click)="showNewMaskSkillForm = true" class="magic-add-button">
+            <i class="fas fa-plus mr-2"></i>Create Skill
+          </button>
+        </div>
+        <div *ngIf="showNewMaskSkillForm" class="magic-add-form mb-6">
+          <h5 class="text-md font-bold magic-text mb-4">Create New Mask Skill</h5>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="magic-input-group">
+              <label class="magic-label">Skill Name</label>
+              <input [(ngModel)]="newMaskSkill.skillName" class="magic-input" />
+            </div>
+            <div class="magic-input-group">
+              <label class="magic-label">Main Stat</label>
+              <select [(ngModel)]="newMaskSkill.mainStat" class="magic-select">
+                <option>Attack Damage</option>
+                <option>Ability Damage</option>
+                <option>Magic Resist</option>
+                <option>Protections</option>
+                <option>Health</option>
+                <option>Speed</option>
+              </select>
+            </div>
+            <div class="magic-input-group">
+              <label class="magic-label">Main Stat Percentage</label>
+              <input [(ngModel)]="newMaskSkill.mainStatPercentage" type="number" class="magic-input" min="0" max="100" />
+            </div>
+            <div class="magic-input-group">
+              <label class="magic-label">Cooldown (turns)</label>
+              <input [(ngModel)]="newMaskSkill.cooldown" type="number" class="magic-input" min="0" />
+            </div>
+            <div class="magic-input-group">
+              <label class="magic-label">Amount of Strikes</label>
+              <input [(ngModel)]="newMaskSkill.amountOfStrikes" type="number" class="magic-input" min="1" />
+            </div>
+            <div class="magic-input-group" *ngIf="newMaskSkill.amountOfStrikes > 1">
+              <label class="magic-label flex items-center">
+                <input type="checkbox" [(ngModel)]="newMaskSkill.isMultiTarget" class="mr-2 magic-checkbox" />
+                Multi-Target Attack
+              </label>
+            </div>
+            <div class="magic-input-group">
+              <label class="magic-label">On Hit Effect</label>
+              <select [(ngModel)]="newMaskSkill.onHitEffect" class="magic-select">
+                <option>None</option>
+                <option>Stun</option>
+                <option>Burn</option>
+                <option>Poison</option>
+                <option>Bleed</option>
+                <option>Buff Stack</option>
+                <option>Heal</option>
+              </select>
+            </div>
+          </div>
+          <div class="magic-input-group mb-4">
+            <label class="magic-label">Description</label>
+            <textarea [(ngModel)]="newMaskSkill.description" class="magic-textarea" rows="3"></textarea>
+          </div>
+          <div class="flex gap-2">
+            <button (click)="saveMaskSkill()" class="magic-submit-button">
+              <i class="fas fa-check mr-2"></i>Create Skill
+            </button>
+            <button (click)="cancelMaskSkill()" class="magic-cancel-button">
+              <i class="fas fa-times mr-2"></i>Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mask Mods Management -->
+      <div *ngIf="selectedMaskView === 'mods'" class="magic-management-content">
+        <div class="flex justify-between items-center mb-4">
+          <h4 class="text-lg font-bold magic-text">Mask Modifications</h4>
+          <button (click)="showNewMaskModForm = true" class="magic-add-button">
+            <i class="fas fa-plus mr-2"></i>Create Mod
+          </button>
+        </div>
+        <div *ngIf="showNewMaskModForm" class="magic-add-form mb-6">
+          <h5 class="text-md font-bold magic-text mb-4">Create New Mask Mod</h5>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="magic-input-group">
+              <label class="magic-label">Mod Type</label>
+              <input [(ngModel)]="newMaskMod.modType" class="magic-input" placeholder="e.g., Enhancement, Augmentation" />
+            </div>
+            <div class="magic-input-group">
+              <label class="magic-label">Mod Rarity (1-10)</label>
+              <input [(ngModel)]="newMaskMod.modRarity" type="number" class="magic-input" min="1" max="10" />
+            </div>
+          </div>
+          <div class="magic-input-group mb-4">
+            <label class="magic-label">Description</label>
+            <textarea [(ngModel)]="newMaskMod.description" class="magic-textarea" rows="3" placeholder="Describe the mod's effects"></textarea>
+          </div>
+          <div class="flex gap-2">
+            <button (click)="saveMaskMod()" class="magic-submit-button">
+              <i class="fas fa-check mr-2"></i>Create Mod
+            </button>
+            <button (click)="cancelMaskMod()" class="magic-cancel-button">
+              <i class="fas fa-times mr-2"></i>Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Global Skills Management -->
+    <div *ngIf="selectedMainView === 'skills'" class="magic-panel magic-border-subtle rounded-2xl p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold magic-text">Global Skills Management</h2>
+        <button (click)="addGlobalSkill()" class="magic-add-button">
+          <i class="fas fa-plus mr-2"></i>Create New Skill
+        </button>
+      </div>
+      
+      <!-- Skills Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <div *ngFor="let skill of allSkills; let i = index" class="magic-skill-card">
+          <div class="magic-skill-header">
+            <h5 class="magic-skill-name">{{ skill.skillName }}</h5>
+            <span class="magic-skill-dice">d{{ skill.diceRoll }}</span>
+          </div>
+          <p class="magic-skill-stat">{{ skill.mainStat }}</p>
+          <p class="magic-skill-description">{{ skill.description }}</p>
+          <button class="magic-delete-button" (click)="deleteGlobalSkill(skill)">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Add New Skill Form -->
+      <div *ngIf="newSkill" class="magic-add-form">
+        <h5 class="text-md font-bold magic-text mb-4">Create New Global Skill</h5>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div class="magic-input-group">
+            <label class="magic-label">Skill Name</label>
+            <input [(ngModel)]="newSkill.skillName" type="text" class="magic-input" />
+          </div>
+          <div class="magic-input-group">
+            <label class="magic-label">Main Stat</label>
+            <select [(ngModel)]="newSkill.mainStat" class="magic-select">
+              <option value="">Select a stat...</option>
               <option>Strength</option>
               <option>Athletics</option>
               <option>Dexterity</option>
@@ -278,190 +840,130 @@
               <option>Persuasion</option>
             </select>
           </div>
-          <div class="col-span-1 row-span-3">
-            <p class="font-semibold text-blue-700">Description</p>
-            <textarea [(ngModel)]="newSkill.description" class="p-2 border rounded w-full bg-stone-900 text-white h-full"></textarea>
-          </div>
-          <div class="col-span-1">
-            <p class="font-semibold text-blue-700">Dice Roll</p>
-            <input [(ngModel)]="newSkill.diceRoll" class="p-2 border rounded w-full bg-stone-900 text-white" />
+          <div class="magic-input-group">
+            <label class="magic-label">Dice Roll</label>
+            <input [(ngModel)]="newSkill.diceRoll" type="number" class="magic-input" />
           </div>
         </div>
-        <button (click)="saveSkill()" class="mt-4 p-2 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded">Save</button>
+        <div class="magic-input-group mb-4">
+          <label class="magic-label">Description</label>
+          <textarea [(ngModel)]="newSkill.description" class="magic-textarea" rows="4"></textarea>
+        </div>
+        <div class="flex gap-2">
+          <button (click)="saveGlobalSkill()" class="magic-submit-button">
+            <i class="fas fa-check mr-2"></i>Create Skill
+          </button>
+          <button (click)="cancelGlobalSkill()" class="magic-cancel-button">
+            <i class="fas fa-times mr-2"></i>Cancel
+          </button>
+        </div>
       </div>
     </div>
 
-    <div *ngIf="selectedView === 'Create Mask'" class="text-white">
-      <div class="grid grid-cols-2 gap-4 mt-4">
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Passive Skill</p>
-          <input [(ngModel)]="newMask.passiveSkill" class="p-2 border rounded w-full bg-stone-900 text-white" />
-        </div>
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Active Skills (comma separated IDs)</p>
-          <input [(ngModel)]="newMask.activeSkills" class="p-2 border rounded w-full bg-stone-900 text-white" />
-        </div>
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Attack Damage</p>
-          <input [(ngModel)]="newMask.attackDamage" type="number" class="p-2 border rounded w-full bg-stone-900 text-white" />
-        </div>
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Ability Damage</p>
-          <input [(ngModel)]="newMask.abilityDamage" type="number" class="p-2 border rounded w-full bg-stone-900 text-white" />
-        </div>
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Magic Resist</p>
-          <input [(ngModel)]="newMask.magicResist" type="number" class="p-2 border rounded w-full bg-stone-900 text-white" />
-        </div>
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Protections</p>
-          <input [(ngModel)]="newMask.protections" type="number" class="p-2 border rounded w-full bg-stone-900 text-white" />
-        </div>
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Health</p>
-          <input [(ngModel)]="newMask.health" type="number" class="p-2 border rounded w-full bg-stone-900 text-white" />
-        </div>
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Speed</p>
-          <input [(ngModel)]="newMask.speed" type="number" class="p-2 border rounded w-full bg-stone-900 text-white" />
-        </div>
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Photo</p>
-          <div *ngIf="!newMask.photo" class="flex items-center justify-center h-full">
-            <label class="cursor-pointer">
-              <span class="text-blue-800">Upload Image</span>
-              <input type="file" (change)="onImageUploadMask($event)" class="hidden" />
-            </label>
-          </div>
-          <img *ngIf="newMask.photo" [src]="newMask.photo" alt="Mask Photo" class="max-h-96" />
-        </div>
-      </div>
-      <button (click)="createMask()" class="mt-4 p-2 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded">Create Mask</button>
-    </div>
-
-    <div *ngIf="selectedView === 'Manage Mask'" class="text-white">
-      <div *ngIf="characterCurrentMaskId" class="mb-4 p-3 bg-blue-900 rounded">
-        <p class="text-sm font-semibold text-blue-300">Current Mask Assignment:</p>
-        <p class="text-lg">{{ currentlySelectedCharacter }} has Mask ID: <span class="font-bold text-blue-400">{{ characterCurrentMaskId }}</span></p>
-      </div>
-      
-      <div *ngIf="!characterCurrentMaskId" class="mb-4 p-3 bg-gray-800 rounded">
-        <p class="text-sm text-gray-300">{{ currentlySelectedCharacter }} has no mask assigned</p>
-      </div>
-      
-      <div class="mb-4">
-        <p class="font-semibold text-blue-700 mb-2">Enter Mask ID</p>
-        <input 
-          [(ngModel)]="manageMaskId" 
-          type="number" 
-          placeholder="Enter mask ID" 
-          class="p-2 border rounded w-full bg-stone-900 text-white mb-2" />
-        <button (click)="loadMaskDetails()" class="p-2 bg-blue-600 text-white rounded mr-2">Load Mask Details</button>
-        <button (click)="clearMaskId()" class="p-2 bg-gray-600 text-white rounded">Clear</button>
-      </div>
-      
-      <div *ngIf="hasKeys(loadedMaskDetails)" class="mb-4 p-4 bg-stone-800 rounded">
-        <h3 class="text-lg font-bold text-blue-700 mb-2">Mask Details (ID: {{ manageMaskId }})</h3>
-        <div class="grid grid-cols-2 gap-2 text-sm">
-          <div><strong>Passive Skill:</strong> {{ loadedMaskDetails.passiveSkill || 'N/A' }}</div>
-          <div><strong>Active Skills:</strong> {{ loadedMaskDetails.activeSkills || 'N/A' }}</div>
-          <div><strong>Attack Damage:</strong> {{ loadedMaskDetails.attackDamage || 0 }}</div>
-          <div><strong>Ability Damage:</strong> {{ loadedMaskDetails.abilityDamage || 0 }}</div>
-          <div><strong>Magic Resist:</strong> {{ loadedMaskDetails.magicResist || 0 }}</div>
-          <div><strong>Protections:</strong> {{ loadedMaskDetails.protections || 0 }}</div>
-          <div><strong>Health:</strong> {{ loadedMaskDetails.health || 0 }}</div>
-          <div><strong>Speed:</strong> {{ loadedMaskDetails.speed || 0 }}</div>
-        </div>
-        <div *ngIf="loadedMaskDetails.photo" class="mt-2">
-          <img [src]="'https://' + localIP + ':443' + loadedMaskDetails.photo" alt="Mask Photo" class="max-h-32" />
-        </div>
-      </div>
-      
-      <div class="flex gap-2">
-        <button 
-          (click)="assignMaskToCharacter()" 
-          [disabled]="!manageMaskId || !currentlySelectedCharacterID"
-          class="p-2 bg-green-600 text-white rounded disabled:bg-gray-500">
-          Assign Mask to Character
-        </button>
-        <button 
-          (click)="removeMaskFromCharacter()" 
-          [disabled]="!currentlySelectedCharacterID"
-          class="p-2 bg-red-600 text-white rounded disabled:bg-gray-500">
-          Remove Mask from Character
+    <!-- Global Inventory Management -->
+    <div *ngIf="selectedMainView === 'inventory'" class="magic-panel magic-border-subtle rounded-2xl p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold magic-text">Global Item Management</h2>
+        <button (click)="addGlobalItem()" class="magic-add-button">
+          <i class="fas fa-plus mr-2"></i>Create New Item
         </button>
       </div>
-    </div>
-
-    <div *ngIf="selectedView === 'Manage Mask Skills'" class="text-white">
-      <div class="grid grid-cols-2 gap-4 mt-4">
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Skill Name</p>
-          <input [(ngModel)]="newMaskSkill.skillName" class="p-2 border rounded w-full bg-stone-900 text-white" />
-        </div>
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Description</p>
-          <textarea [(ngModel)]="newMaskSkill.description" class="p-2 border rounded w-full bg-stone-900 text-white"></textarea>
-        </div>
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Main Stat</p>
-          <select [(ngModel)]="newMaskSkill.mainStat" class="p-2 border rounded w-full bg-stone-900 text-white">
-            <option>Attack Damage</option>
-            <option>Ability Damage</option>
-            <option>Magic Resist</option>
-            <option>Protections</option>
-            <option>Health</option>
-            <option>Speed</option>
-          </select>
-        </div>
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Main Stat Percentage</p>
-          <input [(ngModel)]="newMaskSkill.mainStatPercentage" type="number" class="p-2 border rounded w-full bg-stone-900 text-white" />
-        </div>
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Cooldown</p>
-          <input [(ngModel)]="newMaskSkill.cooldown" type="number" class="p-2 border rounded w-full bg-stone-900 text-white" />
-        </div>
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">Amount of Strikes</p>
-          <input [(ngModel)]="newMaskSkill.amountOfStrikes" type="number" class="p-2 border rounded w-full bg-stone-900 text-white" />
-        </div>
-        <div class="col-span-1" *ngIf="newMaskSkill.amountOfStrikes > 1">
-          <p class="font-semibold text-blue-700">Target Type</p>
-          <label class="flex items-center">
-            <input type="checkbox" [(ngModel)]="newMaskSkill.isMultiTarget" class="mr-2" />
-            <span>{{ newMaskSkill.isMultiTarget ? 'Multi Target' : 'Single Target' }}</span>
-          </label>
-        </div>
-        <div class="col-span-1">
-          <p class="font-semibold text-blue-700">On Hit Effect</p>
-          <select [(ngModel)]="newMaskSkill.onHitEffect" class="p-2 border rounded w-full bg-stone-900 text-white">
-            <option>None</option>
-            <option>Stun</option>
-            <option>Burn</option>
-            <option>Poison</option>
-            <option>Bleed</option>
-            <option>Buff Stack</option>
-            <option>Heal</option>
-          </select>
+      
+      <!-- Items Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <div *ngFor="let item of allItems; let i = index" class="magic-inventory-card">
+          <img *ngIf="item.photo" [src]="item.photo" alt="Item Photo" class="magic-item-image" />
+          <div class="magic-item-image" *ngIf="!item.photo">
+            <i class="fas fa-sword"></i>
+          </div>
+          <div class="magic-item-info">
+            <h5 class="magic-item-name">{{ item.itemName }}</h5>
+            <p class="magic-item-type">{{ item.type }}</p>
+            <p class="magic-item-stat">{{ item.mainStat }}</p>
+            <p class="magic-item-damage">d{{ item.damage }}</p>
+            <span class="magic-equipped-badge" *ngIf="item.equipped">
+              <i class="fas fa-check"></i> Equipped
+            </span>
+          </div>
+          <button class="magic-delete-button" (click)="deleteGlobalItem(item)">
+            <i class="fas fa-trash"></i>
+          </button>
         </div>
       </div>
-    <button (click)="saveMaskSkill()" class="mt-4 p-2 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white rounded">Submit</button>
-    </div>
 
-    <div *ngIf="selectedView === 'Manage Mask Mods'" class="text-white">
-      <h3 class="text-xl font-bold mb-2">Manage Mask Mods</h3>
-      <div *ngIf="maskDetails.maskID">
-        <h4 class="text-lg font-bold mb-2">Add Mod to Mask</h4>
-        <input [(ngModel)]="newMaskMod.modType" placeholder="Mod Type" class="p-2 mb-2 bg-stone-900 text-white rounded w-full" />
-        <input [(ngModel)]="newMaskMod.modRarity" type="number" placeholder="Mod Rarity" class="p-2 mb-2 bg-stone-900 text-white rounded w-full" />
-        <textarea [(ngModel)]="newMaskMod.description" placeholder="Description" class="p-2 mb-2 bg-stone-900 text-white rounded w-full"></textarea>
-        <button (click)="saveMaskMod()" class="p-2 bg-blue-700 text-white rounded">Save Mod</button>
+      <!-- Add New Item Form -->
+      <div *ngIf="newInventoryItem" class="magic-add-form">
+        <h5 class="text-md font-bold magic-text mb-4">Create New Global Item</h5>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div class="magic-input-group">
+            <label class="magic-label">Item Name</label>
+            <input [(ngModel)]="newInventoryItem.itemName" type="text" class="magic-input" />
+          </div>
+          <div class="magic-input-group">
+            <label class="magic-label">Type</label>
+            <select [(ngModel)]="newInventoryItem.type" class="magic-select">
+              <option value="">Select type...</option>
+              <option>Weapon</option>
+              <option>Armor</option>
+              <option>Clothing</option>
+              <option>Consumable</option>
+              <option>Tool</option>
+              <option>Misc</option>
+            </select>
+          </div>
+          <div class="magic-input-group">
+            <label class="magic-label">Main Stat</label>
+            <select [(ngModel)]="newInventoryItem.mainStat" class="magic-select">
+              <option value="">Select a stat...</option>
+              <option>Strength</option>
+              <option>Athletics</option>
+              <option>Dexterity</option>
+              <option>Acrobatics</option>
+              <option>Sleight Of Hand</option>
+              <option>Stealth</option>
+              <option>Pilot</option>
+              <option>Constitution</option>
+              <option>Intelligence</option>
+              <option>History</option>
+              <option>Investigation</option>
+              <option>Nature</option>
+              <option>Splicing</option>
+              <option>Wisdom</option>
+              <option>Animal Handling</option>
+              <option>Insight</option>
+              <option>Medicine</option>
+              <option>Perception</option>
+              <option>Survival</option>
+              <option>Mapping</option>
+              <option>Charisma</option>
+              <option>Deception</option>
+              <option>Intimidation</option>
+              <option>Performance</option>
+              <option>Persuasion</option>
+            </select>
+          </div>
+          <div class="magic-input-group">
+            <label class="magic-label">Damage</label>
+            <input [(ngModel)]="newInventoryItem.damage" type="number" class="magic-input" />
+          </div>
+        </div>
+        <div class="magic-input-group mb-4">
+          <label class="magic-label">Description</label>
+          <textarea [(ngModel)]="newInventoryItem.description" class="magic-textarea" rows="4"></textarea>
+        </div>
+        <div class="magic-input-group mb-4">
+          <label class="magic-label">Item Photo</label>
+          <input type="file" accept="image/*" (change)="onImageUploadInventory($event)" class="magic-file-input" />
+        </div>
+        <div class="flex gap-2">
+          <button (click)="saveGlobalItem()" class="magic-submit-button">
+            <i class="fas fa-check mr-2"></i>Create Item
+          </button>
+          <button (click)="cancelGlobalItem()" class="magic-cancel-button">
+            <i class="fas fa-times mr-2"></i>Cancel
+          </button>
+        </div>
       </div>
-    </div>
-
-    <div *ngIf="selectedView !== 'Edit Stats' && selectedView !== 'Manage Family Members' && selectedView !== 'Manage Friend Members' && selectedView !== 'Manage Inventory' && selectedView !== 'Manage Skills'" class="text-white">
-      {{ selectedView }} is working.
     </div>
   </div>
 </div>

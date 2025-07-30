@@ -2081,6 +2081,54 @@ app.put('/character-info/:characterName/friend-members', async (req, res) => {
   }
 });
 
+// DELETE endpoint for removing family members
+app.delete('/character-info/:characterID/family/:familyMemberID', async (req, res) => {
+  const { characterID, familyMemberID } = req.params;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterID } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    // Remove the family member ID from the array
+    const updatedFamilyMembers = characterInfo.familyMembers.filter(
+      id => id != familyMemberID // Use != instead of !== to handle string/number conversion
+    );
+    
+    await CharacterInfo.update({ familyMembers: updatedFamilyMembers }, { where: { characterID } });
+
+    res.status(200).json({ message: 'Family member removed successfully' });
+  } catch (error) {
+    console.error('Error removing family member:', error);
+    res.status(500).send('Failed to remove family member');
+  }
+});
+
+// DELETE endpoint for removing friend members
+app.delete('/character-info/:characterID/friend/:friendMemberID', async (req, res) => {
+  const { characterID, friendMemberID } = req.params;
+
+  try {
+    const characterInfo = await CharacterInfo.findOne({ where: { characterID } });
+    if (!characterInfo) {
+      return res.status(404).send('Character info not found');
+    }
+
+    // Remove the friend member ID from the array
+    const updatedFriendMembers = characterInfo.friendMembers.filter(
+      id => id != friendMemberID // Use != instead of !== to handle string/number conversion
+    );
+    
+    await CharacterInfo.update({ friendMembers: updatedFriendMembers }, { where: { characterID } });
+
+    res.status(200).json({ message: 'Friend member removed successfully' });
+  } catch (error) {
+    console.error('Error removing friend member:', error);
+    res.status(500).send('Failed to remove friend member');
+  }
+});
+
 app.put('/character-info/:characterName/inventory-items', async (req, res) => {
   const { characterName } = req.params;
   const { itemId } = req.body;
@@ -2139,15 +2187,19 @@ app.delete('/character-info/:characterID/inventory-item/:itemID', async (req, re
       return res.status(404).send('Character info not found');
     }
 
-    const updatedInventoryItems = characterInfo.itemInventory.filter(id => id !== parseInt(itemID));
+    // Remove the item ID from the character's inventory array (but don't delete the actual item)
+    const updatedInventoryItems = characterInfo.itemInventory.filter(
+      id => id != itemID // Use != instead of !== to handle string/number conversion
+    );
     await CharacterInfo.update({ itemInventory: updatedInventoryItems }, { where: { characterID } });
 
-    await ItemList.destroy({ where: { itemID } });
+    // Note: We're NOT deleting the actual item from ItemList table
+    // The item remains in the database and can be re-assigned to other characters
 
-    res.status(200).json({ message: 'Inventory item deleted successfully' });
+    res.status(200).json({ message: 'Inventory item removed from character successfully' });
   } catch (error) {
-    console.error('Error deleting inventory item:', error);
-    res.status(500).send('Failed to delete inventory item');
+    console.error('Error removing inventory item from character:', error);
+    res.status(500).send('Failed to remove inventory item from character');
   }
 });
 
@@ -2196,6 +2248,105 @@ app.delete('/character-info/:characterID/skill/:skillID', async (req, res) => {
   } catch (error) {
     console.error('Error deleting skill:', error);
     res.status(500).send('Failed to delete skill');
+  }
+});
+
+// Global endpoints for fetching all skills and items
+app.get('/all-skills', async (req, res) => {
+  try {
+    const skills = await SkillList.findAll({
+      order: [['skillName', 'ASC']]
+    });
+    res.json(skills);
+  } catch (error) {
+    console.error('Error fetching all skills:', error);
+    res.status(500).send('Failed to fetch all skills');
+  }
+});
+
+app.get('/all-items', async (req, res) => {
+  try {
+    const items = await ItemList.findAll({
+      order: [['itemName', 'ASC']]
+    });
+    res.json(items);
+  } catch (error) {
+    console.error('Error fetching all items:', error);
+    res.status(500).send('Failed to fetch all items');
+  }
+});
+
+// Global endpoints for creating skills and items
+app.post('/skills', async (req, res) => {
+  const { skillName, mainStat, description, diceRoll } = req.body;
+
+  try {
+    const newSkill = await SkillList.create({
+      skillName,
+      mainStat,
+      description,
+      diceRoll
+    });
+
+    res.status(201).json(newSkill);
+  } catch (error) {
+    console.error('Error creating global skill:', error);
+    res.status(500).send('Failed to create global skill');
+  }
+});
+
+app.post('/items', async (req, res) => {
+  const { itemName, type, mainStat, description, damage, photo } = req.body;
+
+  try {
+    const newItem = await ItemList.create({
+      itemName,
+      type,
+      mainStat,
+      description,
+      damage,
+      photo: photo || ''
+    });
+
+    res.status(201).json(newItem);
+  } catch (error) {
+    console.error('Error creating global item:', error);
+    res.status(500).send('Failed to create global item');
+  }
+});
+
+// Global endpoints for deleting skills and items
+app.delete('/skills/:skillID', async (req, res) => {
+  const { skillID } = req.params;
+
+  try {
+    const skill = await SkillList.findOne({ where: { skillID } });
+    if (!skill) {
+      return res.status(404).send('Skill not found');
+    }
+
+    await SkillList.destroy({ where: { skillID } });
+    res.status(200).json({ message: 'Global skill deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting global skill:', error);
+    res.status(500).send('Failed to delete global skill');
+  }
+});
+
+app.delete('/items/:itemID', async (req, res) => {
+  const { itemID } = req.params;
+
+  try {
+    const item = await ItemList.findOne({ where: { itemID } });
+    if (!item) {
+      return res.status(404).send('Item not found');
+    }
+
+    await ItemList.destroy({ where: { itemID } });
+    res.status(200).json({ message: 'Global item deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting global item:', error);
+    res.status(500).send('Failed to delete global item');
   }
 });
 
@@ -2576,6 +2727,70 @@ app.get('/masks', async (req, res) => {
   } catch (error) {
     console.error('Error fetching masks:', error);
     res.status(500).send('Failed to fetch masks');
+  }
+});
+
+// Update existing mask
+app.put('/masks/:maskID', async (req, res) => {
+  const { maskID } = req.params;
+  const { photo, passiveSkill, activeSkills, attackDamage, abilityDamage, magicResist, protections, health, speed } = req.body;
+
+  try {
+    const mask = await MaskList.findByPk(maskID);
+    if (!mask) {
+      return res.status(404).json({ error: 'Mask not found' });
+    }
+
+    const relativePhotoPath = photo ? photo.replace(`https://${localIP}:443`, '') : mask.photo;
+
+    await mask.update({
+      photo: relativePhotoPath,
+      passiveSkill: passiveSkill || mask.passiveSkill,
+      activeSkills: activeSkills || mask.activeSkills,
+      attackDamage: attackDamage !== undefined ? attackDamage : mask.attackDamage,
+      abilityDamage: abilityDamage !== undefined ? abilityDamage : mask.abilityDamage,
+      magicResist: magicResist !== undefined ? magicResist : mask.magicResist,
+      protections: protections !== undefined ? protections : mask.protections,
+      health: health !== undefined ? health : mask.health,
+      currentHealth: health !== undefined ? health : mask.currentHealth, // Update currentHealth if health is updated
+      speed: speed !== undefined ? speed : mask.speed
+    });
+
+    res.json(mask);
+  } catch (error) {
+    console.error('Error updating mask:', error);
+    res.status(500).send('Failed to update mask');
+  }
+});
+
+// Delete existing mask
+app.delete('/masks/:maskID', async (req, res) => {
+  const { maskID } = req.params;
+
+  try {
+    const mask = await MaskList.findByPk(maskID);
+    if (!mask) {
+      return res.status(404).json({ error: 'Mask not found' });
+    }
+
+    // Check if mask is currently assigned to any character
+    const CharacterInfo = require('./models/CharacterInfo');
+    const assignedCharacters = await CharacterInfo.findAll({
+      where: { maskID: maskID }
+    });
+
+    if (assignedCharacters.length > 0) {
+      return res.status(400).json({ 
+        error: 'Cannot delete mask as it is currently assigned to one or more characters',
+        assignedCharacters: assignedCharacters.map(char => char.characterName)
+      });
+    }
+
+    await mask.destroy();
+    res.json({ message: 'Mask deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting mask:', error);
+    res.status(500).send('Failed to delete mask');
   }
 });
 
