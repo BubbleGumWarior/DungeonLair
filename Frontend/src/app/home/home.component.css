@@ -60,6 +60,7 @@
   transition: all 0.3s ease;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   position: relative;
+  text-decoration: none; /* Disable default underline */
 }
 
 .navbar-panel a:hover {
