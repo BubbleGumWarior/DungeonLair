@@ -1,0 +1,246 @@
+/* Magic Button Styles */
+.magic-button {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: #000;
+  font-weight: 700;
+  box-shadow: 
+    0 4px 12px rgba(59, 130, 246, 0.3),
+    0 0 0 1px rgba(59, 130, 246, 0.2);
+  transform: translateY(0);
+  position: relative;
+  z-index: 10000 !important;
+  isolation: isolate;
+}
+
+.magic-button:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 20px rgba(59, 130, 246, 0.5),
+    0 0 16px rgba(59, 130, 246, 0.3);
+}
+
+/* Voice Active State */
+.magic-button.voice-active {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  box-shadow: 
+    0 4px 12px rgba(16, 185, 129, 0.4),
+    0 0 0 1px rgba(16, 185, 129, 0.3),
+    0 0 20px rgba(16, 185, 129, 0.2);
+  animation: voicePulse 2s infinite;
+}
+
+.magic-button.voice-active:hover {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  box-shadow: 
+    0 6px 20px rgba(16, 185, 129, 0.6),
+    0 0 16px rgba(16, 185, 129, 0.4);
+}
+
+@keyframes voicePulse {
+  0%, 100% {
+    box-shadow: 
+      0 4px 12px rgba(16, 185, 129, 0.4),
+      0 0 0 1px rgba(16, 185, 129, 0.3),
+      0 0 20px rgba(16, 185, 129, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 4px 12px rgba(16, 185, 129, 0.6),
+      0 0 0 1px rgba(16, 185, 129, 0.4),
+      0 0 30px rgba(16, 185, 129, 0.3);
+  }
+}
+
+/* Magic Panel Styles */
+.magic-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.95) 0%,
+    rgba(30, 41, 59, 0.95) 50%,
+    rgba(51, 65, 85, 0.95) 100%
+  );
+  backdrop-filter: blur(20px);
+  z-index: 999;
+}
+
+.border-magic {
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+
+.magic-arrow {
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid rgba(30, 41, 59, 0.95);
+}
+
+/* Magic Text Styles */
+.magic-text {
+  color: #3b82f6;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.magic-text-secondary {
+  color: #94a3b8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Magic Close Button */
+.magic-close-button {
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.1) 0%,
+    rgba(220, 38, 38, 0.1) 100%
+  );
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.magic-close-button:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.2) 0%,
+    rgba(220, 38, 38, 0.2) 100%
+  );
+  border-color: rgba(239, 68, 68, 0.5);
+  transform: scale(1.1);
+}
+
+/* Magic Button Primary */
+.magic-button-primary {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: #000;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.magic-button-primary:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+/* Magic Sound Button */
+.magic-sound-button {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.15) 0%,
+    rgba(37, 99, 235, 0.15) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #3b82f6;
+}
+
+.magic-sound-button:hover {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.magic-sound-button.muted {
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.15) 0%,
+    rgba(220, 38, 38, 0.15) 100%
+  );
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.magic-sound-button.muted:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  color: #000;
+}
+
+/* Magic Leave Button */
+.magic-leave-button {
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.15) 0%,
+    rgba(220, 38, 38, 0.15) 100%
+  );
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.magic-leave-button:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+/* VC Button specific styles */
+.vc-button {
+  position: relative;
+  z-index: 10000 !important;
+}
+
+.voice-modal {
+  z-index: 9999;
+}
+
+/* Voice Users List */
+.voice-users-list {
+  max-height: 66vh;
+  overflow-y: auto;
+}
+
+/* Magic scrollbar styles for voice users list */
+.voice-users-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.voice-users-list::-webkit-scrollbar-track {
+  background: rgba(51, 65, 85, 0.3);
+  border-radius: 4px;
+}
+
+.voice-users-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  border-radius: 4px;
+}
+
+.voice-users-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+}
+
+/* User connection status indicators */
+.user-status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.user-status-indicator.connected {
+  background-color: #10b981;
+  box-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
+}
+
+.user-status-indicator.disconnected {
+  background-color: #6b7280;
+}
+
+/* Animation for user list items */
+.voice-users-list > div {
+  transition: all 0.2s ease-in-out;
+}
+
+.voice-users-list > div:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.4);
+}

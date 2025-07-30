@@ -27,6 +27,8 @@ export interface UserInBattle {
 
 interface VcMember {
   username: string;
+  isMuted?: boolean;
+  isConnected?: boolean;
 }
 
 @Injectable({
@@ -114,6 +116,10 @@ export class WebSocketService {
 
   removeVcMember(username: string) {
     this.socket.emit('removeVcMember', username);
+  }
+
+  updateVcMemberStatus(username: string, isMuted: boolean) {
+    this.socket.emit('updateVcMemberStatus', { username, isMuted });
   }
 
   requestVcMembers() {

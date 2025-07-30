@@ -1017,28 +1017,48 @@ io.on('connection', (socket) => {
       io.emit('vcMembersUpdate', vcMembers);
     });
 
+    socket.on('updateVcMemberStatus', ({ username, isMuted }) => {
+      const member = vcMembers.find(m => m.username === username);
+      if (member) {
+        member.isMuted = isMuted;
+        io.emit('vcMembersUpdate', vcMembers);
+      }
+    });
+
     socket.on('requestVcMembers', () => {
       socket.emit('vcMembersUpdate', vcMembers);
     });
 
     socket.on('rtcOffer', ({ username, offer }) => {
         const targetUser = liveUsers.find(user => user.username === username);
-        if (targetUser) {
-            io.to(targetUser.id).emit('rtcOffer', socket.username, offer);
+        const senderUser = liveUsers.find(user => user.id === socket.id);
+        if (targetUser && senderUser) {
+            console.log(`Forwarding RTC offer from ${senderUser.username} to ${username}`);
+            io.to(targetUser.id).emit('rtcOffer', senderUser.username, offer);
+        } else {
+            console.warn('Could not forward RTC offer:', { targetUser: !!targetUser, senderUser: !!senderUser });
         }
     });
 
     socket.on('rtcAnswer', ({ username, answer }) => {
         const targetUser = liveUsers.find(user => user.username === username);
-        if (targetUser) {
-            io.to(targetUser.id).emit('rtcAnswer', socket.username, answer);
+        const senderUser = liveUsers.find(user => user.id === socket.id);
+        if (targetUser && senderUser) {
+            console.log(`Forwarding RTC answer from ${senderUser.username} to ${username}`);
+            io.to(targetUser.id).emit('rtcAnswer', senderUser.username, answer);
+        } else {
+            console.warn('Could not forward RTC answer:', { targetUser: !!targetUser, senderUser: !!senderUser });
         }
     });
 
     socket.on('rtcIceCandidate', ({ username, candidate }) => {
         const targetUser = liveUsers.find(user => user.username === username);
-        if (targetUser) {
-            io.to(targetUser.id).emit('rtcIceCandidate', socket.username, candidate);
+        const senderUser = liveUsers.find(user => user.id === socket.id);
+        if (targetUser && senderUser) {
+            console.log(`Forwarding ICE candidate from ${senderUser.username} to ${username}`);
+            io.to(targetUser.id).emit('rtcIceCandidate', senderUser.username, candidate);
+        } else {
+            console.warn('Could not forward ICE candidate:', { targetUser: !!targetUser, senderUser: !!senderUser });
         }
     });
 

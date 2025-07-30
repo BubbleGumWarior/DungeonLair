@@ -14,6 +14,7 @@ import { ChatButtonComponent } from '../chat-button/chat-button.component';
 import { RollButtonComponent } from '../roll-button/roll-button.component';
 import { SoundComponent } from '../sound/sound.component';
 import { SoundbarComponent } from '../soundbar/soundbar.component';
+import { VoiceChatComponent } from '../voice-chat/voice-chat.component';
 import { DMScreenComponent } from '../dmscreen/dmscreen.component';
 import { jwtDecode } from 'jwt-decode';
 import { WebSocketService } from '../services/websocket.service';
@@ -40,6 +41,7 @@ import { AdminPanelComponent } from '../admin-panel/admin-panel.component';
     RollButtonComponent,
     SoundComponent,
     SoundbarComponent,
+    VoiceChatComponent,
     DMScreenComponent,
     ScoreComponent,
     MaskCollectionComponent,
