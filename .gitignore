@@ -1,9 +1,25 @@
-# ...existing code...
+# Configuration files
 Frontend/src/app/config.ts
 Backend/config.js
-# ...existing code...
-Backend/config.js
-Frontend/src/app/config.ts
+
+# Node.js dependencies
+node_modules/
+*/node_modules/
+**/node_modules/
+
+# Build directories
+dist/
+build/
+*/dist/
+*/build/
+**/dist/
+**/build/
+
+# Angular build output
+Frontend/dist/
+Frontend/.angular/
+
+# Assets and certificates
 /Backend/assets/images
 /Backend/assets/sounds
 /certs/
