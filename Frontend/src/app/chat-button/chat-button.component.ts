@@ -50,12 +50,19 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
   ngOnInit() {
     this.loadUserRole();
     this.loadChatHistory().then(() => {
-      // After chat history is loaded, compare timestamps
+      // After chat history is loaded, check if there are actually new messages
       if (this.chatHistory.length > 0) {
         const latestTimestamp = this.chatHistory[0].timestamp;
-        if (this.isMessageNewer(latestTimestamp)) {
+        const storedTimestamp = localStorage.getItem('latestChatTimestamp');
+        
+        // Only show red button if we have a stored timestamp AND there are newer messages
+        if (storedTimestamp && this.isMessageNewer(latestTimestamp)) {
           this.isNewMessage = true;
           this.changeButtonColor();
+        } else if (!storedTimestamp) {
+          // If no stored timestamp exists, initialize it with the latest message
+          // This prevents the button from being red on first load/refresh
+          this.saveLatestMessageTimestamp(latestTimestamp);
         }
       }
       // Save latest timestamp if chat is open on load
@@ -341,8 +348,13 @@ export class ChatButtonComponent implements OnDestroy, OnInit {
   // Compare the incoming message timestamp with the one in localStorage
   isMessageNewer(incomingTimestamp: Date | string): boolean {
     const stored = localStorage.getItem('latestChatTimestamp');
-    if (!stored) return true;
+    if (!stored) return false; // If no stored timestamp, don't consider it "new"
     return new Date(incomingTimestamp).getTime() > new Date(stored).getTime();
+  }
+
+  // Check if we have any stored timestamp (user has opened chat before)
+  hasSeenMessages(): boolean {
+    return localStorage.getItem('latestChatTimestamp') !== null;
   }
 
   async onImageUpload(event: any) {
