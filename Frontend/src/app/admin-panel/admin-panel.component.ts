@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { localIP } from '../config';
 
 interface User {
@@ -27,18 +26,10 @@ export class AdminPanelComponent implements OnInit {
   showModal = false;
   resetResult: any = null;
 
-  constructor(private router: Router) {}
+  constructor() {}
 
   ngOnInit() {
-    this.checkAdminAccess();
     this.loadUsers();
-  }
-
-  checkAdminAccess() {
-    const role = localStorage.getItem('role');
-    if (role !== 'Dungeon Master') {
-      this.router.navigate(['/']);
-    }
   }
 
   loadUsers() {
@@ -108,10 +99,6 @@ export class AdminPanelComponent implements OnInit {
     this.resetResult = null;
     this.successMessage = null;
     this.errorMessage = null;
-  }
-
-  navigateHome() {
-    this.router.navigate(['/']);
   }
 
   formatDate(dateString: string | null): string {

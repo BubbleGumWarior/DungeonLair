@@ -21,7 +21,7 @@
         <li><a class="text-stone-950 hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('mask-collection')"[ngClass]="{'underline font-bold': currentView === 'mask-collection'}">Mask Collection</a></li>
         <li><a class="text-stone-950 hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('score')" [ngClass]="{'underline font-bold': currentView === 'score'}">Score</a></li>
         <li *ngIf="role === 'Dungeon Master'"><a class="text-stone-950 hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('dm-screen')"[ngClass]="{'underline font-bold': currentView === 'dm-screen'}">Dm Screen</a></li>
-        <li *ngIf="role === 'Dungeon Master'"><a class="text-stone-950 hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateTo('admin-panel')">Admin Panel</a></li>
+        <li *ngIf="role === 'Dungeon Master'"><a class="text-stone-950 hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('admin-panel')" [ngClass]="{'underline font-bold': currentView === 'admin-panel'}">Admin Panel</a></li>
       </ul>
       <ul class="hidden md:flex space-x-4">
         <li>
@@ -53,7 +53,7 @@
         <li><a class="text-stone-950 hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('mask-collection')">Mask Collection</a></li>
         <li><a class="text-stone-950 hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('score')">Score</a></li>
         <li *ngIf="role === 'Dungeon Master'"><a class="text-stone-950 hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('dm-screen')">DM Screen</a></li>
-        <li *ngIf="role === 'Dungeon Master'"><a class="text-stone-950 hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateTo('admin-panel')">Admin Panel</a></li>
+        <li *ngIf="role === 'Dungeon Master'"><a class="text-stone-950 hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateView('admin-panel')">Admin Panel</a></li>
         <li><a class="text-stone-950 hover:text-blue-200 cursor-pointer transition-colors" (click)="navigateTo('change-password')">
           <i class="fa fa-key mr-1"></i> Change Password
         </a></li>
@@ -75,6 +75,7 @@
     <app-notes *ngIf="currentView === 'notes'" [username]="username" [role]="role"></app-notes>
     <app-score *ngIf="currentView === 'score'" [characterID]="characterName || ''" [role]="role || ''"></app-score>
     <app-dmscreen *ngIf="currentView === 'dm-screen'"></app-dmscreen>
+    <app-admin-panel *ngIf="currentView === 'admin-panel'"></app-admin-panel>
   </div>
 
   <app-chat-button *ngIf="isHomeView() || !isMobile()" [newMessage]="diceResult" [username]="username || 'DefaultUser'"></app-chat-button>

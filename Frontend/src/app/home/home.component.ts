@@ -20,6 +20,7 @@ import { WebSocketService } from '../services/websocket.service';
 import { localIP } from '../config'; // Import localIP from config
 import { ScoreComponent } from '../score/score.component';
 import { MaskCollectionComponent } from '../mask-collection/mask-collection.component';
+import { AdminPanelComponent } from '../admin-panel/admin-panel.component';
 
 @Component({
   selector: 'app-home',
@@ -42,6 +43,7 @@ import { MaskCollectionComponent } from '../mask-collection/mask-collection.comp
     DMScreenComponent,
     ScoreComponent,
     MaskCollectionComponent,
+    AdminPanelComponent,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
