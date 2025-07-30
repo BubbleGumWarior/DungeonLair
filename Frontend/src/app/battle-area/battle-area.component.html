@@ -676,3 +676,15 @@
     </div>
   </div>
 </div>
+
+<!-- Voice Chat Component -->
+<app-voice-chat [username]="username"></app-voice-chat>
+
+<!-- Chat Button Component -->
+<app-chat-button [newMessage]="diceResult" [username]="username || 'DefaultUser'"></app-chat-button>
+
+<!-- Roll Button Component -->
+<app-roll-button 
+    (resultRolled)="handleDiceResult($event)" 
+    (openChat)="openChatButton()">
+</app-roll-button>

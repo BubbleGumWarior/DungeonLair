@@ -6,12 +6,14 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { localIP } from '../config';
 import { WebSocketService } from '../services/websocket.service';
 import { ChatButtonComponent } from '../chat-button/chat-button.component';
+import { RollButtonComponent } from '../roll-button/roll-button.component'; // Import RollButtonComponent
+import { VoiceChatComponent } from '../voice-chat/voice-chat.component'; // Import VoiceChatComponent
 import { jwtDecode } from 'jwt-decode'; // Import jwtDecode
 
 @Component({
   selector: 'app-characters-gallery',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, ChatButtonComponent],
+  imports: [CommonModule, FormsModule, HttpClientModule, ChatButtonComponent, RollButtonComponent, VoiceChatComponent], // Add RollButtonComponent to imports
   templateUrl: './charactersGallery.component.html',
   styleUrl: './charactersGallery.component.css'
 })
@@ -124,6 +126,10 @@ export class CharactersGalleryComponent implements OnInit {
           console.error('Error fetching characters:', error);
         }
       );
+  }
+
+  openChatButton() {
+    // Logic to open chat button if needed
   }
 
 }

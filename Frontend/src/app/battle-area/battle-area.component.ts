@@ -6,16 +6,21 @@ import { jwtDecode } from 'jwt-decode';
 import { localIP } from '../config'; // Import the IP address
 import { WebSocketService } from '../services/websocket.service'; // Import WebSocketService
 import { FormsModule } from '@angular/forms'; // Import FormsModule for two-way binding
+import { VoiceChatComponent } from '../voice-chat/voice-chat.component'; // Import VoiceChatComponent
+import { ChatButtonComponent } from '../chat-button/chat-button.component'; // Import ChatButtonComponent
+import { RollButtonComponent } from '../roll-button/roll-button.component'; // Import RollButtonComponent
 
 @Component({
   selector: 'app-battle-area',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, FormsModule], // Add FormsModule to imports
+  imports: [CommonModule, HttpClientModule, FormsModule, VoiceChatComponent, ChatButtonComponent, RollButtonComponent], // Add ChatButtonComponent and RollButtonComponent to imports
   templateUrl: './battle-area.component.html',
   styleUrl: './battle-area.component.css'
 })
 export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
   Math = Math; // Add Math as a property
+  username: string = ''; // Add username property for voice chat
+  diceResult: string = ''; // Add diceResult property for roll button
   userInformation: any = null;
   maskInformation: any = null; // Add maskInformation variable
   masksInBattle: any[] = []; // Ensure this array is populated with mask data
@@ -120,6 +125,7 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
     if (token) {
       try {
         const decoded: any = jwtDecode(token);
+        this.username = decoded.username; // Set username for voice chat
         this.userInformation = {
           username: decoded.username,
           role: decoded.role,
@@ -625,5 +631,13 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
       const color = getColorForMask(Number(maskID));
       return `<span style="color: ${color}; font-weight: bold;">Mask ${maskID}</span>`;
     });
+  }
+
+  handleDiceResult(result: string) {
+    this.diceResult = result;
+  }
+
+  openChatButton() {
+    // Logic to open chat button if needed
   }
 }

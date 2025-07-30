@@ -6,12 +6,14 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { localIP } from '../config';
 import { WebSocketService } from '../services/websocket.service';
 import { ChatButtonComponent } from '../chat-button/chat-button.component';
+import { RollButtonComponent } from '../roll-button/roll-button.component'; // Import RollButtonComponent
+import { VoiceChatComponent } from '../voice-chat/voice-chat.component'; // Import VoiceChatComponent
 import { jwtDecode } from 'jwt-decode'; // Import jwtDecode
 
 @Component({
   selector: 'app-gallery',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, ChatButtonComponent],
+  imports: [CommonModule, FormsModule, HttpClientModule, ChatButtonComponent, RollButtonComponent, VoiceChatComponent], // Add RollButtonComponent to imports
   templateUrl: './gallery.component.html',
   styleUrl: './gallery.component.css'
 })
@@ -107,5 +109,9 @@ export class GalleryComponent implements OnInit {
           console.error('Error fetching images:', error);
         }
       );
+  }
+
+  openChatButton() {
+    // Logic to open chat button if needed
   }
 }

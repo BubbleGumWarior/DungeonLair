@@ -1,4 +1,4 @@
-<div *ngIf="!isOpen" class="fixed bottom-4 left-4 mb-0">
+<div *ngIf="!isOpen" class="fixed bottom-4 left-4 mb-0 z-[10000]">
   <button
     [ngClass]="{'magic-button-alert': isNewMessage, 'magic-button': !isNewMessage}"
     class="chat-button p-3 w-12 h-12 rounded-full transition-all duration-300"

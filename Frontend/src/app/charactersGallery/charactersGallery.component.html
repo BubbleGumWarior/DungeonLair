@@ -1,6 +1,10 @@
 <div class="magic-container">
     <button class="magic-close-button" (click)="closeGallery()">X</button>
     <app-chat-button [newMessage]="diceResult" [username]="username || 'DefaultUser'"></app-chat-button>
+    <app-roll-button 
+        (resultRolled)="handleDiceResult($event)" 
+        (openChat)="openChatButton()">
+    </app-roll-button>
 
     <button *ngIf="role === 'Dungeon Master'" class="magic-add-button" (click)="openAddCharacterModal()">
         Add Character
@@ -49,3 +53,6 @@
         </div>
     </div>
 </div>
+
+<!-- Voice Chat Component -->
+<app-voice-chat [username]="username || 'DefaultUser'"></app-voice-chat>
