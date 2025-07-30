@@ -25,10 +25,10 @@ export class WorldMapComponent implements OnInit {
   modalVisible: boolean = false;
   modalPosition = { top: 0, left: 0 };
   selectedUser: { username: string, characterID: string } | null = null;
-  hoveredCharacter: {
+  clickedCharacter: {
     characterName: string;
     photo: string;
-    equippedItemPath: string;
+    equippedItemPath: string | null;
   } | null = null;
   currentTime: string = '00:00';
   currentDay: string = 'Monday'; // Default day
@@ -146,21 +146,21 @@ export class WorldMapComponent implements OnInit {
         top = event.clientY - 40;
       }
 
-      // Fetch character details from backend and save to hoveredCharacter
-      const detailsRes = await fetch('https://dungeonlair.ddns.net:443/hover-character-id', {
+      // Fetch character details from backend and save to clickedCharacter
+      const detailsRes = await fetch('https://dungeonlair.ddns.net:443/click-character-id', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ characterID: data.characterID })
       });
       if (detailsRes.ok) {
         const details = await detailsRes.json();
-        this.hoveredCharacter = {
+        this.clickedCharacter = {
           characterName: details.characterName,
           photo: `https://${localIP}:443${details.photo}`,
-          equippedItemPath: `https://${localIP}:443${details.equippedItemPath}`
+          equippedItemPath: details.equippedItemPath ? `https://${localIP}:443${details.equippedItemPath}` : null
         };
       } else {
-        this.hoveredCharacter = null;
+        this.clickedCharacter = null;
       }
 
       this.modalPosition = { top, left };
@@ -168,7 +168,7 @@ export class WorldMapComponent implements OnInit {
     } catch (error) {
       this.modalVisible = false;
       this.selectedUser = null;
-      this.hoveredCharacter = null;
+      this.clickedCharacter = null;
     }
   }
 
@@ -176,7 +176,7 @@ export class WorldMapComponent implements OnInit {
   onUserLeave() {
     this.modalVisible = false;
     this.selectedUser = null;
-    this.hoveredCharacter = null;
+    this.clickedCharacter = null;
   }
 
   fetchTimeFromServer() {

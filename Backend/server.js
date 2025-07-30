@@ -4586,7 +4586,7 @@ app.post('/equip-item', async (req, res) => {
   }
 });
 
-app.post('/hover-character-id', async (req, res) => {
+app.post('/click-character-id', async (req, res) => {
   const { characterID } = req.body;
   if (!characterID) {
     return res.status(400).json({ message: 'characterID is required' });
@@ -4624,7 +4624,7 @@ app.post('/hover-character-id', async (req, res) => {
       equippedItemPath
     });
     } catch (error) {
-    console.error('Error in /hover-character-id:', error);
+    console.error('Error in /click-character-id:', error);
     res.status(500).json({ message: 'Failed to log character ID' });
   }
 });

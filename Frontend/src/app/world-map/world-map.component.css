@@ -514,6 +514,40 @@
   margin: 0;
 }
 
+/* No Equipment Message */
+.no-equipment-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.8) 0%,
+    rgba(51, 65, 85, 0.8) 100%
+  );
+  border: 2px dashed rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  min-height: 200px;
+  max-width: 60%;
+}
+
+.equipment-icon {
+  font-size: 3rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.no-equipment-message p {
+  color: #9ca3af;
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-align: center;
+  margin: 0;
+  font-style: italic;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; }

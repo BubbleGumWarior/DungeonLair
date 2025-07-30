@@ -87,31 +87,35 @@
   </div>
 
   <!-- Character info modal -->
-  <div *ngIf="modalVisible && hoveredCharacter" class="character-modal-overlay" (click)="onUserLeave()">
+  <div *ngIf="modalVisible && clickedCharacter" class="character-modal-overlay" (click)="onUserLeave()">
     <div class="character-modal-content" (click)="$event.stopPropagation()">
       <button class="modal-close-btn" (click)="onUserLeave()" aria-label="Close">
         &times;
       </button>
       <div class="character-images">
-        <ng-container *ngIf="hoveredCharacter.equippedItemPath !== 'https://dungeonlair.ddns.net:443'; else singleImage">
-          <img *ngIf="hoveredCharacter.characterName"
-            [src]="hoveredCharacter.photo"
+        <ng-container *ngIf="clickedCharacter.equippedItemPath; else singleImage">
+          <img *ngIf="clickedCharacter.characterName"
+            [src]="clickedCharacter.photo"
             alt="Character Photo"
             class="character-image dual"/>
-          <img *ngIf="hoveredCharacter.equippedItemPath"
-            [src]="hoveredCharacter.equippedItemPath"
+          <img *ngIf="clickedCharacter.equippedItemPath"
+            [src]="clickedCharacter.equippedItemPath"
             alt="Equipped Item"
             class="character-image dual"/>
         </ng-container>
         <ng-template #singleImage>
-          <img *ngIf="hoveredCharacter.equippedItemPath"
-            [src]="hoveredCharacter.photo"
+          <img *ngIf="clickedCharacter.photo"
+            [src]="clickedCharacter.photo"
             alt="Character Photo"
             class="character-image single"/>
+          <div *ngIf="!clickedCharacter.equippedItemPath" class="no-equipment-message">
+            <i class="fas fa-shield-alt equipment-icon"></i>
+            <p>No equipment equipped</p>
+          </div>
         </ng-template>
       </div>
       <div class="character-name">
-        {{ hoveredCharacter.characterName }}
+        {{ clickedCharacter.characterName }}
       </div>
     </div>
   </div>
