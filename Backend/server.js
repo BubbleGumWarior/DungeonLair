@@ -1072,6 +1072,10 @@ io.on('connection', (socket) => {
             delete maskSkills[maskID]; // Remove mask skills when leaving battle
             io.emit('masksInBattleUpdate', Object.values(masksInBattle));
         } else {
+            // Find the user making this request to determine their role
+            const user = liveUsers.find(u => u.id === socket.id);
+            const isDungeonMaster = user && user.role === 'Dungeon Master';
+            
             MaskList.findOne({ where: { maskID } })
                 .then(maskDetails => {
                     if (maskDetails) {
@@ -1095,7 +1099,7 @@ io.on('connection', (socket) => {
                             action: false, // Add action field
                             bonusAction: false, // Add bonusAction field
                             movement: 0, // Add movement field
-                            team: 'Neutral', // Add team field
+                            team: isDungeonMaster ? 'Enemy' : 'Ally', // Assign team based on user role
                             cooldowns: {}, // Initialize cooldowns field
                             photo: maskDetails.photo // Add photo field
                         };
