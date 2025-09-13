@@ -22,6 +22,13 @@ export class MaskCollectionComponent implements OnInit, OnDestroy {
   successMessage = '';
   isDungeonMaster = false;
   role: string | null = null;
+  
+  // Skills modal properties
+  showSkillsModal = false;
+  selectedMaskID: number | null = null;
+  selectedMaskPassiveSkill = '';
+  activeSkills: any[] = [];
+  loadingSkills = false;
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService) {}
 
@@ -191,5 +198,63 @@ export class MaskCollectionComponent implements OnInit, OnDestroy {
 
   onImageError(event: any) {
     event.target.src = 'assets/images/placeholder-mask.png';
+  }
+
+  showMaskSkills(maskID: number) {
+    const maskDetail = this.getMaskDetail(maskID);
+    if (!maskDetail) {
+      console.error('Mask details not found for ID:', maskID);
+      return;
+    }
+
+    this.selectedMaskID = maskID;
+    this.selectedMaskPassiveSkill = maskDetail.passiveSkill || '';
+    this.showSkillsModal = true;
+    this.loadActiveSkills(maskDetail.activeSkills || []);
+  }
+
+  loadActiveSkills(activeSkillIDs: number[]) {
+    if (!activeSkillIDs || activeSkillIDs.length === 0) {
+      this.activeSkills = [];
+      return;
+    }
+
+    this.loadingSkills = true;
+    const skillIDs = activeSkillIDs.join(',');
+    
+    this.http.get(`https://${localIP}:443/mask-skills?skillIDs=${skillIDs}`).subscribe({
+      next: (skills: any) => {
+        this.activeSkills = Array.isArray(skills) ? skills : [skills];
+        this.loadingSkills = false;
+      },
+      error: (error) => {
+        console.error('Error fetching active skills:', error);
+        this.activeSkills = [];
+        this.loadingSkills = false;
+      }
+    });
+  }
+
+  closeSkillsModal() {
+    this.showSkillsModal = false;
+    this.selectedMaskID = null;
+    this.selectedMaskPassiveSkill = '';
+    this.activeSkills = [];
+  }
+
+  formatPassiveSkillText(text: string): string {
+    if (!text) {
+      return 'No passive skill defined';
+    }
+    // Convert newlines to <br> tags to preserve line breaks
+    return text.replace(/\n/g, '<br>');
+  }
+
+  formatSkillDescription(text: string): string {
+    if (!text) {
+      return '';
+    }
+    // Convert newlines to <br> tags to preserve line breaks
+    return text.replace(/\n/g, '<br>');
   }
 }

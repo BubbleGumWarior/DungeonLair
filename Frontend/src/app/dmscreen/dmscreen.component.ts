@@ -68,6 +68,40 @@ export class DMScreenComponent implements OnInit {
     isMultiTarget: false // Add this property
   }; // Initialize new mask skill
   newMaskMod: any = { modType: '', modRarity: 0, description: '' }; // Add this variable to store new mod details
+  maskMods: any[] = []; // Store mods for the currently editing mask
+  editingMod: any = null; // Store the mod being edited
+  hoveredMod: any = null; // Store the hovered mod for tooltip display
+  
+  // Mod type selection properties
+  isStatMod: boolean = false; // Toggle between Skill Mod (false) and Stat Mod (true)
+  selectedStatType: string = ''; // Selected stat type for stat mods
+  
+  // Stat mod templates
+  rarityNames: { [key: number]: string } = {
+    1: 'Bronze',
+    2: 'Silver', 
+    3: 'Gold',
+    4: 'Diamond',
+    5: 'Prismatic'
+  };
+  
+  statTypes: string[] = [
+    'Attack Damage',
+    'Ability Damage', 
+    'Protections',
+    'Magic Resist',
+    'Health',
+    'Speed'
+  ];
+  
+  statBonusValues: { [key: string]: { [key: number]: number } } = {
+    'Attack Damage': { 1: 50, 2: 200, 3: 400, 4: 650, 5: 950 },
+    'Ability Damage': { 1: 50, 2: 200, 3: 400, 4: 650, 5: 950 },
+    'Protections': { 1: 50, 2: 200, 3: 400, 4: 650, 5: 950 },
+    'Magic Resist': { 1: 50, 2: 200, 3: 400, 4: 650, 5: 950 },
+    'Health': { 1: 500, 2: 5000, 3: 10000, 4: 25000, 5: 50000 },
+    'Speed': { 1: 5, 2: 15, 3: 25, 4: 35, 5: 50 }
+  };
 
   maskUsers: { name: string, photo: string }[] = [];
   civilians: { name: string, photo: string }[] = [];
@@ -338,7 +372,13 @@ export class DMScreenComponent implements OnInit {
     };
     this.http.post(`https://${localIP}:443/mask-skills`, maskSkillData).subscribe(
       (data: any) => {
-        this.updateMaskActiveSkills(data.skillID);
+        // If we're editing a mask, add the skill to that mask
+        if (this.editingMask && this.editingMask.maskID) {
+          this.updateMaskActiveSkillsForEdit(data.skillID, this.editingMask.maskID);
+        } else {
+          // Original behavior for when not editing
+          this.updateMaskActiveSkills(data.skillID);
+        }
         this.newMaskSkill = { 
           skillName: '', 
           description: '', 
@@ -349,9 +389,38 @@ export class DMScreenComponent implements OnInit {
           onHitEffect: 'None', // Reset to default value
           isMultiTarget: false // Reset to default value
         };
+        this.showNewMaskSkillForm = false; // Hide the form after saving
       },
       (error) => {
         console.error('Error saving mask skill:', error);
+      }
+    );
+  }
+
+  updateMaskActiveSkillsForEdit(skillID: number, maskID: number) {
+    this.http.put(`https://${localIP}:443/masks/${maskID}/add-skill`, { skillID }).subscribe(
+      () => {
+        console.log(`Skill ${skillID} added to mask ${maskID} successfully`);
+        // Update the local editingMask object to reflect the new skill
+        if (this.editingMask.activeSkills) {
+          if (Array.isArray(this.editingMask.activeSkills)) {
+            this.editingMask.activeSkills.push(skillID);
+          } else {
+            // If it's a string, convert to array and add the new skill
+            const currentSkills = this.editingMask.activeSkills.split(',').map((s: string) => parseInt(s.trim())).filter((s: number) => !isNaN(s));
+            currentSkills.push(skillID);
+            this.editingMask.activeSkills = currentSkills;
+          }
+        } else {
+          this.editingMask.activeSkills = [skillID];
+        }
+        // Update the form display
+        this.newMask.activeSkills = Array.isArray(this.editingMask.activeSkills) 
+          ? this.editingMask.activeSkills.join(', ') 
+          : this.editingMask.activeSkills;
+      },
+      (error) => {
+        console.error('Error adding skill to mask:', error);
       }
     );
   }
@@ -370,23 +439,146 @@ export class DMScreenComponent implements OnInit {
   }
 
   saveMaskMod() {
+    // Check if we're editing an existing mod or creating a new one
+    if (this.editingMod && this.editingMod.modID) {
+      this.saveEditedMod();
+      return;
+    }
+
+    // Create new mod
     const modData = { 
       modType: this.newMaskMod.modType, 
       modRarity: parseInt(this.newMaskMod.modRarity, 10), 
-      description: this.newMaskMod.description 
+      description: this.newMaskMod.description,
+      modCategory: this.isStatMod ? 'stat' : 'skill',
+      statType: this.isStatMod ? this.selectedStatType : null
     };
 
     this.http.post(`https://${localIP}:443/mods`, modData).subscribe(
       (mod: any) => {
-        if (this.maskDetails.maskID) {
-          this.addModToMask(mod.modID, this.maskDetails.maskID); // Use the maskID of the currently selected character
+        // If we're editing a mask, add the mod to that mask
+        if (this.editingMask && this.editingMask.maskID) {
+          this.addModToMaskForEdit(mod.modID, this.editingMask.maskID);
+          // Refresh the mods list
+          setTimeout(() => {
+            this.fetchModsForMask(this.editingMask.maskID);
+          }, 500);
+        } else if (this.maskDetails.maskID) {
+          // Original behavior for when not editing
+          this.addModToMask(mod.modID, this.maskDetails.maskID);
         }
         this.newMaskMod = { modType: '', modRarity: 0, description: '' }; // Reset new mod form
+        this.selectedStatType = ''; // Reset stat type selection
+        this.showNewMaskModForm = false; // Hide the form after saving
       },
       (error) => {
         console.error('Error saving mod:', error);
       }
     );
+  }
+
+  addModToMaskForEdit(modID: number, maskID: number) {
+    this.http.put(`https://${localIP}:443/masks/${maskID}/add-mod`, { modID }).subscribe(
+      () => {
+        console.log(`Mod ${modID} added to mask ${maskID} successfully`);
+        // Refresh mask details to show updated stats
+        this.fetchMaskDetails(maskID.toString());
+      },
+      (error) => {
+        console.error('Error adding mod to mask:', error);
+      }
+    );
+  }
+
+  fetchModsForMask(maskID: number) {
+    this.http.get<any[]>(`https://${localIP}:443/masks/${maskID}/mods`).subscribe(
+      (data) => {
+        this.maskMods = data;
+        console.log('Mods fetched for mask:', this.maskMods);
+      },
+      (error) => {
+        console.error('Error fetching mods for mask:', error);
+        this.maskMods = [];
+      }
+    );
+  }
+
+  removeModFromMask(modID: number, maskID: number) {
+    if (confirm('Are you sure you want to remove this mod from the mask?')) {
+      this.http.put(`https://${localIP}:443/masks/${maskID}/remove-mod`, { modID }).subscribe(
+        response => {
+          console.log(`Mod ${modID} removed from mask ${maskID} successfully`, response);
+          this.fetchModsForMask(maskID);
+          this.fetchMasks(); // Refresh the main collection to show updated stats
+          // Refresh mask details to show updated stats
+          this.fetchMaskDetails(maskID.toString());
+        },
+        error => {
+          console.error('Error removing mod from mask:', error);
+        }
+      );
+    }
+  }
+
+  generateStatMod(rarity: number, statType: string): { modType: string, description: string } {
+    const rarityName = this.rarityNames[rarity];
+    const bonusValue = this.statBonusValues[statType][rarity];
+    
+    return {
+      modType: `${rarityName} ${statType} Mod`,
+      description: `${statType} increased by ${bonusValue}.`
+    };
+  }
+
+  onModTypeToggle() {
+    // Reset form when switching between mod types
+    if (this.isStatMod) {
+      this.newMaskMod = { modType: '', modRarity: 1, description: '' };
+      this.selectedStatType = '';
+    } else {
+      this.newMaskMod = { modType: '', modRarity: 0, description: '' };
+      this.selectedStatType = '';
+    }
+  }
+
+  onStatModSelectionChange() {
+    if (this.isStatMod && this.selectedStatType && this.newMaskMod.modRarity) {
+      const generatedMod = this.generateStatMod(this.newMaskMod.modRarity, this.selectedStatType);
+      this.newMaskMod.modType = generatedMod.modType;
+      this.newMaskMod.description = generatedMod.description;
+    }
+  }
+
+  editMod(mod: any) {
+    this.editingMod = { ...mod };
+    this.newMaskMod = { ...mod };
+    this.showNewMaskModForm = true;
+  }
+
+  saveEditedMod() {
+    if (this.editingMod && this.editingMod.modID) {
+      const modData = {
+        modType: this.newMaskMod.modType,
+        modRarity: parseInt(this.newMaskMod.modRarity, 10),
+        description: this.newMaskMod.description
+      };
+
+      this.http.put(`https://${localIP}:443/mods/${this.editingMod.modID}`, modData).subscribe(
+        () => {
+          console.log(`Mod ${this.editingMod.modID} updated successfully`);
+          this.newMaskMod = { modType: '', modRarity: 0, description: '' };
+          this.editingMod = null;
+          this.showNewMaskModForm = false;
+          // Refresh the mods list if we're editing a mask
+          if (this.editingMask && this.editingMask.maskID) {
+            this.fetchModsForMask(this.editingMask.maskID);
+          }
+        },
+        (error) => {
+          console.error('Error updating mod:', error);
+        }
+      );
+    }
   }
 
   addModToMask(modID: number, maskID: number) {
@@ -1049,6 +1241,9 @@ export class DMScreenComponent implements OnInit {
         : (mask.activeSkills || '').toString()
     };
     this.selectedMaskView = 'create';
+    
+    // Fetch mods for this mask
+    this.fetchModsForMask(mask.maskID);
   }
 
   deleteMask(maskId: number) {
@@ -1079,6 +1274,9 @@ export class DMScreenComponent implements OnInit {
   cancelMaskEdit() {
     this.resetMaskForm();
     this.selectedMaskView = 'browse';
+    // Also hide any open skill/mod forms when canceling mask edit
+    this.showNewMaskSkillForm = false;
+    this.showNewMaskModForm = false;
   }
 
   // Missing methods for mask skill management
@@ -1099,6 +1297,9 @@ export class DMScreenComponent implements OnInit {
   // Missing methods for mask mod management
   cancelMaskMod() {
     this.newMaskMod = { modType: '', modRarity: 0, description: '' };
+    this.editingMod = null; // Reset editing state
+    this.isStatMod = false; // Reset to skill mod
+    this.selectedStatType = ''; // Reset stat type selection
     this.showNewMaskModForm = false;
   }
 
@@ -1182,5 +1383,13 @@ export class DMScreenComponent implements OnInit {
 
   cancelGlobalItem() {
     this.newInventoryItem = null;
+  }
+
+  formatPassiveSkillText(text: string): string {
+    if (!text) {
+      return 'N/A';
+    }
+    // Convert newlines to <br> tags to preserve line breaks
+    return text.replace(/\n/g, '<br>');
   }
 }

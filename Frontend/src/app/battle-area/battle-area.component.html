@@ -540,8 +540,7 @@
           </div>
 
           <!-- Skill Description -->
-          <div class="magic-skill-description">
-            {{ skill.description }}
+          <div class="magic-skill-description" [innerHTML]="formatSkillDescription(skill.description)">
           </div>
 
           <!-- Skill Stats Grid -->
@@ -630,8 +629,7 @@
           </div>
 
           <!-- Skill Description -->
-          <div class="magic-skill-description">
-            {{ skill.description }}
+          <div class="magic-skill-description" [innerHTML]="formatSkillDescription(skill.description)">
           </div>
 
           <!-- Skill Stats Grid -->

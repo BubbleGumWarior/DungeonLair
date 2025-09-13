@@ -307,5 +307,21 @@ export class BoardComponent implements OnInit {
         }
       );
   }
+
+  formatPassiveSkillText(text: string): string {
+    if (!text) {
+      return '';
+    }
+    // Convert newlines to <br> tags to preserve line breaks
+    return text.replace(/\n/g, '<br>');
+  }
+
+  formatSkillDescription(text: string): string {
+    if (!text) {
+      return '';
+    }
+    // Convert newlines to <br> tags to preserve line breaks
+    return text.replace(/\n/g, '<br>');
+  }
 }
 

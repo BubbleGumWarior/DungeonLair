@@ -1130,7 +1130,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('skillAction', (data) => {
+    socket.on('skillAction', (data) => { // This is called active skills that are cast by players
         console.log('Skill action received:', data);
         const { maskID, skillID, targetMaskIDs } = data;
 
@@ -1148,6 +1148,39 @@ io.on('connection', (socket) => {
 
         const mask = masksInBattle[maskID];
         if (mask) {
+            // CRITICAL SERVER-SIDE VALIDATION: Prevent skill usage exploits
+            
+            // 1. Mask must be alive to use skills
+            if (mask.currentHealth <= 0) {
+                console.error(`Dead mask ${maskID} attempted to use skill ${skillID}`);
+                return;
+            }
+            
+            // 2. Mask must have an available action
+            if (!mask.action) {
+                console.error(`Mask ${maskID} has no action available, cannot use skill ${skillID}`);
+                return;
+            }
+            
+            // 3. Mask must be at full speed (ready for their turn)
+            if (mask.currentSpeed < 100) {
+                console.error(`Mask ${maskID} is not ready (speed: ${mask.currentSpeed}/100), cannot use skill ${skillID}`);
+                return;
+            }
+            
+            // 4. Mask must not be stunned
+            if (mask.stunStacks > 0) {
+                console.error(`Stunned mask ${maskID} attempted to use skill ${skillID}`);
+                return;
+            }
+            
+            // 5. Skill must not be on cooldown
+            if (mask.cooldowns && mask.cooldowns[skillID] && mask.cooldowns[skillID] > 0) {
+                console.error(`Skill ${skillID} is on cooldown (${mask.cooldowns[skillID]} turns remaining) for mask ${maskID}`);
+                return;
+            }
+            
+            console.log(`Mask ${maskID} using skill ${skill.skillName} - validation passed`);
             console.log(skill);
             let totalDamage = 0; // Initialize totalDamage
             let totalHeal = 0; // Initialize totalHeal
@@ -1732,6 +1765,289 @@ io.on('connection', (socket) => {
               });
               }
             }
+            else if (skill.skillName === 'Void Convergence') {
+              // Reality tears open as cosmic energy erupts from the void crown
+              const voidPower = mask.abilityDamage * 2.5 + (mask.buffStacks * 50);
+              let totalDamage = 0;
+              
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                  // Primary target takes full void damage (ignores all resistances - reality manipulation)
+                  const primaryDamage = voidPower;
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - primaryDamage, 0);
+                  totalDamage += primaryDamage;
+                  
+                  // Apply reality distortion effects
+                  targetMask.stunStacks += 2;
+                  targetMask.magicResist = Math.max(targetMask.magicResist - (mask.abilityDamage * 0.1), 0);
+                  targetMask.protections = Math.max(targetMask.protections - (mask.abilityDamage * 0.1), 0);
+                  
+                  console.log(`Mask ${maskID} used Void Convergence on Mask ${targetMaskID}, dealing ${primaryDamage} reality damage and distorting their defenses!`);
+                }
+              });
+              
+              // Void energy spreads to nearby enemies (splash effect)
+              const allEnemies = Object.values(masksInBattle).filter(targetMask => 
+                targetMask.team !== mask.team && 
+                targetMask.currentHealth > 0 && 
+                !targetMaskIDs.includes(targetMask.maskID.toString())
+              );
+              
+              allEnemies.forEach(enemyMask => {
+                const splashDamage = Math.max(voidPower * 0.4 - enemyMask.magicResist, 0);
+                enemyMask.currentHealth = Math.max(enemyMask.currentHealth - splashDamage, 0);
+                enemyMask.poisonStacks += 1; // Void corruption
+                totalDamage += splashDamage;
+              });
+              
+              // Empower the caster with cosmic energy
+              mask.buffStacks += 3;
+              mask.abilityDamage += totalDamage * 0.05; // Grows stronger with each use
+              
+              battleMessage = `Reality tears apart as Mask ${maskID} channels Void Convergence! Total cosmic devastation: ${Math.round(totalDamage)} damage!`;
+              if (battleMessage) {
+                console.log(battleMessage);
+                io.emit('battleMessage', battleMessage);
+              }
+            }
+            else if (skill.skillName === 'Infernal Rampage') {
+              // The demon's rage reaches critical mass, erupting in hellfire and fury
+              const rageMultiplier = 1 + (mask.buffStacks * 0.25); // 25% more damage per rage stack
+              const baseDamage = mask.attackDamage * 3; // 300% attack damage base
+              let totalDamage = 0;
+              let killCount = 0;
+              
+              // Primary assault - devastating strikes on all targets
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                  let rampageDamage = baseDamage * rageMultiplier;
+                  const reduction = targetMask.protections;
+                  const finalDamage = Math.max(rampageDamage - reduction, 0);
+                  
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0);
+                  totalDamage += finalDamage;
+                  
+                  // Apply hellfire burns and intimidation
+                  targetMask.burnStacks += 3;
+                  targetMask.stunStacks += 1; // Overwhelmed by the rampage
+                  
+                  if (targetMask.currentHealth === 0) {
+                    killCount++;
+                  }
+                  
+                  console.log(`Mask ${maskID} rampages against Mask ${targetMaskID}, dealing ${finalDamage} hellfire damage!`);
+                }
+              });
+              
+              // Berserker momentum - each kill fuels more destruction
+              if (killCount > 0) {
+                mask.action = true; // Can act again this turn!
+                mask.bonusAction = true;
+                mask.attackDamage += killCount * 20; // Permanent growth from bloodlust
+                
+                // Mark that this mask earned an extra action to prevent it from being removed
+                mask.earnedExtraAction = true;
+                
+                // Reset skill cooldown - the berserker's rage is renewed by bloodshed
+                if (!mask.cooldowns) {
+                  mask.cooldowns = {};
+                }
+                mask.cooldowns[skillID] = 0;
+                // Mark that this skill's cooldown was reset to prevent it from being applied later
+                mask.skillCooldownReset = true;
+                
+                // Chain reaction - hellfire spreads to nearby enemies
+                const nearbyEnemies = Object.values(masksInBattle).filter(targetMask => 
+                  targetMask.team !== mask.team && 
+                  targetMask.currentHealth > 0 && 
+                  !targetMaskIDs.includes(targetMask.maskID.toString())
+                );
+                
+                nearbyEnemies.forEach(enemyMask => {
+                  const chainDamage = Math.max((baseDamage * 0.5) - enemyMask.magicResist, 0);
+                  enemyMask.currentHealth = Math.max(enemyMask.currentHealth - chainDamage, 0);
+                  enemyMask.burnStacks += 2;
+                  totalDamage += chainDamage;
+                });
+              }
+              
+              // Consume rage stacks for power, but build toward next rampage
+              mask.buffStacks = Math.max(mask.buffStacks - 2, 0);
+              mask.currentHealth = Math.min(mask.currentHealth + (totalDamage * 0.1), mask.health); // Heals from carnage
+              
+              battleMessage = `Mask ${maskID} erupts in INFERNAL RAMPAGE! Hellfire and fury deal ${Math.round(totalDamage)} damage! ${killCount > 0 ? `Berserker bloodlust grants another action!` : ''}`;
+              if (battleMessage) {
+                console.log(battleMessage);
+                io.emit('battleMessage', battleMessage);
+              }
+            }
+            else if (skill.skillName === 'Phantom Strike') {
+              // The spectral warrior dissolves into ethereal mist and phases through reality
+              const spectralPower = mask.attackDamage * (1 + mask.speed * 0.05) + (mask.speed * mask.speed * 0.5); // Speed has quadratic scaling
+              let totalDamage = 0;
+              let criticalHits = 0;
+              
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                  // Phantom teleportation - appears behind target for surprise attack
+                  let phantomDamage = spectralPower;
+                  
+                  // Critical strike chance based on target's current speed (slower = easier to surprise)
+                  const critChance = Math.max(60 - targetMask.currentSpeed, 20); // 20-60% crit chance
+                  const isCritical = Math.random() * 100 < critChance;
+                  let critMultiplier = 1; // Default multiplier
+                  
+                  if (isCritical) {
+                    // Critical multiplier scales with speed (faster = deadlier backstabs)
+                    critMultiplier = 2 + (mask.speed * 0.02); // 2.0x to 4.0x crit multiplier
+                    phantomDamage *= critMultiplier;
+                    criticalHits++;
+                    targetMask.stunStacks += 2; // Overwhelmed by surprise
+                  }
+                  
+                  // Spectral damage partially ignores protections (penetration scales with speed)
+                  const penetration = 0.3 + (mask.speed * 0.007); // 30% to 100% armor penetration
+                  const reduction = targetMask.protections * (1 - penetration);
+                  const finalDamage = Math.max(phantomDamage - reduction, phantomDamage * 0.7); // Minimum 70% damage
+                  
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0);
+                  totalDamage += finalDamage;
+                  
+                  // Spectral chill - slows the target (effect scales with speed)
+                  const speedReduction = 15 + (mask.speed * 0.2);
+                  targetMask.speed = Math.max(targetMask.speed - speedReduction, 10);
+                  targetMask.poisonStacks += 1; // Ghostly toxin from otherworldly contact
+                  
+                  console.log(`Mask ${maskID} phantom strikes Mask ${targetMaskID} for ${finalDamage} spectral damage! ${isCritical ? `CRITICAL BACKSTAB (${critMultiplier.toFixed(1)}x)!` : ''}`);
+                }
+              });
+              
+              // Ethereal escape - become untargetable briefly
+              mask.untargetable = true;
+              mask.speed = Math.min(mask.speed + 10, 99); // Gains speed from successful strikes (capped at 99 to avoid speed reset)
+              
+              // Shadow step - can act again if critical hits were scored
+              if (criticalHits > 0) {
+                mask.bonusAction = true;
+                mask.movement = Math.min(mask.movement + 50, 100);
+              }
+              
+              battleMessage = `Mask ${maskID} dissolves into spectral mist and strikes from the shadows! ${Math.round(totalDamage)} phantom damage with ${criticalHits} critical backstabs!`;
+              if (battleMessage) {
+                console.log(battleMessage);
+                io.emit('battleMessage', battleMessage);
+              }
+            }
+            else if (skill.skillName === 'Soul Harvest') {
+              // The agile reaper executes wounded enemies and grows stronger with each soul claimed
+              const soulStacks = mask.buffStacks || 0;
+              
+              let totalDamage = 0;
+              let soulsCollected = 0;
+              let executionKills = 0;
+              
+              // Process each target for execution or damage
+              targetMaskIDs.forEach(targetMaskID => {
+                const targetMask = masksInBattle[targetMaskID];
+                if (targetMask) {
+                  const healthPercent = targetMask.currentHealth / targetMask.health;
+                  
+                  // EXECUTION: Instantly kill enemies at 25% health or less
+                  if (healthPercent <= 0.25) {
+                    const previousHealth = targetMask.currentHealth;
+                    targetMask.currentHealth = 0;
+                    totalDamage += previousHealth;
+                    executionKills++;
+                    soulsCollected++;
+                    
+                    console.log(`Mask ${maskID} EXECUTES Mask ${targetMaskID}! Death's scythe claims a soul (25% health threshold)`);
+                  } else {
+                    // NORMAL ATTACK: Powerful scythe strike with soul stack scaling
+                    const baseDamage = mask.attackDamage * 2.0 + (mask.speed * mask.speed * 0.25);
+                    const stackMultiplier = 1 + (soulStacks * 0.15); // 15% more damage per stack
+                    let harvestDamage = baseDamage * stackMultiplier;
+                    
+                    // Speed-based armor penetration (agile reapers slice through defenses)
+                    const penetration = Math.min(0.3 + (mask.speed * 0.007), 0.85);
+                    const reduction = targetMask.protections * (1 - penetration);
+                    const finalDamage = Math.max(harvestDamage - reduction, harvestDamage * 0.8);
+                    
+                    targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0);
+                    totalDamage += finalDamage;
+                    
+                    // Check if normal attack killed the target
+                    if (targetMask.currentHealth === 0) {
+                      soulsCollected++;
+                    }
+                    
+                    // Mark targets with death energy
+                    targetMask.poisonStacks += 1;
+                    targetMask.bleedStacks += 1;
+                    
+                    console.log(`Mask ${maskID} reaps soul energy from Mask ${targetMaskID}, dealing ${Math.round(finalDamage)} death damage!`);
+                  }
+                }
+              });
+              
+              // Soul collection rewards (from any kill - execution or damage)
+              if (soulsCollected > 0) {
+                mask.action = true; // Death grants another action
+                mask.bonusAction = true;
+                mask.earnedExtraAction = true; // Prevent action removal
+                
+                // Grant untargetability (2 turns per kill)
+                mask.untargetable = Math.min(mask.untargetable + (soulsCollected * 2), 4);
+                
+                // Permanent percentage-based growth (8% per kill)
+                const killGrowth = soulsCollected * 0.08;
+                mask.attackDamage *= (1 + killGrowth);
+                mask.speed = Math.min(mask.speed * (1 + killGrowth), 100);
+                
+                // Add soul stacks (bonus if untargetable)
+                const baseStacks = soulsCollected * 3;
+                const bonusStacks = mask.untargetable > 0 ? soulsCollected * 2 : 0;
+                mask.buffStacks += baseStacks + bonusStacks;
+              }
+              
+              // Stack consumption option for extra protection (10+ stacks)
+              if (mask.buffStacks >= 10) {
+                mask.buffStacks -= 10;
+                mask.untargetable = Math.min(mask.untargetable + 2, 4);
+                mask.stackConsumptionActive = true; // Flag for bonus stacks on kill
+              }
+              
+              // Bonus stacks if untargetable from consumption and got kills
+              if (mask.stackConsumptionActive && soulsCollected > 0) {
+                mask.buffStacks += 10;
+                mask.stackConsumptionActive = false; // Reset flag
+              }
+              
+              // Soul energy healing (percentage-based)
+              const healPercent = 0.05 + (soulStacks * 0.002); // 5% + 0.2% per stack
+              const healAmount = mask.health * healPercent;
+              mask.currentHealth = Math.min(mask.currentHealth + healAmount, mask.health);
+              
+              // Battle message
+              let message = `Mask ${maskID} unleashes SOUL HARVEST! `;
+              if (executionKills > 0) {
+                message += `${executionKills} execution${executionKills > 1 ? 's' : ''} claimed! `;
+              }
+              message += `Total damage: ${Math.round(totalDamage)}! `;
+              if (soulsCollected > 0) {
+                message += `${soulsCollected} soul${soulsCollected > 1 ? 's' : ''} harvested - REAPER'S ASCENSION!`;
+              } else {
+                message += `${soulStacks} soul stacks empower the harvest.`;
+              }
+              
+              battleMessage = message;
+              if (battleMessage) {
+                console.log(battleMessage);
+                io.emit('battleMessage', battleMessage);
+              }
+            }
             else if (skill.skillName === 'Unforseen Strike') {
               targetMaskIDs.forEach(targetMaskID => {
                 const targetMask = masksInBattle[targetMaskID];
@@ -1747,6 +2063,8 @@ io.on('connection', (socket) => {
                     mask.action = true;
                     mask.bonusAction = true;
                     mask.movement = mask.speed;
+                    // Mark that this mask earned an extra action to prevent it from being removed
+                    mask.earnedExtraAction = true;
                     // Reset this skill's cooldown if it was on cooldown
                     if (mask.cooldowns[skillID] && mask.cooldowns[skillID] !== 0) {
                       mask.cooldowns[skillID] = 0;
@@ -1843,11 +2161,19 @@ io.on('connection', (socket) => {
                 }
               });
             }            
-            // Apply cooldown to the used skill, except for Unforseen Strike
-            if (skill.skillName !== 'Unforseen Strike') {
+            // Apply cooldown to the used skill, except for Unforseen Strike and skills that had their cooldown reset
+            if (skill.skillName !== 'Unforseen Strike' && !mask.skillCooldownReset) {
               mask.cooldowns[skillID] = skill.cooldown + 1;
             }
-            mask.action = false; // Set action to false after using a skill
+            // Clear the cooldown reset flag for next use
+            mask.skillCooldownReset = false;
+            
+            // Only remove action if the mask hasn't earned another action (like from berserker kills)
+            if (!mask.earnedExtraAction) {
+              mask.action = false; // Set action to false after using a skill
+            }
+            // Clear the extra action flag for next use
+            mask.earnedExtraAction = false;
             io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Emit updated masksInBattle to all users
         }
     });
@@ -2921,7 +3247,7 @@ app.post('/continue', async (req, res) => {
       mask.bonusAction = false; // Reset bonusAction to false
       mask.movement = 0; // Reset movement to 0
       mask.currentSpeed = 0;
-      mask.activeSkills.forEach(skillID => {
+      mask.activeSkills.forEach(skillID => { //This is cycle skills while dead)
         const skillName = skillNames[skillID];
         if (skillName) {
           if (skillName === "Unkillable") {
@@ -2970,7 +3296,7 @@ app.post('/continue', async (req, res) => {
       });
       return;
     } else {
-      // If mask.activeSkills contains a skillID, find the skill name and run the if statements
+      // If mask.activeSkills contains a skillID, find the skill name and run the if statements (This is called cycle skills while alive)
       mask.activeSkills.forEach(skillID => {
         const skillName = skillNames[skillID]; // Correctly reference skillID
         if (skillName) {
@@ -4061,6 +4387,266 @@ app.post('/continue', async (req, res) => {
             }
           }
           
+          if (skillName === "Void Convergence") {
+            console.log(`Mask ${mask.maskID} has skill: Void Convergence`);
+            
+            // Void energy passively emanates from this cosmic being
+            mask.buffStacks += 1;
+            
+            // Every 3 turns, reality distorts around all enemies
+            if (mask.buffStacks % 3 === 0) {
+              const voidPulse = mask.abilityDamage * 0.3;
+              let affectedEnemies = 0;
+              
+              Object.values(masksInBattle).forEach(targetMask => {
+                if (targetMask.team !== mask.team && targetMask.currentHealth > 0) {
+                  // Cosmic void slowly erodes reality around enemies
+                  const voidDamage = Math.max(voidPulse, 1);
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - voidDamage, 0);
+                  
+                  // Reality becomes unstable - reduce maximum stats slightly
+                  targetMask.health = Math.max(targetMask.health - (mask.abilityDamage * 0.01), targetMask.health * 0.9);
+                  targetMask.currentHealth = Math.min(targetMask.currentHealth, targetMask.health);
+                  
+                  // 25% chance per enemy to gain a debuff from cosmic exposure
+                  if (Math.random() < 0.25) {
+                    const debuffs = ['stunStacks', 'poisonStacks', 'burnStacks'];
+                    const randomDebuff = debuffs[Math.floor(Math.random() * debuffs.length)];
+                    targetMask[randomDebuff] += 1;
+                  }
+                  affectedEnemies++;
+                }
+              });
+              
+              // The cosmic entity grows stronger as reality bends to their will
+              mask.abilityDamage += affectedEnemies * 2;
+              mask.magicResist += affectedEnemies;
+              
+              battleMessage = `Cosmic void pulses around Mask ${mask.maskID}! Reality distorts, affecting ${affectedEnemies} enemies and strengthening the void entity!`;
+              if (battleMessage) {
+                console.log(battleMessage);
+                io.emit('battleMessage', battleMessage);
+              }
+            } else {
+              // Minor cosmic energy buildup each turn
+              mask.abilityDamage += 1;
+              const subtleMessage = `Dark energy swirls around Mask ${mask.maskID} as cosmic power builds... (${mask.buffStacks}/3)`;
+              console.log(subtleMessage);
+              io.emit('battleMessage', subtleMessage);
+            }
+          }
+          
+          if (skillName === "Infernal Rampage") {
+            console.log(`Mask ${mask.maskID} has skill: Infernal Rampage`);
+            
+            // Rage builds as the demon takes damage or deals damage
+            const healthPercent = (mask.currentHealth / mask.health);
+            const rageGain = healthPercent < 0.5 ? 2 : 1; // More rage when injured
+            mask.buffStacks += rageGain;
+            
+            // Passive hellfire aura damages nearby enemies
+            if (mask.buffStacks >= 2) {
+              let auraDamage = 0;
+              Object.values(masksInBattle).forEach(targetMask => {
+                if (targetMask.team !== mask.team && targetMask.currentHealth > 0) {
+                  const fireDamage = Math.max((mask.attackDamage * 0.05 * mask.buffStacks) - targetMask.magicResist, 0);
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - fireDamage, 0);
+                  auraDamage += fireDamage;
+                  
+                  // 15% chance to apply burn from hellfire proximity
+                  if (Math.random() < 0.15) {
+                    targetMask.burnStacks += 1;
+                  }
+                }
+              });
+              
+              if (auraDamage > 0) {
+                battleMessage = `Hellfire radiates from Mask ${mask.maskID}'s fury! Aura deals ${Math.round(auraDamage)} damage (Rage: ${mask.buffStacks})`;
+                console.log(battleMessage);
+                io.emit('battleMessage', battleMessage);
+              }
+            }
+            
+            // At maximum rage, gain combat bonuses
+            if (mask.buffStacks >= 8) {
+              mask.attackDamage += 5; // Permanent growth from sustained fury
+              mask.speed = Math.min(mask.speed + 2, 100); // Becomes faster in rage
+              
+              // Intimidating presence - enemies near max-rage demon get debuffed
+              Object.values(masksInBattle).forEach(targetMask => {
+                if (targetMask.team !== mask.team && targetMask.currentHealth > 0) {
+                  if (Math.random() < 0.3) { // 30% chance per enemy
+                    targetMask.stunStacks += 1;
+                  }
+                }
+              });
+              
+              const rageMessage = `Mask ${mask.maskID} reaches MAXIMUM FURY! Hellish presence terrorizes enemies!`;
+              console.log(rageMessage);
+              io.emit('battleMessage', rageMessage);
+            } else {
+              const buildupMessage = `Hellish rage builds within Mask ${mask.maskID}... (${mask.buffStacks}/8 fury)`;
+              console.log(buildupMessage);
+              io.emit('battleMessage', buildupMessage);
+            }
+          }
+          
+          if (skillName === "Phantom Strike") {
+            console.log(`Mask ${mask.maskID} has skill: Phantom Strike`);
+            
+            // Spectral form allows periodic phasing (scales significantly with speed)
+            const phaseChance = Math.min(5 + (mask.speed * 0.5), 55); // 5-55% chance based on speed
+            if (Math.random() * 100 < phaseChance) {
+              mask.untargetable = true;
+              const phaseMessage = `Mask ${mask.maskID} phases into spectral form, becoming untargetable!`;
+              console.log(phaseMessage);
+              io.emit('battleMessage', phaseMessage);
+            }
+            
+            // Ghostly presence chills nearby enemies (damage scales with speed^1.5)
+            let chillEffect = 0;
+            const spectralAura = mask.abilityDamage * 0.02 * Math.pow(mask.speed / 100, 1.5); // Speed has 1.5 power scaling
+            
+            Object.values(masksInBattle).forEach(targetMask => {
+              if (targetMask.team !== mask.team && targetMask.currentHealth > 0) {
+                // Spectral chill damage increases dramatically with speed
+                const chillDamage = Math.max(spectralAura + (mask.speed * 0.1) - targetMask.magicResist, 0);
+                targetMask.currentHealth = Math.max(targetMask.currentHealth - chillDamage, 0);
+                chillEffect += chillDamage;
+                
+                // Speed-based debuff chance (20% base + speed/5)
+                const debuffChance = 20 + (mask.speed / 5); // 20-40% chance
+                if (Math.random() * 100 < debuffChance) {
+                  const speedLoss = 3 + (mask.speed * 0.05); // 3-8 speed loss
+                  targetMask.speed = Math.max(targetMask.speed - speedLoss, 10);
+                  targetMask.poisonStacks += 1; // Spectral toxin
+                }
+              }
+            });
+            
+            // Ethereal mobility - gains speed from spectral nature
+            mask.speed = Math.min(mask.speed + 1, 99); // Capped at 99 to avoid speed reset
+            mask.currentSpeed = Math.min(mask.currentSpeed + 5, 100);
+            
+            // Feed on fear - grows stronger when enemies are debuffed (speed amplifies this effect)
+            const debuffedEnemies = Object.values(masksInBattle).filter(targetMask => 
+              targetMask.team !== mask.team && 
+              (targetMask.stunStacks > 0 || targetMask.poisonStacks > 0 || targetMask.burnStacks > 0 || targetMask.bleedStacks > 0)
+            );
+            
+            if (debuffedEnemies.length > 0) {
+              // Speed multiplies the fear feeding effect
+              const speedMultiplier = 1 + (mask.speed * 0.01); // 1.0x to 2.0x multiplier
+              const fearGain = debuffedEnemies.length * speedMultiplier;
+              
+              mask.attackDamage += fearGain;
+              mask.abilityDamage += fearGain;
+              
+              const fearMessage = `Spectral energy around Mask ${mask.maskID} feeds on ${debuffedEnemies.length} debuffed enemies (${speedMultiplier.toFixed(1)}x speed bonus), growing stronger!`;
+              console.log(fearMessage);
+              io.emit('battleMessage', fearMessage);
+            }
+            
+            if (chillEffect > 0) {
+              const chillMessage = `Ghostly mist emanates from Mask ${mask.maskID}, dealing ${Math.round(chillEffect)} spectral chill damage!`;
+              console.log(chillMessage);
+              io.emit('battleMessage', chillMessage);
+            }
+          }
+          
+          if (skillName === "Soul Harvest") {
+            console.log(`Mask ${mask.maskID} has skill: Soul Harvest`);
+            
+            // Count dead masks for soul stack accumulation
+            const deadMasks = Object.values(masksInBattle).filter(m => m.currentHealth === 0);
+            const currentDeadCount = deadMasks.length;
+            
+            // Initialize buff stacks if needed
+            if (!mask.buffStacks) {
+              mask.buffStacks = 0;
+            }
+            
+            // Gain one stack per dead mask each cycle
+            if (currentDeadCount > 0) {
+              mask.buffStacks += currentDeadCount;
+            }
+            
+            // Percentage-based growth from soul stacks
+            if (mask.buffStacks > 0) {
+              const stackCount = mask.buffStacks;
+              const growthRate = stackCount * 0.02; // 2% per stack per cycle
+              
+              // Apply percentage growth to core stats
+              mask.speed = Math.min(mask.speed * (1 + growthRate), 100);
+              mask.attackDamage *= (1 + growthRate);
+              mask.magicResist *= (1 + growthRate);
+              mask.protections *= (1 + growthRate);
+              
+              // Soul aura damage (percentage-based)
+              let auralDamage = 0;
+              const auraPercent = stackCount * 0.005; // 0.5% per stack
+              
+              Object.values(masksInBattle).forEach(targetMask => {
+                if (targetMask.team !== mask.team && targetMask.currentHealth > 0) {
+                  const soulDamage = targetMask.health * auraPercent;
+                  const finalDamage = Math.max(soulDamage - (targetMask.magicResist * 0.3), soulDamage * 0.5);
+                  targetMask.currentHealth = Math.max(targetMask.currentHealth - finalDamage, 0);
+                  auralDamage += finalDamage;
+                  
+                  // Death mark - chance to apply stacks based on soul stacks
+                  const markChance = Math.min(5 + (stackCount * 2), 40); // 5-40% chance
+                  if (Math.random() * 100 < markChance) {
+                    targetMask.poisonStacks += 1;
+                    if (stackCount >= 15) {
+                      targetMask.bleedStacks += 1; // Extra effect with 15+ stacks
+                    }
+                  }
+                }
+              });
+              
+              // Percentage-based healing
+              const healPercent = stackCount * 0.005; // 0.5% per stack
+              const healAmount = mask.health * healPercent;
+              mask.currentHealth = Math.min(mask.currentHealth + healAmount, mask.health);
+              
+              if (auralDamage > 0) {
+                const auraMessage = `Soul energy radiates from Mask ${mask.maskID}! Aura deals ${Math.round(auralDamage)} damage (${stackCount} soul stacks: +${(growthRate * 100).toFixed(1)}% stats)`;
+                console.log(auraMessage);
+                io.emit('battleMessage', auraMessage);
+              }
+              
+              // Stack consumption for untargetability (if not already done this cycle)
+              if (mask.buffStacks >= 10 && !mask.consumedStacksThisCycle) {
+                mask.buffStacks -= 10;
+                mask.untargetable = Math.min(mask.untargetable + 2, 4);
+                mask.consumedStacksThisCycle = true;
+                
+                const consumeMessage = `Mask ${mask.maskID} consumes 10 soul stacks to become untargetable!`;
+                console.log(consumeMessage);
+                io.emit('battleMessage', consumeMessage);
+              }
+              
+              // Reset consumption flag for next cycle
+              if (mask.consumedStacksThisCycle) {
+                mask.consumedStacksThisCycle = false;
+              }
+              
+              // High stack benefits
+              if (stackCount >= 20) {
+                mask.attackDamage *= 1.05; // Extra 5% growth at high stacks
+                mask.untargetable = Math.min(mask.untargetable + 1, 3);
+                
+                const transcendMessage = `Mask ${mask.maskID} transcends mortality! ${stackCount} soul stacks grant terrifying power!`;
+                console.log(transcendMessage);
+                io.emit('battleMessage', transcendMessage);
+              } else if (stackCount >= 5) {
+                const powerMessage = `Soul energy swirls around Mask ${mask.maskID}... (${stackCount} stacks: +${(growthRate * 100).toFixed(1)}% growth)`;
+                console.log(powerMessage);
+                io.emit('battleMessage', powerMessage);
+              }
+            }
+          }
+          
           if (skillName === "Chivalry") {
             console.log(`Mask ${mask.maskID} has skill: Chivalry`);
             let totalHealed = 0;
@@ -4396,23 +4982,38 @@ app.post('/continue', async (req, res) => {
         return;
       } else {
         if (mask.currentSpeed === 100) {
-          mask.currentSpeed = 0; // Reset currentSpeed to 0
-          mask.action = false;
-          mask.bonusAction = false; // Reset bonusAction to false
-          mask.movement = 0; // Reset movement to 0
-          // Decrease cooldowns
-          Object.keys(mask.cooldowns).forEach(skillID => {
-            if (mask.cooldowns[skillID] > 0) {
-              mask.cooldowns[skillID] -= 1;
-            }
-          });
+          // Track if this mask just reached 100 speed this turn
+          if (!mask.turnStarted) {
+            // First time reaching 100 - mark turn as started and give actions
+            mask.turnStarted = true;
+            mask.action = true;
+            mask.bonusAction = true;
+            mask.movement = mask.speed;
+          } else {
+            // Turn already started previously - now force reset to prevent infinite holding
+            mask.currentSpeed = 0; // Reset currentSpeed to 0
+            mask.action = false;
+            mask.bonusAction = false; // Reset bonusAction to false
+            mask.movement = 0; // Reset movement to 0
+            mask.turnStarted = false; // Reset turn tracking
+            // Decrease cooldowns
+            Object.keys(mask.cooldowns).forEach(skillID => {
+              if (mask.cooldowns[skillID] > 0) {
+                mask.cooldowns[skillID] -= 1;
+              }
+            });
+          }
         } else {
+          // Reset turn tracking when not at 100 speed
+          mask.turnStarted = false;
+          
           mask.currentSpeed += mask.speed; // Increase currentSpeed by speed value
           if (mask.currentSpeed >= 100) {
             mask.currentSpeed = 100; // Ensure currentSpeed is capped at 100
             mask.action = true;
             mask.bonusAction = true; // Set bonusAction to true
             mask.movement = mask.speed; // Set movement to mask.speed
+            mask.turnStarted = true; // Mark that this mask's turn just started
             // Decrease cooldowns
             Object.keys(mask.cooldowns).forEach(skillID => {
               if (mask.cooldowns[skillID] > 0) {
@@ -4493,13 +5094,45 @@ app.get('/mods', async (req, res) => {
 
 // Endpoint to create a new mod
 app.post('/mods', async (req, res) => {
-  const { modType, modRarity, description } = req.body;
+  const { modType, modRarity, description, modCategory, statType } = req.body;
   try {
-    const newMod = await ModList.create({ modType, modRarity, description });
+    const newMod = await ModList.create({ 
+      modType, 
+      modRarity, 
+      description, 
+      modCategory: modCategory || 'skill',
+      statType: statType || null
+    });
     res.status(201).json(newMod);
   } catch (error) {
     console.error('Error creating mod:', error);
     res.status(500).send('Failed to create mod');
+  }
+});
+
+// Endpoint to update an existing mod
+app.put('/mods/:modID', async (req, res) => {
+  const { modID } = req.params;
+  const { modType, modRarity, description, modCategory, statType } = req.body;
+  
+  try {
+    const mod = await ModList.findByPk(modID);
+    if (!mod) {
+      return res.status(404).json({ error: 'Mod not found' });
+    }
+
+    await mod.update({
+      modType: modType || mod.modType,
+      modRarity: modRarity !== undefined ? modRarity : mod.modRarity,
+      description: description || mod.description,
+      modCategory: modCategory || mod.modCategory,
+      statType: statType !== undefined ? statType : mod.statType
+    });
+
+    res.json(mod);
+  } catch (error) {
+    console.error('Error updating mod:', error);
+    res.status(500).send('Failed to update mod');
   }
 });
 
@@ -4526,6 +5159,34 @@ app.get('/mods-by-ids', async (req, res) => {
   }
 });
 
+// Helper function to calculate stat bonus from mod
+function calculateStatBonus(modRarity, statType) {
+  const statBonusValues = {
+    'Attack Damage': { 1: 50, 2: 200, 3: 400, 4: 650, 5: 950 },
+    'Ability Damage': { 1: 50, 2: 200, 3: 400, 4: 650, 5: 950 },
+    'Protections': { 1: 50, 2: 200, 3: 400, 4: 650, 5: 950 },
+    'Magic Resist': { 1: 50, 2: 200, 3: 400, 4: 650, 5: 950 },
+    'Health': { 1: 500, 2: 5000, 3: 10000, 4: 25000, 5: 50000 },
+    'Speed': { 1: 5, 2: 15, 3: 25, 4: 35, 5: 50 }
+  };
+  
+  return statBonusValues[statType] ? statBonusValues[statType][modRarity] : 0;
+}
+
+// Helper function to get mask stat field name from stat type
+function getStatFieldName(statType) {
+  const fieldMap = {
+    'Attack Damage': 'attackDamage',
+    'Ability Damage': 'abilityDamage',
+    'Protections': 'protections',
+    'Magic Resist': 'magicResist',
+    'Health': 'health',
+    'Speed': 'speed'
+  };
+  
+  return fieldMap[statType];
+}
+
 // Endpoint to add a mod to a mask
 app.put('/masks/:maskID/add-mod', async (req, res) => {
   const { maskID } = req.params;
@@ -4535,12 +5196,81 @@ app.put('/masks/:maskID/add-mod', async (req, res) => {
     if (!mask) {
       return res.status(404).send('Mask not found');
     }
+    
+    // Get the mod details to check if it's a stat mod
+    const mod = await ModList.findByPk(modID);
+    if (!mod) {
+      return res.status(404).send('Mod not found');
+    }
+    
     const updatedModList = mask.modList ? [...mask.modList, modID] : [modID];
-    await MaskList.update({ modList: updatedModList.filter(mod => mod !== null) }, { where: { maskID } });
+    
+    // If it's a stat mod, apply the stat bonus
+    let updateData = { modList: updatedModList.filter(mod => mod !== null) };
+    
+    if (mod.modCategory === 'stat' && mod.statType) {
+      const statBonus = calculateStatBonus(mod.modRarity, mod.statType);
+      const statField = getStatFieldName(mod.statType);
+      
+      if (statField) {
+        updateData[statField] = mask[statField] + statBonus;
+        
+        // Also update currentHealth if health was modified
+        if (statField === 'health') {
+          updateData.currentHealth = mask.currentHealth + statBonus;
+        }
+      }
+    }
+    
+    await MaskList.update(updateData, { where: { maskID } });
     res.status(200).json({ message: 'Mod added to mask successfully' });
   } catch (error) {
     console.error('Error adding mod to mask:', error);
     res.status(500).send('Failed to add mod to mask');
+  }
+});
+
+// Endpoint to remove a mod from a mask
+app.put('/masks/:maskID/remove-mod', async (req, res) => {
+  const { maskID } = req.params;
+  const { modID } = req.body;
+  try {
+    const mask = await MaskList.findOne({ where: { maskID } });
+    if (!mask) {
+      return res.status(404).send('Mask not found');
+    }
+    
+    // Get the mod details to check if it's a stat mod
+    const mod = await ModList.findByPk(modID);
+    if (!mod) {
+      return res.status(404).send('Mod not found');
+    }
+    
+    const updatedModList = mask.modList ? mask.modList.filter(id => id !== modID) : [];
+    
+    // If it's a stat mod, remove the stat bonus
+    let updateData = { modList: updatedModList };
+    
+    if (mod.modCategory === 'stat' && mod.statType) {
+      const statBonus = calculateStatBonus(mod.modRarity, mod.statType);
+      const statField = getStatFieldName(mod.statType);
+      
+      if (statField) {
+        updateData[statField] = Math.max(0, mask[statField] - statBonus);
+        
+        // Also update currentHealth if health was modified, but don't exceed max health
+        if (statField === 'health') {
+          const newMaxHealth = updateData[statField];
+          updateData.currentHealth = Math.min(mask.currentHealth, newMaxHealth);
+        }
+      }
+    }
+    
+    await MaskList.update(updateData, { where: { maskID } });
+    res.status(200).json({ message: 'Mod removed from mask successfully' });
+  } catch (error) {
+    console.error('Error removing mod from mask:', error);
+    res.status(500).send('Failed to remove mod from mask');
   }
 });
 

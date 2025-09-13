@@ -221,13 +221,40 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   selectSkill(skill: any) {
+    // Basic cooldown and stun checks
     if (skill.cooldown > 0 || this.isUserStunned()) {
       return; // Do nothing if the skill is on cooldown or user is stunned
     }
 
     const userMask = this.masksInBattle.find(mask => mask.maskID === this.userInformation.maskID);
-    if (userMask && userMask.stunStacks > 0) {
-      return; // Do nothing if the user mask is stunned
+    if (!userMask) {
+      console.error('User mask not found in battle');
+      return;
+    }
+    
+    // Enhanced validation for skill selection
+    // 1. Check if mask is alive
+    if (userMask.currentHealth <= 0) {
+      console.error('Dead masks cannot select skills');
+      return;
+    }
+    
+    // 2. Check if mask has an action available
+    if (!userMask.action) {
+      console.error('No action available - cannot select skills');
+      return;
+    }
+    
+    // 3. Check if it's the mask's turn (speed = 100) unless DM override
+    if (userMask.currentSpeed < 100 && this.userInformation.role !== 'Dungeon Master') {
+      console.error('Not your turn - cannot select skills');
+      return;
+    }
+    
+    // 4. Check stun stacks
+    if (userMask.stunStacks > 0) {
+      console.error('Stunned masks cannot select skills');
+      return;
     }
 
     this.selectedSkill = skill;
@@ -287,6 +314,52 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
 
   sendSkillAction() {
     const maskIDToSend = this.selectedMaskForUse ? this.selectedMaskForUse.maskID : this.userInformation.maskID; // Use selected mask's ID if DM is using a mask
+    
+    // Find the mask that's trying to use the skill
+    const actingMask = this.masksInBattle.find(mask => mask.maskID === maskIDToSend);
+    
+    if (!actingMask) {
+      console.error('Acting mask not found in battle');
+      this.cancelSkillSelection();
+      return;
+    }
+    
+    // CRITICAL VALIDATION: Prevent skill usage exploits
+    // 1. Mask must be alive to use skills
+    if (actingMask.currentHealth <= 0) {
+      console.error('Dead masks cannot use skills');
+      this.cancelSkillSelection();
+      return;
+    }
+    
+    // 2. Mask must have an available action
+    if (!actingMask.action) {
+      console.error('Mask has no action available');
+      this.cancelSkillSelection();
+      return;
+    }
+    
+    // 3. Mask must be at full speed (ready for their turn) OR be a DM override
+    if (actingMask.currentSpeed < 100 && this.userInformation.role !== 'Dungeon Master') {
+      console.error('Mask is not ready for their turn (speed < 100)');
+      this.cancelSkillSelection();
+      return;
+    }
+    
+    // 4. Skill must not be on cooldown
+    if (this.selectedSkill.cooldown > 0) {
+      console.error('Skill is on cooldown');
+      this.cancelSkillSelection();
+      return;
+    }
+    
+    // 5. Mask must not be stunned
+    if (actingMask.stunStacks > 0) {
+      console.error('Stunned masks cannot use skills');
+      this.cancelSkillSelection();
+      return;
+    }
+    
     console.log('Sending skill action:', maskIDToSend, this.selectedSkill.skillID, this.selectedTargets);
     this.webSocketService.sendSkillAction(maskIDToSend, this.selectedSkill.skillID, this.selectedTargets);
     this.selectedSkill = null; // Reset selectedSkill
@@ -570,6 +643,34 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
     if (skill.cooldown > 0) {
       return; // Do nothing if the skill is on cooldown
     }
+    
+    // Additional validation if there's a selected mask
+    if (this.selectedMaskForUse) {
+      // 1. Check if mask is alive
+      if (this.selectedMaskForUse.currentHealth <= 0) {
+        console.error('Dead masks cannot select skills');
+        return;
+      }
+      
+      // 2. Check if mask has an action available
+      if (!this.selectedMaskForUse.action) {
+        console.error('No action available - cannot select skills');
+        return;
+      }
+      
+      // 3. Check if it's the mask's turn (speed = 100) unless DM override
+      if (this.selectedMaskForUse.currentSpeed < 100 && this.userInformation.role !== 'Dungeon Master') {
+        console.error('Not the mask\'s turn - cannot select skills');
+        return;
+      }
+      
+      // 4. Check stun stacks
+      if (this.selectedMaskForUse.stunStacks > 0) {
+        console.error('Stunned masks cannot select skills');
+        return;
+      }
+    }
+    
     this.selectedSkill = skill;
     console.log('Selected skill for mask:', this.selectedSkill);
     this.selectedTargets = []; // Reset selectedTargets
@@ -579,6 +680,43 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
 
   sendSkillActionForMask() {
     if (this.selectedMaskForUse && this.selectedSkill) {
+      
+      // CRITICAL VALIDATION: Prevent skill usage exploits
+      // 1. Mask must be alive to use skills
+      if (this.selectedMaskForUse.currentHealth <= 0) {
+        console.error('Dead masks cannot use skills');
+        this.cancelSkillSelection();
+        return;
+      }
+      
+      // 2. Mask must have an available action
+      if (!this.selectedMaskForUse.action) {
+        console.error('Mask has no action available');
+        this.cancelSkillSelection();
+        return;
+      }
+      
+      // 3. Mask must be at full speed (ready for their turn) OR be a DM override
+      if (this.selectedMaskForUse.currentSpeed < 100 && this.userInformation.role !== 'Dungeon Master') {
+        console.error('Mask is not ready for their turn (speed < 100)');
+        this.cancelSkillSelection();
+        return;
+      }
+      
+      // 4. Skill must not be on cooldown
+      if (this.selectedSkill.cooldown > 0) {
+        console.error('Skill is on cooldown');
+        this.cancelSkillSelection();
+        return;
+      }
+      
+      // 5. Mask must not be stunned
+      if (this.selectedMaskForUse.stunStacks > 0) {
+        console.error('Stunned masks cannot use skills');
+        this.cancelSkillSelection();
+        return;
+      }
+      
       console.log('Sending skill action for mask:', this.selectedMaskForUse.maskID, this.selectedSkill.skillID, this.selectedTargets);
       this.webSocketService.sendSkillAction(this.selectedMaskForUse.maskID, this.selectedSkill.skillID, this.selectedTargets); // Use selectedMaskForUse.maskID
       this.selectedSkill = null; // Reset selectedSkill
@@ -639,5 +777,13 @@ export class BattleAreaComponent implements OnInit, OnDestroy, AfterViewInit {
 
   openChatButton() {
     // Logic to open chat button if needed
+  }
+
+  formatSkillDescription(text: string): string {
+    if (!text) {
+      return '';
+    }
+    // Convert newlines to <br> tags to preserve line breaks
+    return text.replace(/\n/g, '<br>');
   }
 }

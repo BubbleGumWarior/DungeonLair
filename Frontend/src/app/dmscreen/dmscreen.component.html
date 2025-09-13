@@ -464,7 +464,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="magic-detail-item">
                     <span class="magic-detail-label">Passive Skill:</span>
-                    <span class="magic-detail-value">{{ loadedMaskDetails.passiveSkill || 'N/A' }}</span>
+                    <span class="magic-detail-value" [innerHTML]="formatPassiveSkillText(loadedMaskDetails.passiveSkill)"></span>
                   </div>
                   <div class="magic-detail-item">
                     <span class="magic-detail-label">Active Skills:</span>
@@ -542,18 +542,6 @@
           [class.active]="selectedMaskView === 'create'"
           class="magic-sub-nav-button">
           <i class="fas fa-plus mr-2"></i>Create Mask
-        </button>
-        <button 
-          (click)="selectedMaskView = 'skills'" 
-          [class.active]="selectedMaskView === 'skills'"
-          class="magic-sub-nav-button">
-          <i class="fas fa-magic mr-2"></i>Mask Skills
-        </button>
-        <button 
-          (click)="selectedMaskView = 'mods'" 
-          [class.active]="selectedMaskView === 'mods'"
-          class="magic-sub-nav-button">
-          <i class="fas fa-cogs mr-2"></i>Mask Mods
         </button>
       </div>
 
@@ -659,7 +647,262 @@
             </div>
           </div>
         </div>
-        <div class="flex gap-2">
+
+        <!-- Mask Skills and Mods Section - Only show when editing a mask -->
+        <div *ngIf="editingMask" class="magic-editing-extras mt-8">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- Add Mask Skill Section -->
+            <div class="magic-panel magic-border-subtle rounded-xl p-4">
+              <div class="flex justify-between items-center mb-4">
+                <h5 class="text-lg font-bold magic-text">Add Mask Skill</h5>
+                <button 
+                  *ngIf="!showNewMaskSkillForm"
+                  (click)="showNewMaskSkillForm = true" 
+                  class="magic-add-button text-sm px-3 py-1">
+                  <i class="fas fa-plus mr-1"></i>Add Skill
+                </button>
+              </div>
+              
+              <div *ngIf="showNewMaskSkillForm" class="magic-add-form">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                  <div class="magic-input-group">
+                    <label class="magic-label text-sm">Skill Name</label>
+                    <input [(ngModel)]="newMaskSkill.skillName" class="magic-input text-sm" />
+                  </div>
+                  <div class="magic-input-group">
+                    <label class="magic-label text-sm">Main Stat</label>
+                    <select [(ngModel)]="newMaskSkill.mainStat" class="magic-select text-sm">
+                      <option>Attack Damage</option>
+                      <option>Ability Damage</option>
+                      <option>Magic Resist</option>
+                      <option>Protections</option>
+                      <option>Health</option>
+                      <option>Speed</option>
+                    </select>
+                  </div>
+                  <div class="magic-input-group">
+                    <label class="magic-label text-sm">Main Stat %</label>
+                    <input [(ngModel)]="newMaskSkill.mainStatPercentage" type="number" class="magic-input text-sm" min="0" max="100" />
+                  </div>
+                  <div class="magic-input-group">
+                    <label class="magic-label text-sm">Cooldown</label>
+                    <input [(ngModel)]="newMaskSkill.cooldown" type="number" class="magic-input text-sm" min="0" />
+                  </div>
+                  <div class="magic-input-group">
+                    <label class="magic-label text-sm">Strikes</label>
+                    <input [(ngModel)]="newMaskSkill.amountOfStrikes" type="number" class="magic-input text-sm" min="1" />
+                  </div>
+                  <div class="magic-input-group">
+                    <label class="magic-label text-sm">On Hit Effect</label>
+                    <select [(ngModel)]="newMaskSkill.onHitEffect" class="magic-select text-sm">
+                      <option>None</option>
+                      <option>Stun</option>
+                      <option>Burn</option>
+                      <option>Poison</option>
+                      <option>Bleed</option>
+                      <option>Buff Stack</option>
+                      <option>Heal</option>
+                    </select>
+                  </div>
+                  <div class="magic-input-group" *ngIf="newMaskSkill.amountOfStrikes > 1">
+                    <label class="magic-label flex items-center text-sm">
+                      <input type="checkbox" [(ngModel)]="newMaskSkill.isMultiTarget" class="mr-2 magic-checkbox" />
+                      Multi-Target
+                    </label>
+                  </div>
+                </div>
+                <div class="magic-input-group mb-3">
+                  <label class="magic-label text-sm">Description</label>
+                  <textarea [(ngModel)]="newMaskSkill.description" class="magic-textarea text-sm" rows="2"></textarea>
+                </div>
+                <div class="flex gap-2">
+                  <button (click)="saveMaskSkill()" class="magic-submit-button text-sm px-3 py-1">
+                    <i class="fas fa-check mr-1"></i>Add Skill
+                  </button>
+                  <button (click)="cancelMaskSkill()" class="magic-cancel-button text-sm px-3 py-1">
+                    <i class="fas fa-times mr-1"></i>Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Add Mask Mod Section -->
+            <div class="magic-panel magic-border-subtle rounded-xl p-4">
+              <div class="flex justify-between items-center mb-4">
+                <h5 class="text-lg font-bold magic-text">{{ editingMod ? 'Edit Mask Mod' : 'Add Mask Mod' }}</h5>
+                <button 
+                  *ngIf="!showNewMaskModForm"
+                  (click)="showNewMaskModForm = true" 
+                  class="magic-add-button text-sm px-3 py-1">
+                  <i class="fas fa-plus mr-1"></i>Add Mod
+                </button>
+              </div>
+              
+              <div *ngIf="showNewMaskModForm" class="magic-add-form">
+                <!-- Mod Type Toggle -->
+                <div class="magic-input-group mb-4">
+                  <label class="magic-label text-sm">Mod Type</label>
+                  <div class="flex gap-4 mt-2">
+                    <label class="flex items-center cursor-pointer">
+                      <input 
+                        type="radio" 
+                        [value]="false" 
+                        [(ngModel)]="isStatMod" 
+                        (change)="onModTypeToggle()"
+                        class="mr-2 magic-radio">
+                      <span class="magic-text text-sm">Skill Mod</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer">
+                      <input 
+                        type="radio" 
+                        [value]="true" 
+                        [(ngModel)]="isStatMod" 
+                        (change)="onModTypeToggle()"
+                        class="mr-2 magic-radio">
+                      <span class="magic-text text-sm">Stat Mod</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Skill Mod Fields (Original) -->
+                <div *ngIf="!isStatMod" class="space-y-3">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="magic-input-group">
+                      <label class="magic-label text-sm">Mod Type</label>
+                      <input [(ngModel)]="newMaskMod.modType" class="magic-input text-sm" placeholder="e.g., Enhancement, Augmentation" />
+                    </div>
+                    <div class="magic-input-group">
+                      <label class="magic-label text-sm">Rarity (1-5)</label>
+                      <input [(ngModel)]="newMaskMod.modRarity" type="number" class="magic-input text-sm" min="1" max="5" />
+                    </div>
+                  </div>
+                  <div class="magic-input-group">
+                    <label class="magic-label text-sm">Description</label>
+                    <textarea [(ngModel)]="newMaskMod.description" class="magic-textarea text-sm" rows="2" placeholder="Describe the mod's effects"></textarea>
+                  </div>
+                </div>
+
+                <!-- Stat Mod Template Fields -->
+                <div *ngIf="isStatMod" class="space-y-3">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="magic-input-group">
+                      <label class="magic-label text-sm">Rarity</label>
+                      <select [(ngModel)]="newMaskMod.modRarity" (change)="onStatModSelectionChange()" class="magic-select text-sm">
+                        <option value="">Select Rarity</option>
+                        <option [value]="1">1 - Bronze</option>
+                        <option [value]="2">2 - Silver</option>
+                        <option [value]="3">3 - Gold</option>
+                        <option [value]="4">4 - Diamond</option>
+                        <option [value]="5">5 - Prismatic</option>
+                      </select>
+                    </div>
+                    <div class="magic-input-group">
+                      <label class="magic-label text-sm">Stat Type</label>
+                      <select [(ngModel)]="selectedStatType" (change)="onStatModSelectionChange()" class="magic-select text-sm">
+                        <option value="">Select Stat</option>
+                        <option *ngFor="let statType of statTypes" [value]="statType">{{ statType }}</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <!-- Generated Template Preview -->
+                  <div *ngIf="newMaskMod.modType" class="magic-panel magic-border-subtle rounded-lg p-3">
+                    <h6 class="magic-text text-sm font-semibold mb-2">Generated Mod:</h6>
+                    <p class="magic-text-secondary text-sm"><strong>Name:</strong> {{ newMaskMod.modType }}</p>
+                    <p class="magic-text-secondary text-sm"><strong>Description:</strong> {{ newMaskMod.description }}</p>
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <button (click)="saveMaskMod()" class="magic-submit-button text-sm px-3 py-1">
+                    <i class="fas fa-check mr-1"></i>{{ editingMod ? 'Update Mod' : 'Add Mod' }}
+                  </button>
+                  <button (click)="cancelMaskMod()" class="magic-cancel-button text-sm px-3 py-1">
+                    <i class="fas fa-times mr-1"></i>Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Equipped Mods Section - Only show when editing a mask -->
+        <div *ngIf="editingMask && maskMods.length > 0" class="magic-editing-extras mt-8">
+          <div class="magic-panel magic-border-subtle rounded-xl p-4">
+            <h5 class="text-lg font-bold magic-text mb-4">
+              <i class="fas fa-cogs mr-2"></i>Equipped Mods
+            </h5>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div *ngFor="let mod of maskMods" 
+                   class="magic-mod-item p-3 rounded-lg transition-all duration-300 relative cursor-pointer"
+                   (mouseenter)="hoveredMod = mod" 
+                   (mouseleave)="hoveredMod = null">
+                
+                <!-- Mod Header with Actions -->
+                <div class="flex justify-between items-start mb-2">
+                  <p [ngClass]="{
+                    'text-amber-600': mod.modRarity === 1,
+                    'text-gray-400': mod.modRarity === 2,
+                    'text-yellow-500': mod.modRarity === 3,
+                    'text-blue-400': mod.modRarity === 4,
+                    'text-purple-500': mod.modRarity === 5
+                  }" class="font-semibold text-sm">
+                    {{ mod.modType }}
+                  </p>
+                  
+                  <!-- Action Buttons -->
+                  <div class="flex gap-1">
+                    <button 
+                      (click)="editMod(mod)"
+                      class="magic-edit-mod-button text-xs px-2 py-1 rounded transition-all duration-300"
+                      title="Edit mod">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button 
+                      (click)="removeModFromMask(mod.modID, editingMask.maskID)"
+                      class="magic-remove-mod-button text-xs px-2 py-1 rounded transition-all duration-300"
+                      title="Remove mod">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Mod Rarity Display -->
+                <div class="flex items-center gap-1 mb-2">
+                  <span class="text-xs magic-text-secondary">Rarity:</span>
+                  <div class="flex">
+                    <i *ngFor="let star of [].constructor(mod.modRarity)" 
+                       [ngClass]="{
+                         'text-amber-600': mod.modRarity === 1,
+                         'text-gray-400': mod.modRarity === 2,
+                         'text-yellow-500': mod.modRarity === 3,
+                         'text-blue-400': mod.modRarity === 4,
+                         'text-purple-500': mod.modRarity === 5
+                       }"
+                       class="fas fa-star text-xs"></i>
+                  </div>
+                </div>
+
+                <!-- Mod Description Tooltip -->
+                <div *ngIf="hoveredMod === mod" 
+                     class="absolute left-0 top-full mt-2 w-64 magic-tooltip rounded-xl shadow-2xl z-[9999] p-3">
+                  <p [ngClass]="{
+                    'text-amber-600': mod.modRarity === 1,
+                    'text-gray-400': mod.modRarity === 2,
+                    'text-yellow-500': mod.modRarity === 3,
+                    'text-blue-400': mod.modRarity === 4,
+                    'text-purple-500': mod.modRarity === 5
+                  }" class="font-medium text-sm">
+                    {{ mod.description }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-2 mt-6">
           <button (click)="createMask()" class="magic-submit-button">
             <i class="fas fa-save mr-2"></i>{{ editingMask ? 'Update Mask' : 'Create Mask' }}
           </button>

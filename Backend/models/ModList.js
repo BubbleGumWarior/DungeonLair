@@ -19,6 +19,15 @@ const ModList = sequelize.define('ModList', {
     type: DataTypes.TEXT,
     allowNull: false,
   },
+  modCategory: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: 'skill', // 'skill' or 'stat'
+  },
+  statType: {
+    type: DataTypes.STRING,
+    allowNull: true, // Only used for stat mods
+  },
 }, {
   tableName: 'mod_list',
 });

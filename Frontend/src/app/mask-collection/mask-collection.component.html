@@ -133,9 +133,128 @@
             <div *ngIf="!getMaskDetail(mask.maskID)" class="text-red-400 text-sm text-center">
               Mask details not found
             </div>
+            
+            <!-- Skills Button -->
+            <ng-container *ngIf="getMaskDetail(mask.maskID)">
+              <div class="mt-4 text-center">
+                <button 
+                  (click)="showMaskSkills(mask.maskID)"
+                  class="magic-skills-button px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium"
+                  title="View active and passive skills"
+                >
+                  <i class="fas fa-magic mr-2"></i>View Skills
+                </button>
+              </div>
+            </ng-container>
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Skills Modal -->
+<div *ngIf="showSkillsModal" class="magic-modal-overlay" (click)="closeSkillsModal()">
+  <div class="magic-modal magic-skills-modal" (click)="$event.stopPropagation()">
+    <h2 class="magic-modal-title">Mask {{ selectedMaskID }} Skills</h2>
+    
+    <!-- Passive Skill Section -->
+    <div class="magic-passive-skills-section mb-6">
+      <h3 class="magic-section-title">
+        <i class="fas fa-shield-alt mr-2"></i>Passive Skill
+      </h3>
+      <div class="magic-passive-skill-card">
+        <div class="magic-passive-skill-content">
+          <span class="magic-passive-skill-description" [innerHTML]="formatPassiveSkillText(selectedMaskPassiveSkill)">
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Active Skills Section -->
+    <div class="magic-active-skills-section">
+      <h3 class="magic-section-title">
+        <i class="fas fa-bolt mr-2"></i>Active Skills
+      </h3>
+      
+      <div *ngIf="loadingSkills" class="text-center magic-text py-4">
+        <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+        <p class="mt-2">Loading skills...</p>
+      </div>
+      
+      <div *ngIf="!loadingSkills && activeSkills.length === 0" class="text-center magic-text-secondary py-4">
+        <p>No active skills found for this mask</p>
+      </div>
+      
+      <div *ngIf="!loadingSkills && activeSkills.length > 0" class="magic-skills-grid">
+        <div *ngFor="let skill of activeSkills" class="magic-skill-display-card">
+          <!-- Skill Header -->
+          <div class="magic-skill-header">
+            <h4 class="magic-skill-name">{{ skill.skillName }}</h4>
+          </div>
+
+          <!-- Skill Description -->
+          <div class="magic-skill-description" [innerHTML]="formatSkillDescription(skill.description)">
+          </div>
+
+          <!-- Skill Stats Grid -->
+          <div class="magic-skill-stats-grid">
+            <div class="magic-skill-stat">
+              <i class="fas fa-fist-raised"></i>
+              <div class="magic-skill-stat-content">
+                <span class="magic-skill-stat-label">Power</span>
+                <span class="magic-skill-stat-value">{{ skill.mainStat }} ({{ skill.mainStatPercentage }}%)</span>
+              </div>
+            </div>
+
+            <div class="magic-skill-stat" *ngIf="skill.cooldown > 0">
+              <i class="fas fa-clock"></i>
+              <div class="magic-skill-stat-content">
+                <span class="magic-skill-stat-label">Cooldown</span>
+                <span class="magic-skill-stat-value">{{ skill.cooldown }} turn(s)</span>
+              </div>
+            </div>
+
+            <div class="magic-skill-stat" *ngIf="skill.amountOfStrikes > 1">
+              <i class="fas fa-crosshairs"></i>
+              <div class="magic-skill-stat-content">
+                <span class="magic-skill-stat-label">Strikes</span>
+                <span class="magic-skill-stat-value">{{ skill.amountOfStrikes }}x</span>
+              </div>
+            </div>
+
+            <div class="magic-skill-stat" *ngIf="skill.onHitEffect !== 'None'">
+              <i class="fas fa-magic" [ngClass]="{
+                'fa-heart text-green-400': skill.onHitEffect === 'Heal',
+                'fa-bolt-lightning text-yellow-400': skill.onHitEffect === 'Stun',
+                'fa-fire text-orange-400': skill.onHitEffect === 'Burn',
+                'fa-skull text-purple-400': skill.onHitEffect === 'Poison',
+                'fa-droplet text-red-400': skill.onHitEffect === 'Bleed',
+                'fa-layer-group text-blue-400': skill.onHitEffect === 'Buff Stack'
+              }"></i>
+              <div class="magic-skill-stat-content">
+                <span class="magic-skill-stat-label">Effect</span>
+                <span class="magic-skill-stat-value">{{ skill.onHitEffect }}</span>
+              </div>
+            </div>
+
+            <div class="magic-skill-stat" *ngIf="skill.isMultiTarget">
+              <i class="fas fa-users text-purple-400"></i>
+              <div class="magic-skill-stat-content">
+                <span class="magic-skill-stat-label">Targeting</span>
+                <span class="magic-skill-stat-value">Multi-Target</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Close Button -->
+    <div class="magic-modal-buttons mt-6">
+      <button (click)="closeSkillsModal()" class="magic-button-secondary">
+        <i class="fas fa-times mr-2"></i>Close
+      </button>
     </div>
   </div>
 </div>

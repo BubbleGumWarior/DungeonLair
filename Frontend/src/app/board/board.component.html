@@ -267,7 +267,7 @@
         <div *ngIf="showMask" class="order-3 p-6 magic-panel magic-border-subtle rounded-2xl shadow-2xl space-y-6" style="grid-row: 1 / -1;">
             <div class="magic-stat-card p-6 rounded-xl">
                 <h2 class="text-3xl font-bold magic-text underline mb-4">Passive Skill</h2>
-                <p class="text-xl magic-text-secondary">{{ maskSkills.passiveSkill }}</p>
+                <p class="text-xl magic-text-secondary" [innerHTML]="formatPassiveSkillText(maskSkills.passiveSkill)"></p>
             </div>
             <div class="magic-stat-card p-6 rounded-xl">
                 <h2 class="text-3xl font-bold magic-text underline mb-4">Active Skills</h2>
@@ -278,7 +278,7 @@
                         <span class="magic-text-secondary mb-1"><strong class="magic-text">Cooldown:</strong> {{ skill.cooldown }} turns</span>
                         <span class="magic-text-secondary mb-1"><strong class="magic-text">Amount of Strikes:</strong> {{ skill.amountOfStrikes }}</span>
                         <span class="magic-text-secondary mb-1"><strong class="magic-text">On Hit Effect:</strong> {{ skill.onHitEffect }}</span>
-                        <span class="magic-text-secondary"><strong class="magic-text">Description:</strong> {{ skill.description }}</span>
+                        <span class="magic-text-secondary"><strong class="magic-text">Description:</strong> <span [innerHTML]="formatSkillDescription(skill.description)"></span></span>
                     </li>
                 </ul>
             </div>
