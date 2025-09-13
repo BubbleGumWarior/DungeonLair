@@ -1088,7 +1088,7 @@ io.on('connection', (socket) => {
                             health: maskDetails.health,
                             speed: maskDetails.speed,
                             currentHealth: maskDetails.currentHealth,
-                            currentSpeed: maskDetails.speed,
+                            currentSpeed: 0,
                             activeSkills: maskDetails.activeSkills,
                             stunStacks: 0, // Add stunStacks field
                             burnStacks: 0, // Add burnStacks field
@@ -1682,7 +1682,7 @@ io.on('connection', (socket) => {
             }
             else if (skill.skillName === 'Black Hole') {
               // heal the user of the skill by 5 x blackHoleDamage
-              mask.currentHealth = Math.min(mask.currentHealth + (blackHoleDamage * 3), mask.health); // Heal the user of the skill
+              mask.currentHealth = Math.min(mask.currentHealth + (blackHoleDamage * 2), mask.health); // Heal the user of the skill
 
             }
             else if (skill.skillName === 'The Black Plague') {
@@ -2912,15 +2912,7 @@ app.post('/continue', async (req, res) => {
     mask.action = false; // Reset action to false
     mask.bonusAction = false; // Reset bonusAction to false
     mask.movement = 0; // Reset movement to 0
-    // If a default mask is dead, remove it from masksInBattle
-    if (defaultMaskIDs.includes(mask.maskID) && mask.currentHealth === 0) {
-      delete masksInBattle[mask.maskID]; // Remove the mask from masksInBattle
-    }
-    
-    //Remove all masks with maskID higher than 9999 if they are dead
-    if (mask.maskID > 9999 && mask.currentHealth === 0) {
-      delete masksInBattle[mask.maskID]; // Remove the mask from masksInBattle
-    }
+    // Dead masks will now stay in battle until reset health or end battle is pressed
     
     
     if (mask.currentHealth <= 0) {
@@ -4317,30 +4309,73 @@ app.post('/continue', async (req, res) => {
       });
 
       if (mask.burnStacks > 0) {
-        if (mask.burnStacks >= 50) {
-          mask.currentHealth -= 20 * mask.burnStacks;
-          mask.currentHealth = Math.max(mask.currentHealth, 0);
+        // Burn: More meaningful damage per stack, scales with stacks
+        const burnDamage = mask.health * (0.015 + (mask.burnStacks * 0.005)); // 1.5% base + 0.5% per stack
+        mask.currentHealth -= burnDamage;
+        
+        // Special burn threshold: High stacks cause additional burst damage
+        if (mask.burnStacks >= 20) {
+          const burstDamage = mask.health * 0.1; // 10% max health burst
+          mask.currentHealth -= burstDamage;
+          console.log(`Mask ${mask.maskID} took ${Math.round(burstDamage)} burst damage from severe burns!`);
+          io.emit('battleMessage', `Mask ${mask.maskID} suffered severe burn damage!`);
         }
-        mask.currentHealth -= mask.health * 0.025;
-        mask.burnStacks -= 1;
-        mask.currentHealth = Math.max(mask.currentHealth, 0); // Ensure currentHealth does not go below 0
+        
+        mask.burnStacks = Math.max(mask.burnStacks - 1, 0);
+        mask.currentHealth = Math.max(mask.currentHealth, 0);
+        
+        if (burnDamage > 0) {
+          console.log(`Mask ${mask.maskID} took ${Math.round(burnDamage)} burn damage (${mask.burnStacks} stacks)`);
+        }
       }
+      
       if (mask.poisonStacks > 0) {
-        mask.currentHealth -= mask.health * 0.0001 * mask.poisonStacks;
-        mask.poisonStacks = Math.ceil(mask.poisonStacks * 1.25);
-        if (mask.currentHealth < mask.poisonStacks / 10) {
+        // Poison: Higher base damage but slower growth
+        const poisonDamage = mask.health * 0.01 * mask.poisonStacks; // 1% per stack
+        mask.currentHealth -= poisonDamage;
+        
+        // Poison spreads slower but with more impact per stack
+        mask.poisonStacks = Math.ceil(mask.poisonStacks * 1.1); // 10% growth instead of 25%
+        
+        // Execute threshold: More reasonable execution condition
+        if (mask.currentHealth <= mask.health * 0.15 && mask.poisonStacks >= 10) {
           mask.currentHealth = 0;
+          console.log(`Mask ${mask.maskID} succumbed to severe poisoning!`);
+          io.emit('battleMessage', `Mask ${mask.maskID} succumbed to severe poisoning!`);
         }
-        mask.currentHealth = Math.max(mask.currentHealth, 0); // Ensure currentHealth does not go below 0
+        
+        mask.currentHealth = Math.max(mask.currentHealth, 0);
+        
+        if (poisonDamage > 0) {
+          console.log(`Mask ${mask.maskID} took ${Math.round(poisonDamage)} poison damage (${mask.poisonStacks} stacks)`);
+        }
       }
+      
       if (mask.bleedStacks > 0) {
-        mask.currentHealth -= (mask.health * 0.005 * mask.bleedStacks);
-        const percentHealth = (mask.currentHealth / mask.health) * 100;
-        const requiredBleedStacks = Math.ceil(percentHealth * 2);
-        if (mask.bleedStacks >= requiredBleedStacks) {
+        // Bleed: Reduced damage to be less overpowered
+        const bleedDamage = mask.health * 0.002 * mask.bleedStacks; // 0.2% per stack (down from 0.5%)
+        mask.currentHealth -= bleedDamage;
+        
+        // More reasonable execution: requires higher stacks relative to health
+        const healthPercent = (mask.currentHealth / mask.health) * 100;
+        const requiredBleedStacks = Math.ceil(healthPercent * 5); // Requires 5x health percentage (up from 2x)
+        
+        if (mask.bleedStacks >= requiredBleedStacks && mask.currentHealth <= mask.health * 0.1) {
           mask.currentHealth = 0;
+          console.log(`Mask ${mask.maskID} bled out from severe wounds!`);
+          io.emit('battleMessage', `Mask ${mask.maskID} bled out from severe wounds!`);
         }
-        mask.currentHealth = Math.max(mask.currentHealth, 0); // Ensure currentHealth does not go below 0
+        
+        // Bleed stacks decay slowly over time
+        if (mask.bleedStacks > 10) {
+          mask.bleedStacks = Math.max(mask.bleedStacks - 1, 10); // Excess stacks decay
+        }
+        
+        mask.currentHealth = Math.max(mask.currentHealth, 0);
+        
+        if (bleedDamage > 0) {
+          console.log(`Mask ${mask.maskID} took ${Math.round(bleedDamage)} bleed damage (${mask.bleedStacks} stacks)`);
+        }
       }
       if (mask.stunStacks > 0) {
         mask.stunStacks -= 1;
