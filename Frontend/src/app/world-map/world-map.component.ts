@@ -29,7 +29,10 @@ export class WorldMapComponent implements OnInit {
     characterName: string;
     photo: string;
     equippedItemPath: string | null;
+    equippedItemDetails?: any; // Add equipped item details
   } | null = null;
+  hoveredEquipment: any = null; // Add property to track hovered equipment
+  tooltipPosition = { x: 0, y: 0 }; // Add position tracking for tooltip
   currentTime: string = '00:00';
   currentDay: string = 'Monday'; // Default day
   isDaytime: boolean = true;
@@ -177,6 +180,42 @@ export class WorldMapComponent implements OnInit {
     this.modalVisible = false;
     this.selectedUser = null;
     this.clickedCharacter = null;
+    this.hoveredEquipment = null; // Clear tooltip when modal closes
+  }
+
+  // Handle equipment hover for tooltip
+  async onEquipmentHover(event: MouseEvent) {
+    if (!this.clickedCharacter?.equippedItemPath) {
+      return;
+    }
+
+    // Calculate tooltip position
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    this.tooltipPosition = {
+      x: rect.right + 10, // 10px to the right of the equipment image
+      y: rect.top - 20    // Slightly above the equipment image
+    };
+
+    // Fetch equipment details if not already loaded
+    if (!this.clickedCharacter.equippedItemDetails && this.selectedUser) {
+      try {
+        const response = await fetch(`https://dungeonlair.ddns.net:443/equipped-item-details/${this.selectedUser.characterID}`);
+        if (response.ok) {
+          const details = await response.json();
+          this.clickedCharacter.equippedItemDetails = details;
+          this.hoveredEquipment = details;
+        }
+      } catch (error) {
+        console.error('Error fetching equipment details:', error);
+      }
+    } else if (this.clickedCharacter.equippedItemDetails) {
+      this.hoveredEquipment = this.clickedCharacter.equippedItemDetails;
+    }
+  }
+
+  // Handle equipment leave for tooltip
+  onEquipmentLeave() {
+    this.hoveredEquipment = null;
   }
 
   fetchTimeFromServer() {

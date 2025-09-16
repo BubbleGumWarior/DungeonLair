@@ -4875,6 +4875,23 @@ app.post('/continue', async (req, res) => {
             }
           }  
 
+            if (skillName === "Life of the Party") {
+            console.log(`Mask ${mask.maskID} has skill: Life of the Party`);
+            // At the start of each cycle, revive all dead team members and multiply their stats by this mask's abilityDamage
+            const deadTeamMembers = Object.values(masksInBattle).filter(targetMask => targetMask.team === mask.team && targetMask.currentHealth === 0);
+            deadTeamMembers.forEach(deadMask => {
+              deadMask.currentHealth = deadMask.health;
+              deadMask.attackDamage *= mask.abilityDamage;
+              deadMask.abilityDamage *= mask.abilityDamage;
+              deadMask.magicResist *= mask.abilityDamage;
+              deadMask.protections *= mask.abilityDamage;
+              deadMask.speed *= mask.abilityDamage;
+              battleMessage = `Mask ${deadMask.maskID} was revived by Life of the Party and all stats multiplied by ${mask.abilityDamage}.`;
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            });
+            }
+
           if (skillName === "Dragon Blast" && mask.currentSpeed === 100) {
             console.log(`Mask ${mask.maskID} has skill: Dragon Blast`);
             const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
@@ -5395,6 +5412,40 @@ app.post('/click-character-id', async (req, res) => {
     } catch (error) {
     console.error('Error in /click-character-id:', error);
     res.status(500).json({ message: 'Failed to log character ID' });
+  }
+});
+
+// Endpoint to get equipped item details for a character
+app.get('/equipped-item-details/:characterID', async (req, res) => {
+  const { characterID } = req.params;
+  
+  try {
+    // Get character info
+    const characterInfo = await CharacterInfo.findOne({ where: { characterID } });
+    if (!characterInfo) {
+      return res.status(404).json({ message: 'Character not found' });
+    }
+
+    // Find equipped item in the character's inventory
+    if (Array.isArray(characterInfo.itemInventory) && characterInfo.itemInventory.length > 0) {
+      const equippedItem = await ItemList.findOne({
+        where: {
+          itemID: { [Op.in]: characterInfo.itemInventory },
+          equipped: true
+        }
+      });
+      
+      if (equippedItem) {
+        res.json(equippedItem);
+      } else {
+        res.status(404).json({ message: 'No equipped item found' });
+      }
+    } else {
+      res.status(404).json({ message: 'Character has no inventory' });
+    }
+  } catch (error) {
+    console.error('Error getting equipped item details:', error);
+    res.status(500).json({ message: 'Failed to get equipped item details' });
   }
 });
 

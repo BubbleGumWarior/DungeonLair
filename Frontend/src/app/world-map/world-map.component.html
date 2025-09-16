@@ -101,7 +101,9 @@
           <img *ngIf="clickedCharacter.equippedItemPath"
             [src]="clickedCharacter.equippedItemPath"
             alt="Equipped Item"
-            class="character-image dual"/>
+            class="character-image dual"
+            (mouseenter)="onEquipmentHover($event)"
+            (mouseleave)="onEquipmentLeave()"/>
         </ng-container>
         <ng-template #singleImage>
           <img *ngIf="clickedCharacter.photo"
@@ -118,6 +120,24 @@
         {{ clickedCharacter.characterName }}
       </div>
     </div>
+  </div>
+
+  <!-- Equipment Tooltip -->
+  <div *ngIf="hoveredEquipment && modalVisible" 
+       class="magic-equipment-tooltip rounded-xl shadow-2xl p-4 pointer-events-none" 
+       [style.left.px]="tooltipPosition.x"
+       [style.top.px]="tooltipPosition.y">
+    <div *ngIf="hoveredEquipment; else noEquipmentTooltip">
+      <h4 class="text-lg font-bold text-blue-400 mb-2">{{ hoveredEquipment.itemName }}</h4>
+      <p class="text-sm text-gray-300 mb-1"><strong>Type:</strong> {{ hoveredEquipment.type }}</p>
+      <p class="text-sm text-gray-300 mb-1"><strong>Main Stat:</strong> {{ hoveredEquipment.mainStat }}</p>
+      <p class="text-sm text-gray-300 mb-1" *ngIf="hoveredEquipment.damage"><strong>Damage:</strong> d{{ hoveredEquipment.damage }}</p>
+      <p class="text-sm text-gray-300 mb-1" *ngIf="hoveredEquipment.modifier"><strong>Modifier:</strong> {{ hoveredEquipment.modifier >= 0 ? '+' : '' }}{{ hoveredEquipment.modifier }}</p>
+      <p class="text-sm text-gray-300 mt-2" *ngIf="hoveredEquipment.description">{{ hoveredEquipment.description }}</p>
+    </div>
+    <ng-template #noEquipmentTooltip>
+      <p class="text-sm text-gray-400">No equipment details available</p>
+    </ng-template>
   </div>
 
   <!-- Desktop floating clock -->
