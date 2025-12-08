@@ -34,7 +34,11 @@ const { exec } = require('child_process');
 const maskRoutes = require('./routes/maskRoutes'); // Import maskRoutes
 
 const app = express();
+// Serve static files from public (including .well-known for ACME HTTP-01)
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Explicitly serve ACME challenge files for Let's Encrypt HTTP-01 validation
+app.use('/.well-known/acme-challenge', express.static(path.join(__dirname, 'public', '.well-known', 'acme-challenge')));
 
 // Load SSL certificates
 const privateKey = fs.readFileSync('d:/Coding/DungeonLair/DungeonLair/certs/dungeonlair.ddns.net-key.pem', 'utf8');
@@ -1095,7 +1099,7 @@ io.on('connection', (socket) => {
                             poisonStacks: 0, // Add poisonStacks field
                             bleedStacks: 0, // Add bleedStacks field
                             buffStacks: 0, // Add buffStacks field
-                            untargetable: false, // Add untargetable field
+                            untargetable: 0, // Add untargetable field (0 = targetable, >0 = untargetable for N turns)
                             action: false, // Add action field
                             bonusAction: false, // Add bonusAction field
                             movement: 0, // Add movement field
@@ -1998,35 +2002,35 @@ io.on('connection', (socket) => {
                 mask.bonusAction = true;
                 mask.earnedExtraAction = true; // Prevent action removal
                 
-                // Grant untargetability (2 turns per kill)
-                mask.untargetable = Math.min(mask.untargetable + (soulsCollected * 2), 4);
+                // Grant untargetability (1 turn per kill, max 3)
+                mask.untargetable = Math.min(mask.untargetable + soulsCollected, 3);
                 
-                // Permanent percentage-based growth (8% per kill)
-                const killGrowth = soulsCollected * 0.08;
+                // Permanent percentage-based growth (3% per kill, more balanced)
+                const killGrowth = soulsCollected * 0.03;
                 mask.attackDamage *= (1 + killGrowth);
                 mask.speed = Math.min(mask.speed * (1 + killGrowth), 100);
                 
-                // Add soul stacks (bonus if untargetable)
-                const baseStacks = soulsCollected * 3;
-                const bonusStacks = mask.untargetable > 0 ? soulsCollected * 2 : 0;
+                // Add soul stacks (reduced from 3 to 2 base, bonus if untargetable)
+                const baseStacks = soulsCollected * 2;
+                const bonusStacks = mask.untargetable > 0 ? soulsCollected : 0;
                 mask.buffStacks += baseStacks + bonusStacks;
               }
               
               // Stack consumption option for extra protection (10+ stacks)
               if (mask.buffStacks >= 10) {
                 mask.buffStacks -= 10;
-                mask.untargetable = Math.min(mask.untargetable + 2, 4);
+                mask.untargetable = Math.min(mask.untargetable + 1, 3);
                 mask.stackConsumptionActive = true; // Flag for bonus stacks on kill
               }
               
-              // Bonus stacks if untargetable from consumption and got kills
+              // Bonus stacks if untargetable from consumption and got kills (reduced to +5)
               if (mask.stackConsumptionActive && soulsCollected > 0) {
-                mask.buffStacks += 10;
+                mask.buffStacks += 5;
                 mask.stackConsumptionActive = false; // Reset flag
               }
               
-              // Soul energy healing (percentage-based)
-              const healPercent = 0.05 + (soulStacks * 0.002); // 5% + 0.2% per stack
+              // Soul energy healing (percentage-based, slightly reduced)
+              const healPercent = 0.01 + (soulStacks * 0.001); // 1% + 0.1% per stack
               const healAmount = mask.health * healPercent;
               mask.currentHealth = Math.min(mask.currentHealth + healAmount, mask.health);
               
@@ -3234,7 +3238,12 @@ app.post('/continue', async (req, res) => {
 
   Object.values(masksInBattle).forEach(mask => {
   
-    mask.untargetable = false; // Reset untargetable to false
+    // Decrement untargetable turns if it's a number, otherwise reset to false
+    if (typeof mask.untargetable === 'number' && mask.untargetable > 0) {
+      mask.untargetable = Math.max(mask.untargetable - 1, 0);
+    } else if (mask.untargetable === true) {
+      mask.untargetable = false; // Reset boolean untargetable to false
+    }
     mask.action = false; // Reset action to false
     mask.bonusAction = false; // Reset bonusAction to false
     mask.movement = 0; // Reset movement to 0
@@ -5621,6 +5630,7 @@ app.post('/api/play-sound', (req, res) => {
   res.status(200).json({ message: 'Sound event emitted' });
 });
 
+// Catch-all route must be last, after all static/file/asset routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
