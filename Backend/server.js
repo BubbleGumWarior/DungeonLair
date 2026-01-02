@@ -1063,6 +1063,7 @@ const skillNames = {
   900022: "Blight Slash",
   900023: "Corruption Aura",
   // Mirror King Phase 2 skills
+
   900010: "Cataclysmic Reflection",
   900011: "Royal Restoration",
   9999: "Basic Attack"
@@ -4589,28 +4590,30 @@ app.post('/continue', async (req, res) => {
             let damage = 0;
             let heal = 0;
 
+            // At the start of each cycle: increase all enemy bleed stacks by 4
             Object.values(masksInBattle).forEach(targetMask => {
               if (targetMask.maskID !== mask.maskID && targetMask.team !== mask.team) {
                 targetMask.bleedStacks = targetMask.bleedStacks + 4;
               }
             });
 
-            if (mask.currentSpeed >= 100) {
-              Object.values(masksInBattle).forEach(targetMask => {
-                if (targetMask.maskID !== mask.maskID && targetMask.team !== mask.team) {
-                    damage = targetMask.bleedStacks * 0.5 * mask.abilityDamage;
-                    const reduction = targetMask.magicResist || 0;
-                    damage = Math.max(damage - reduction, 0);
-                    targetMask.currentHealth -= damage;
-                    targetMask.currentHealth = Math.max(targetMask.currentHealth, 0);
-                    heal += damage;
-                }
-              });
-            }
+            // At the end of turn: consume all bleed stacks dealing damage and healing
+            Object.values(masksInBattle).forEach(targetMask => {
+              if (targetMask.maskID !== mask.maskID && targetMask.team !== mask.team) {
+                damage = targetMask.bleedStacks * 0.5 * mask.abilityDamage;
+                const reduction = targetMask.magicResist || 0;
+                damage = Math.max(damage - reduction, 0);
+                targetMask.currentHealth -= damage;
+                targetMask.currentHealth = Math.max(targetMask.currentHealth, 0);
+                heal += damage;
+                // Consume all bleed stacks
+                targetMask.bleedStacks = 0;
+              }
+            });
 
             mask.currentHealth += heal;
             mask.currentHealth = Math.min(mask.currentHealth, mask.health);
-            battleMessage = `Mask ${mask.maskID} used Blood Siphon and applied bleed stacks to all enemies and healed for ${heal}`;
+            battleMessage = `Mask ${mask.maskID} used Blood Siphon, consumed bleed stacks dealing damage to all enemies and healed for ${heal}`;
             if (battleMessage) {
               console.log(battleMessage);
               io.emit('battleMessage', battleMessage);
