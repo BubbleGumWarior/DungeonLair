@@ -8,6 +8,10 @@ const MaskList = sequelize.define('MaskList', {
     primaryKey: true,
     autoIncrement: true,
   },
+  name: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
   photo: {
     type: DataTypes.TEXT,
     allowNull: false,
@@ -27,27 +31,27 @@ const MaskList = sequelize.define('MaskList', {
     defaultValue: [], // Default value is an empty array
   },
   attackDamage: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     allowNull: false,
   },
   abilityDamage: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     allowNull: false,
   },
   magicResist: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     allowNull: false,
   },
   protections: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     allowNull: false,
   },
   health: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     allowNull: false,
   },
   currentHealth: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     allowNull: false,
   },
   speed: {

@@ -38,4 +38,4 @@ npm run build
 xcopy /E /I /Y D:\Coding\DungeonLair\DungeonLair\Frontend\dist\frontend D:\Coding\DungeonLair\DungeonLair\Backend\public
 
 Or if you want all at the same time do this:
-Remove-Item -Recurse -Force D:\Coding\DungeonLair\DungeonLair\Backend\public; npm run build; xcopy /E /I /Y D:\Coding\DungeonLair\DungeonLair\Frontend\dist\frontend D:\Coding\DungeonLair\DungeonLair\Backend\public
+cd .\Frontend\; Remove-Item -Recurse -Force D:\Coding\DungeonLair\DungeonLair\Backend\public; npm run build; xcopy /E /I /Y D:\Coding\DungeonLair\DungeonLair\Frontend\dist\frontend D:\Coding\DungeonLair\DungeonLair\Backend\public

@@ -1,0 +1,290 @@
+================================================================================
+HOW TO HOST NODE.JS/EXPRESS SERVER ON PORT 443 WITH HTTPS
+================================================================================
+
+This guide explains exactly how the DungeonLair project successfully runs on 
+port 443 with HTTPS. Follow these steps precisely for your project.
+
+================================================================================
+PREREQUISITES
+================================================================================
+
+1. Valid SSL certificates for your domain (Let's Encrypt recommended)
+2. Node.js installed
+3. Administrator/root privileges (required for port 443)
+4. A domain name (can use dynamic DNS like No-IP)
+
+================================================================================
+REQUIRED FILES
+================================================================================
+
+You need THREE certificate files in PEM format:
+
+1. Private Key File (e.g., yourdomain.com-key.pem)
+2. Certificate File (e.g., yourdomain.com-crt.pem)  
+3. CA Chain File (e.g., yourdomain.com-chain-only.pem or chain.pem)
+
+Store these in a 'certs' folder in your project root.
+
+================================================================================
+STEP-BY-STEP IMPLEMENTATION
+================================================================================
+
+STEP 1: Install Required Dependencies
+--------------------------------------
+npm install express socket.io cors body-parser
+
+Note: The 'https' and 'fs' modules are built into Node.js
+
+STEP 2: Import Modules at Top of server.js
+-------------------------------------------
+const express = require('express');
+const https = require('https');  // IMPORTANT: Use HTTPS not HTTP
+const fs = require('fs');
+const socketIo = require('socket.io');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const path = require('path');
+const http = require('http'); // Only needed if running HTTP server for ACME
+
+STEP 3: Initialize Express App
+-------------------------------
+const app = express();
+
+// Middleware
+app.use(cors({ origin: true, credentials: true }));
+app.use(bodyParser.json());
+app.use(express.json());
+
+// Serve static files (your frontend build)
+app.use(express.static(path.join(__dirname, 'public')));
+
+STEP 4: Load SSL Certificates (CRITICAL)
+-----------------------------------------
+Use ABSOLUTE PATHS to your certificate files:
+
+const privateKey = fs.readFileSync('d:/path/to/your/certs/yourdomain-key.pem', 'utf8');
+const certificate = fs.readFileSync('d:/path/to/your/certs/yourdomain-crt.pem', 'utf8');
+const ca = fs.readFileSync('d:/path/to/your/certs/yourdomain-chain-only.pem', 'utf8');
+
+IMPORTANT NOTES:
+- Use forward slashes (/) even on Windows
+- Use absolute paths, not relative paths
+- Load files BEFORE creating server
+- Use 'utf8' encoding
+- Use readFileSync (synchronous) to ensure files load before server starts
+
+STEP 5: Create Credentials Object
+----------------------------------
+const credentials = { 
+    key: privateKey, 
+    cert: certificate, 
+    ca: ca 
+};
+
+All three properties are required!
+
+STEP 6: Create HTTPS Server
+----------------------------
+const server = https.createServer(credentials, app);
+
+DO NOT USE: http.createServer(app)
+MUST USE: https.createServer(credentials, app)
+
+STEP 7: Configure Socket.IO (if using)
+---------------------------------------
+const io = socketIo(server, {
+    cors: {
+        origin: true,
+        methods: ["GET", "POST"]
+    }
+});
+
+STEP 8: Set Port to 443
+------------------------
+const PORT = process.env.PORT || 443;
+
+STEP 9: Start Server Listening on All Interfaces
+-------------------------------------------------
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is running on https://yourdomain.com:${PORT}`);
+});
+
+CRITICAL: Use '0.0.0.0' NOT 'localhost' to allow external connections
+
+================================================================================
+OPTIONAL: HTTP SERVER FOR LET'S ENCRYPT RENEWAL
+================================================================================
+
+If using Let's Encrypt certificates, run a separate HTTP server on port 80
+for ACME challenges (certificate renewal):
+
+const httpApp = express();
+httpApp.use('/.well-known/acme-challenge', 
+    express.static(path.join(__dirname, '.well-known/acme-challenge')));
+const httpServer = http.createServer(httpApp);
+httpServer.listen(80, '0.0.0.0', () => {
+    console.log('HTTP server running on port 80 for ACME challenge');
+});
+
+================================================================================
+COMPLETE MINIMAL EXAMPLE
+================================================================================
+
+const express = require('express');
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
+
+const app = express();
+
+// Middleware
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Load SSL certificates with ABSOLUTE paths
+const privateKey = fs.readFileSync('d:/your/project/certs/domain-key.pem', 'utf8');
+const certificate = fs.readFileSync('d:/your/project/certs/domain-crt.pem', 'utf8');
+const ca = fs.readFileSync('d:/your/project/certs/domain-chain.pem', 'utf8');
+
+const credentials = { key: privateKey, cert: certificate, ca: ca };
+
+// Create HTTPS server
+const server = https.createServer(credentials, app);
+
+// Your routes here
+app.get('/', (req, res) => {
+    res.send('Hello HTTPS World!');
+});
+
+// Start server on port 443
+const PORT = 443;
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`HTTPS Server running on port ${PORT}`);
+});
+
+================================================================================
+COMMON MISTAKES TO AVOID
+================================================================================
+
+1. ❌ Using http.createServer() instead of https.createServer()
+   ✅ MUST use https.createServer(credentials, app)
+
+2. ❌ Using relative paths to certificates
+   ✅ Use absolute paths: 'd:/full/path/to/cert.pem'
+
+3. ❌ Missing the CA chain file
+   ✅ Include all three: key, cert, AND ca
+
+4. ❌ Listening only on 'localhost'
+   ✅ Listen on '0.0.0.0' for external access
+
+5. ❌ Running without admin/root privileges
+   ✅ Port 443 requires elevated privileges
+
+6. ❌ Using async fs.readFile() without proper callbacks
+   ✅ Use fs.readFileSync() before server starts
+
+7. ❌ Invalid, expired, or self-signed certificates
+   ✅ Use valid certificates from a trusted CA (Let's Encrypt is free)
+
+8. ❌ Firewall blocking port 443
+   ✅ Configure firewall to allow inbound connections on port 443
+
+================================================================================
+WINDOWS-SPECIFIC INSTRUCTIONS
+================================================================================
+
+1. Run Command Prompt or PowerShell as Administrator
+   - Right-click → "Run as Administrator"
+
+2. Navigate to your project directory:
+   cd d:\path\to\your\project\Backend
+
+3. Start the server:
+   node server.js
+
+4. Configure Windows Firewall:
+   - Open Windows Defender Firewall
+   - Click "Advanced settings"
+   - Add new Inbound Rule
+   - Port: 443
+   - Protocol: TCP
+   - Allow the connection
+   - Apply to all profiles
+
+5. Port forwarding on router (if hosting externally):
+   - Forward external port 443 to your local machine's IP on port 443
+   - Forward external port 80 to your local machine's IP on port 80 (for cert renewal)
+
+================================================================================
+VERIFICATION CHECKLIST
+================================================================================
+
+Before running, verify:
+
+□ All three certificate files exist and are readable
+□ Certificate paths are absolute, not relative
+□ Using https.createServer(), not http.createServer()
+□ Credentials object has key, cert, and ca properties
+□ Port is set to 443
+□ Listening on '0.0.0.0', not 'localhost'
+□ Running with administrator privileges
+□ Firewall allows port 443 inbound
+□ Certificates are valid and not expired
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Error: "EACCES: permission denied"
+→ Run as Administrator/root
+
+Error: "ENOENT: no such file or directory"
+→ Check certificate paths are absolute and correct
+
+Error: "Error: error:0909006C:PEM routines"
+→ Certificate files are corrupt or wrong format
+
+Error: "EADDRINUSE: address already in use"
+→ Another process is using port 443, find and stop it
+
+Browser shows "Not Secure" warning:
+→ Certificates don't match domain or are self-signed
+
+Can't connect from external network:
+→ Check firewall and router port forwarding
+
+================================================================================
+WORKING EXAMPLE FROM DUNGEONLAIR PROJECT
+================================================================================
+
+File: Backend/server.js (relevant sections)
+
+Line 2:
+const https = require('https');
+
+Lines 44-48:
+const privateKey = fs.readFileSync('d:/Coding/DungeonLair/DungeonLair/certs/dungeonlair.ddns.net-key.pem', 'utf8');
+const certificate = fs.readFileSync('d:/Coding/DungeonLair/DungeonLair/certs/dungeonlair.ddns.net-crt.pem', 'utf8');
+const ca = fs.readFileSync('d:/Coding/DungeonLair/DungeonLair/certs/dungeonlair.ddns.net-chain-only.pem', 'utf8');
+
+const credentials = { key: privateKey, cert: certificate, ca: ca };
+
+Line 50:
+const server = https.createServer(credentials, app);
+
+Line 70:
+const PORT = process.env.PORT || 443;
+
+Lines 2308-2310:
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is running on https://${localIP}:${PORT}`);
+});
+
+Domain used: dungeonlair.ddns.net (No-IP dynamic DNS)
+Certificate provider: Let's Encrypt (inferred from chain file)
+
+================================================================================
+END OF GUIDE
+================================================================================

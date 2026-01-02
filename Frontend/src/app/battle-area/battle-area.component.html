@@ -116,7 +116,7 @@
               <div class="magic-mask-info">
                 <div class="magic-mask-header">
                   <div class="magic-mask-name" [style.color]="mask.randomColor">
-                    Mask: {{ mask.maskID }}
+                    {{ mask.name || 'Mask: ' + mask.maskID }}
                     <i class="fa-solid fa-mask magic-details-icon" (click)="openMaskDetails(mask)"></i>
                   </div>
                   <div class="magic-status-effects">
@@ -181,7 +181,7 @@
               <div class="magic-mask-info">
                 <div class="magic-mask-header">
                   <div class="magic-mask-name" [style.color]="mask.randomColor">
-                    Mask: {{ mask.maskID }}
+                    {{ mask.name || 'Mask: ' + mask.maskID }}
                     <i class="fa-solid fa-mask magic-details-icon" (click)="openMaskDetails(mask)"></i>
                   </div>
                   <div class="magic-status-effects">
@@ -246,7 +246,7 @@
               <div class="magic-mask-info">
                 <div class="magic-mask-header">
                   <div class="magic-mask-name" [style.color]="mask.randomColor">
-                    Mask: {{ mask.maskID }}
+                    {{ mask.name || 'Mask: ' + mask.maskID }}
                     <i class="fa-solid fa-mask magic-details-icon" (click)="openMaskDetails(mask)"></i>
                   </div>
                   <div class="magic-status-effects">
@@ -327,7 +327,7 @@
               <div class="magic-mask-info">
                 <div class="magic-mask-header">
                   <div class="magic-mask-name" [style.color]="mask.randomColor">
-                    Mask: {{ mask.maskID }}
+                    {{ mask.name || 'Mask: ' + mask.maskID }}
                     <i class="fa-solid fa-mask magic-details-icon" (click)="openMaskDetails(mask)"></i>
                   </div>
                   <div class="magic-status-effects">
@@ -392,7 +392,7 @@
               <div class="magic-mask-info">
                 <div class="magic-mask-header">
                   <div class="magic-mask-name" [style.color]="mask.randomColor">
-                    Mask: {{ mask.maskID }}
+                    {{ mask.name || 'Mask: ' + mask.maskID }}
                     <i class="fa-solid fa-mask magic-details-icon" (click)="openMaskDetails(mask)"></i>
                   </div>
                   <div class="magic-status-effects">
@@ -457,7 +457,7 @@
               <div class="magic-mask-info">
                 <div class="magic-mask-header">
                   <div class="magic-mask-name" [style.color]="mask.randomColor">
-                    Mask: {{ mask.maskID }}
+                    {{ mask.name || 'Mask: ' + mask.maskID }}
                     <i class="fa-solid fa-mask magic-details-icon" (click)="openMaskDetails(mask)"></i>
                   </div>
                   <div class="magic-status-effects">
@@ -705,7 +705,7 @@
               <button (click)="moveLeft(mask)" class="magic-move-button" [disabled]="true">&lt;</button>
               <div class="magic-member-info">
                 <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="magic-member-avatar" />
-                <span class="magic-member-name">{{ mask.maskID }}</span>
+                <span class="magic-member-name">{{ mask.name || 'Mask ' + mask.maskID }}</span>
               </div>
               <button (click)="moveRight(mask)" class="magic-move-button">&gt;</button>
             </li>
@@ -718,7 +718,7 @@
               <button (click)="moveLeft(mask)" class="magic-move-button">&lt;</button>
               <div class="magic-member-info">
                 <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="magic-member-avatar" />
-                <span class="magic-member-name">{{ mask.maskID }}</span>
+                <span class="magic-member-name">{{ mask.name || 'Mask ' + mask.maskID }}</span>
               </div>
               <button (click)="moveRight(mask)" class="magic-move-button">&gt;</button>
             </li>
@@ -731,7 +731,7 @@
               <button (click)="moveLeft(mask)" class="magic-move-button">&lt;</button>
               <div class="magic-member-info">
                 <img *ngIf="mask.photo" [src]="mask.photo" alt="Mask Photo" class="magic-member-avatar" />
-                <span class="magic-member-name">{{ mask.maskID }}</span>
+                <span class="magic-member-name">{{ mask.name || 'Mask ' + mask.maskID }}</span>
               </div>
               <button (click)="moveRight(mask)" class="magic-move-button" [disabled]="true">&gt;</button>
             </li>
@@ -749,7 +749,7 @@
       <div class="magic-mask-grid">
         <div *ngFor="let mask of filteredMaskList" class="magic-mask-selection-card" (click)="selectMask(mask)">
           <div class="magic-mask-selection-info">
-            <p><strong>Mask ID:</strong> {{ mask.maskID }}</p>
+            <p><strong>{{ mask.name || 'Mask ID: ' + mask.maskID }}</strong></p>
           </div>
           <img [src]="mask.photo" alt="Mask Photo" class="magic-mask-selection-image" />
         </div>

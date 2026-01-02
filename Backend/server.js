@@ -297,6 +297,111 @@ sequelize.sync({ force: false })
                 health: 75,
                 currentHealth: 75,
                 speed: 100,
+            },
+            {
+                maskID: 90000,
+                name: 'The Mirror King',
+                photo: '/assets/images/MirrorKing.png',
+                passiveSkill: 'None',
+                activeSkills: [900000, 900001],
+                modList: [],
+                attackDamage: 3000000000000,
+                abilityDamage: 10,
+                magicResist: 2000000000000,
+                protections: 2000000000000,
+                health: 50000000000000,
+                currentHealth: 50000000000000,
+                speed: 100,
+            },
+            {
+                maskID: 90001,
+                name: 'Pale Reaper',
+                photo: '/assets/images/Summon1.png',
+                passiveSkill: 'None',
+                activeSkills: [900002, 900003],
+                modList: [],
+                attackDamage: 1500000000,
+                abilityDamage: 1000000000,
+                magicResist: 800000000,
+                protections: 800000000,
+                health: 12000000000,
+                currentHealth: 12000000000,
+                speed: 100,
+            },
+            {
+                maskID: 90002,
+                name: 'Ember Fang',
+                photo: '/assets/images/Summon2.png',
+                passiveSkill: 'None',
+                activeSkills: [900004, 900005],
+                modList: [],
+                attackDamage: 1200000000,
+                abilityDamage: 1200000000,
+                magicResist: 700000000,
+                protections: 700000000,
+                health: 10000000000,
+                currentHealth: 10000000000,
+                speed: 100,
+            },
+            {
+                maskID: 90003,
+                name: 'Stormbound Sentinel',
+                photo: '/assets/images/Summon3.png',
+                passiveSkill: 'None',
+                activeSkills: [900006, 900007],
+                modList: [],
+                attackDamage: 1400000000,
+                abilityDamage: 800000000,
+                magicResist: 600000000,
+                protections: 600000000,
+                health: 900000000,
+                currentHealth: 900000000,
+                speed: 100,
+            },
+            {
+                maskID: 90004,
+                name: 'Plagueborne Warden',
+                photo: '/assets/images/Summon4.png',
+                passiveSkill: 'None',
+                activeSkills: [900008, 900009],
+                modList: [],
+                attackDamage: 1000000000,
+                abilityDamage: 1000000000,
+                magicResist: 1200000000,
+                protections: 1200000000,
+                health: 1500000000,
+                currentHealth: 1500000000,
+                speed: 80,
+            },
+            {
+                maskID: 90005,
+                name: 'Veil Walker',
+                photo: '/assets/images/Summon5.png',
+                passiveSkill: 'None',
+                activeSkills: [900020, 900021],
+                modList: [],
+                attackDamage: 1100000000,
+                abilityDamage: 1500000000,
+                magicResist: 500000000,
+                protections: 500000000,
+                health: 800000000,
+                currentHealth: 800000000,
+                speed: 100,
+            },
+            {
+                maskID: 90006,
+                name: 'Blighted Champion',
+                photo: '/assets/images/Summon6.png',
+                passiveSkill: 'None',
+                activeSkills: [900022, 900023],
+                modList: [],
+                attackDamage: 1300000000,
+                abilityDamage: 1300000000,
+                magicResist: 900000000,
+                protections: 900000000,
+                health: 1100000000,
+                currentHealth: 1100000000,
+                speed: 100,
             }
         ];
 
@@ -933,6 +1038,36 @@ app.put('/api/scores/:characterName', async (req, res) => {
 let vcMembers = [];
 let masksInBattle = {}; // Add masksInBattle object
 let maskSkills = {}; // Add maskSkills object
+
+// Global skillNames object for hardcoded boss skills
+const skillNames = {
+  // Mirror King Phase 1 skills
+  900000: "King's Decree",
+  900001: "Commanding Presence",
+  // Summon 1 skills
+  900002: "Soul Harvest",
+  900003: "Reaper's Touch",
+  // Summon 2 skills
+  900004: "Infernal Bite",
+  900005: "Flame Burst",
+  // Summon 3 skills
+  900006: "Thunderous Strike",
+  900007: "Storm Shield",
+  // Summon 4 skills
+  900008: "Toxic Cloud",
+  900009: "Plague Strike",
+  // Summon 5 skills
+  900020: "Shadow Step",
+  900021: "Veil of Darkness",
+  // Summon 6 skills
+  900022: "Blight Slash",
+  900023: "Corruption Aura",
+  // Mirror King Phase 2 skills
+  900010: "Cataclysmic Reflection",
+  900011: "Royal Restoration",
+  9999: "Basic Attack"
+};
+
 let blindingStrikesTargets = []; // Initialize variable to track targets hit by Blinding Strikes
 let blackHoleDamage = 0; // Initialize variable to track damage from Black Hole
 let stormSize = 0; // Initialize variable to track storm size
@@ -1085,6 +1220,7 @@ io.on('connection', (socket) => {
                     if (maskDetails) {
                         masksInBattle[maskID] = {
                             maskID: maskDetails.maskID,
+                            name: maskDetails.name, // Add name field
                             attackDamage: maskDetails.attackDamage,
                             abilityDamage: maskDetails.abilityDamage,
                             protections: maskDetails.protections,
@@ -1107,25 +1243,104 @@ io.on('connection', (socket) => {
                             cooldowns: {}, // Initialize cooldowns field
                             photo: maskDetails.photo // Add photo field
                         };
-                        // Fetch mask skills and store them
-                        MaskSkills.findAll({ where: { skillID: [...maskDetails.activeSkills, 9999] } }) // Ensure skillID 9999 is always included
-                            .then(skills => {
-                                maskSkills[maskID] = skills.map(skill => ({
-                                    skillID: skill.skillID,
-                                    skillName: skill.skillName,
-                                    description: skill.description,
-                                    mainStat: skill.mainStat,
-                                    mainStatPercentage: skill.mainStatPercentage,
-                                    cooldown: skill.cooldown,
-                                    amountOfStrikes: skill.amountOfStrikes,
-                                    onHitEffect: skill.onHitEffect,
-                                    isMultiTarget: skill.isMultiTarget
-                                }));
-                                io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Broadcast the update
-                            })
-                            .catch(error => {
-                                console.error('Error fetching mask skills:', error);
+                        
+                        // If Mirror King joins battle, automatically spawn all 6 summons
+                        if (maskID === 90000) {
+                            const summonIDs = [90001, 90002, 90003, 90004, 90005, 90006];
+                            summonIDs.forEach(summonID => {
+                                MaskList.findOne({ where: { maskID: summonID } })
+                                    .then(summonDetails => {
+                                        if (summonDetails && !masksInBattle[summonID]) {
+                                            masksInBattle[summonID] = {
+                                                maskID: summonDetails.maskID,
+                                                name: summonDetails.name,
+                                                attackDamage: summonDetails.attackDamage,
+                                                abilityDamage: summonDetails.abilityDamage,
+                                                protections: summonDetails.protections,
+                                                magicResist: summonDetails.magicResist,
+                                                health: summonDetails.health,
+                                                speed: summonDetails.speed,
+                                                currentHealth: summonDetails.currentHealth,
+                                                currentSpeed: 0,
+                                                activeSkills: summonDetails.activeSkills,
+                                                stunStacks: 0,
+                                                burnStacks: 0,
+                                                poisonStacks: 0,
+                                                bleedStacks: 0,
+                                                buffStacks: 0,
+                                                untargetable: 0,
+                                                action: false,
+                                                bonusAction: false,
+                                                movement: 0,
+                                                team: isDungeonMaster ? 'Enemy' : 'Ally',
+                                                cooldowns: {},
+                                                photo: summonDetails.photo
+                                            };
+                                            
+                                            // Load skills for this summon
+                                            maskSkills[summonID] = [...summonDetails.activeSkills, 9999].map(skillID => ({
+                                                skillID: skillID,
+                                                skillName: skillNames[skillID] || 'Unknown Skill',
+                                                description: 'Hardcoded skill',
+                                                mainStat: 'abilityDamage',
+                                                mainStatPercentage: 100,
+                                                cooldown: 0,
+                                                amountOfStrikes: 1,
+                                                onHitEffect: null,
+                                                isMultiTarget: false
+                                            }));
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error(`Error fetching summon ${summonID} details:`, error);
+                                    });
                             });
+                        }
+                        
+                        // Fetch mask skills and store them
+                        // For default masks (90000-90006), use hardcoded skills instead of database
+                        if (maskID >= 90000 && maskID <= 90006) {
+                            console.log(`Loading skills for default mask ${maskID}`);
+                            console.log(`Active skills array:`, maskDetails.activeSkills);
+                            maskSkills[maskID] = [...maskDetails.activeSkills, 9999].map(skillID => ({
+                                skillID: skillID,
+                                skillName: skillNames[skillID] || 'Unknown Skill',
+                                description: 'Hardcoded skill',
+                                mainStat: 'abilityDamage',
+                                mainStatPercentage: 100,
+                                cooldown: 0,
+                                amountOfStrikes: 1,
+                                onHitEffect: null,
+                                isMultiTarget: false
+                            }));
+                            console.log(`Skills loaded for mask ${maskID}:`, maskSkills[maskID]);
+                            // Delay the emit to allow summons to be added
+                            setTimeout(() => {
+                                io.emit('masksInBattleUpdate', Object.values(masksInBattle));
+                            }, 100);
+                        } else {
+                            MaskSkills.findAll({ where: { skillID: [...maskDetails.activeSkills, 9999] } }) // Ensure skillID 9999 is always included
+                                .then(skills => {
+                                    maskSkills[maskID] = skills.map(skill => ({
+                                        skillID: skill.skillID,
+                                        skillName: skill.skillName,
+                                        description: skill.description,
+                                        mainStat: skill.mainStat,
+                                        mainStatPercentage: skill.mainStatPercentage,
+                                        cooldown: skill.cooldown,
+                                        amountOfStrikes: skill.amountOfStrikes,
+                                        onHitEffect: skill.onHitEffect,
+                                        isMultiTarget: skill.isMultiTarget
+                                    }));
+                                    // Delay the emit to allow summons to be added
+                                    setTimeout(() => {
+                                        io.emit('masksInBattleUpdate', Object.values(masksInBattle));
+                                    }, 100);
+                                })
+                                .catch(error => {
+                                    console.error('Error fetching mask skills:', error);
+                                });
+                        }
                     }
                 })
                 .catch(error => {
@@ -3225,16 +3440,100 @@ app.get('/mask-skills', async (req, res) => {
 
 app.post('/continue', async (req, res) => {
   console.log('Continuing');
-  const skillNames = {};
   let battleMessage = ''; // Initialize battleMessage
 
-  // Fetch all skills once and store them in a dictionary
+  // Fetch all skills once and store them in the global skillNames dictionary
   const skills = await MaskSkills.findAll();
   skills.forEach(skill => {
     skillNames[skill.skillID] = skill.skillName;
   });
+  
+  // Mirror King and Summon skill names are already in global skillNames object
 
-  const defaultMaskIDs = [8888, 8686, 10000]; // Extract maskIDs from defaultMasks
+  const defaultMaskIDs = [8888, 8686, 10000, 90000, 90001, 90002, 90003, 90004, 90005, 90006]; // Extract maskIDs from defaultMasks
+
+  // Mirror King immortality and phase transition logic
+  const mirrorKing = masksInBattle[90000];
+  if (mirrorKing && mirrorKing.currentHealth <= 0) {
+    const summons = [90001, 90002, 90003, 90004, 90005, 90006];
+    const allSummonsDead = summons.every(id => !masksInBattle[id] || masksInBattle[id].currentHealth === 0);
+    
+    if (!allSummonsDead) {
+      // Mirror King cannot die while summons are alive - heal to full
+      mirrorKing.currentHealth = mirrorKing.health;
+      battleMessage = `The Mirror King cannot be slain while his reflections persist!`;
+      console.log(battleMessage);
+      io.emit('battleMessage', battleMessage);
+    } else if (!mirrorKing.phase2Active) {
+      // All summons dead and not in phase 2 yet - trigger phase 2 transformation
+      mirrorKing.phase2Active = true;
+      mirrorKing.attackDamage *= 2;
+      mirrorKing.abilityDamage *= 2;
+      mirrorKing.magicResist *= 2;
+      mirrorKing.protections *= 2;
+      mirrorKing.health *= 2;
+      mirrorKing.currentHealth = mirrorKing.health;
+      mirrorKing.activeSkills = [900010, 900011]; // Phase 2 skills
+      mirrorKing.photo = "/assets/images/MirrorKing.png"; // Can change to phase 2 image if you have one
+      
+      // Resummon all summons with 2x stats
+      summons.forEach((summonID, index) => {
+        const originalStats = {
+          90001: { atk: 1500000000, abil: 1000000000, prot: 800000000, mr: 800000000, hp: 12000000000, skills: [900002, 900003], photo: "/assets/images/Summon1.png", name: "Pale Reaper" },
+          90002: { atk: 1200000000, abil: 1200000000, prot: 700000000, mr: 700000000, hp: 10000000000, skills: [900004, 900005], photo: "/assets/images/Summon2.png", name: "Ember Fang" },
+          90003: { atk: 1400000000, abil: 800000000, prot: 600000000, mr: 600000000, hp: 900000000, skills: [900006, 900007], photo: "/assets/images/Summon3.png", name: "Stormbound Sentinel" },
+          90004: { atk: 1000000000, abil: 1000000000, prot: 1200000000, mr: 1200000000, hp: 1500000000, skills: [900008, 900009], photo: "/assets/images/Summon4.png", name: "Plagueborne Warden" },
+          90005: { atk: 1100000000, abil: 1500000000, prot: 500000000, mr: 500000000, hp: 800000000, skills: [900020, 900021], photo: "/assets/images/Summon5.png", name: "Veil Walker" },
+          90006: { atk: 1300000000, abil: 1300000000, prot: 900000000, mr: 900000000, hp: 1100000000, skills: [900022, 900023], photo: "/assets/images/Summon6.png", name: "Blighted Champion" }
+        };
+        
+        const stats = originalStats[summonID];
+        masksInBattle[summonID] = {
+          maskID: summonID,
+          name: stats.name,
+          attackDamage: stats.atk * 2,
+          abilityDamage: stats.abil * 2,
+          protections: stats.prot * 2,
+          magicResist: stats.mr * 2,
+          health: stats.hp * 2,
+          speed: 100,
+          currentHealth: stats.hp * 2,
+          currentSpeed: 0,
+          activeSkills: stats.skills,
+          stunStacks: 0,
+          burnStacks: 0,
+          poisonStacks: 0,
+          bleedStacks: 0,
+          buffStacks: 0,
+          action: false,
+          bonusAction: false,
+          movement: 0,
+          team: mirrorKing.team,
+          cooldowns: {},
+          photo: stats.photo
+        };
+      });
+      
+      battleMessage = `The Mirror King shatters reality itself! Phase 2 begins - all reflections return, stronger than before!`;
+      console.log(battleMessage);
+      io.emit('battleMessage', battleMessage);
+    }
+  }
+  
+  // Mirror King healing while summons alive
+  if (mirrorKing && mirrorKing.currentHealth > 0 && mirrorKing.currentHealth < mirrorKing.health) {
+    const summons = [90001, 90002, 90003, 90004, 90005, 90006];
+    const anySummonsAlive = summons.some(id => masksInBattle[id] && masksInBattle[id].currentHealth > 0);
+    
+    if (anySummonsAlive) {
+      mirrorKing.currentHealth = mirrorKing.health;
+      if (Math.random() < 0.3) { // 30% chance to show message to avoid spam
+        battleMessage = `The Mirror King's reflections restore him to full health!`;
+        console.log(battleMessage);
+        io.emit('battleMessage', battleMessage);
+      }
+    }
+  }
 
   Object.values(masksInBattle).forEach(mask => {
   
@@ -3795,25 +4094,44 @@ app.post('/continue', async (req, res) => {
           if (skillName === "Too old for this") {
             console.log(`Mask ${mask.maskID} has skill: Too old for this`);
             let totalDecreasedHealth = 0;
-            let enemyCombinedHealth = 0;
+            let enemyCombinedHealthBefore = 0;
+
+            // Calculate combined enemy health BEFORE any modifications
+            Object.values(masksInBattle).forEach(targetMask => {
+              if (targetMask.team !== mask.team && targetMask.currentHealth > 0) {
+                enemyCombinedHealthBefore += Number(targetMask.health);
+              }
+            });
+            
+            // Store original mask health for comparison
+            const originalMaskHealth = Number(mask.health);
 
             // Loop through all enemy masks
             Object.values(masksInBattle).forEach(targetMask => {
-              if (targetMask.team !== mask.team && targetMask.currentHealth > 0) {
-                const decreaseAmount = targetMask.health * 0.01; // Decrease health by 1%
-                targetMask.health = Math.max(targetMask.health - decreaseAmount, 0); // Reduce current health and cap at 0
-                targetMask.currentHealth = Math.min(targetMask.currentHealth, targetMask.health); // Ensure current health is not more than max health
-                totalDecreasedHealth += decreaseAmount; // Add to total decreased health
-                enemyCombinedHealth += targetMask.health; // Add to combined enemy health
+              if (targetMask.team !== mask.team && Number(targetMask.currentHealth) > 0) {
+                const originalHealth = Number(targetMask.health);
+                const decreaseAmount = originalHealth * 0.005; // Decrease health by 0.5%
+                const newHealth = Math.max(originalHealth - decreaseAmount, 0);
+                
+                console.log(`Draining from ${targetMask.name || targetMask.maskID}: ${originalHealth} -> ${newHealth} (drained ${decreaseAmount})`);
+                
+                targetMask.health = newHealth;
+                targetMask.currentHealth = Math.min(Number(targetMask.currentHealth), newHealth);
+                totalDecreasedHealth += decreaseAmount;
               }
             });
 
             // Add the total decreased amount to this mask's health and current health
-            mask.health += totalDecreasedHealth;
-            mask.currentHealth = Math.min(mask.currentHealth + totalDecreasedHealth, mask.health); // Cap current health at max health
+            const newMaskHealth = Number(mask.health) + totalDecreasedHealth;
+            const newMaskCurrentHealth = Number(mask.currentHealth) + totalDecreasedHealth;
+            
+            console.log(`Mask ${mask.maskID} gained ${totalDecreasedHealth} health: ${mask.health} -> ${newMaskHealth}`);
+            
+            mask.health = newMaskHealth;
+            mask.currentHealth = Math.min(newMaskCurrentHealth, newMaskHealth);
 
-            // Check if the entire enemy team's combined health is less than this mask's health
-            if (enemyCombinedHealth < mask.health) {
+            // Check using ORIGINAL values before modifications (harder condition)
+            if (enemyCombinedHealthBefore * 4 < originalMaskHealth) {
               // Kill all enemy masks
               Object.values(masksInBattle).forEach(targetMask => {
                 if (targetMask.team !== mask.team) {
@@ -4575,15 +4893,26 @@ app.post('/continue', async (req, res) => {
               mask.buffStacks = 0;
             }
             
-            // Gain one stack per dead mask each cycle
-            if (currentDeadCount > 0) {
-              mask.buffStacks += currentDeadCount;
+            // Initialize turn counter for Soul Harvest
+            if (!mask.soulHarvestTurnCounter) {
+              mask.soulHarvestTurnCounter = 0;
+            }
+            
+            // Increment turn counter
+            mask.soulHarvestTurnCounter += 1;
+            
+            // Gain 1 stack for every 2 dead masks, but only every 2 turns
+            if (currentDeadCount > 0 && mask.soulHarvestTurnCounter % 2 === 0) {
+              const stacksToGain = Math.floor(currentDeadCount / 2);
+              if (stacksToGain > 0) {
+                mask.buffStacks += stacksToGain;
+              }
             }
             
             // Percentage-based growth from soul stacks
             if (mask.buffStacks > 0) {
               const stackCount = mask.buffStacks;
-              const growthRate = stackCount * 0.02; // 2% per stack per cycle
+              const growthRate = stackCount * 0.01; // 1% per stack per cycle (reduced from 2%)
               
               // Apply percentage growth to core stats
               mask.speed = Math.min(mask.speed * (1 + growthRate), 100);
@@ -4593,7 +4922,7 @@ app.post('/continue', async (req, res) => {
               
               // Soul aura damage (percentage-based)
               let auralDamage = 0;
-              const auraPercent = stackCount * 0.005; // 0.5% per stack
+              const auraPercent = stackCount * 0.0025; // 0.25% per stack (reduced from 0.5%)
               
               Object.values(masksInBattle).forEach(targetMask => {
                 if (targetMask.team !== mask.team && targetMask.currentHealth > 0) {
@@ -4603,18 +4932,18 @@ app.post('/continue', async (req, res) => {
                   auralDamage += finalDamage;
                   
                   // Death mark - chance to apply stacks based on soul stacks
-                  const markChance = Math.min(5 + (stackCount * 2), 40); // 5-40% chance
+                  const markChance = Math.min(3 + (stackCount * 1), 25); // 3-25% chance (reduced from 5-40%)
                   if (Math.random() * 100 < markChance) {
                     targetMask.poisonStacks += 1;
-                    if (stackCount >= 15) {
-                      targetMask.bleedStacks += 1; // Extra effect with 15+ stacks
+                    if (stackCount >= 20) {
+                      targetMask.bleedStacks += 1; // Extra effect with 20+ stacks (increased from 15)
                     }
                   }
                 }
               });
               
               // Percentage-based healing
-              const healPercent = stackCount * 0.005; // 0.5% per stack
+              const healPercent = stackCount * 0.0025; // 0.25% per stack (reduced from 0.5%)
               const healAmount = mask.health * healPercent;
               mask.currentHealth = Math.min(mask.currentHealth + healAmount, mask.health);
               
@@ -4642,7 +4971,7 @@ app.post('/continue', async (req, res) => {
               
               // High stack benefits
               if (stackCount >= 20) {
-                mask.attackDamage *= 1.05; // Extra 5% growth at high stacks
+                mask.attackDamage *= 1.02; // Extra 2% growth at high stacks (reduced from 5%)
                 mask.untargetable = Math.min(mask.untargetable + 1, 3);
                 
                 const transcendMessage = `Mask ${mask.maskID} transcends mortality! ${stackCount} soul stacks grant terrifying power!`;
@@ -4919,6 +5248,263 @@ app.post('/continue', async (req, res) => {
           }   
         }
       });
+      
+      // Mirror King and Summon Skills
+      mask.activeSkills.forEach(skillID => {
+        const skillName = skillNames[skillID];
+        if (skillName) {
+          // Mirror King Phase 1 Skills
+          if (skillName === "King's Decree" && mask.currentSpeed === 100) {
+            console.log(`Mask ${mask.maskID} has skill: King's Decree`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0 && !targetMask.untargetable);
+            if (enemies.length > 0) {
+              const randomIndex = Math.floor(Math.random() * enemies.length);
+              const targetMask = enemies[randomIndex];
+              const damage = Math.max(mask.attackDamage * 3 - targetMask.protections, mask.attackDamage * 2);
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0);
+              masksInBattle[targetMask.maskID] = targetMask;
+              battleMessage = `The Mirror King unleashes a devastating King's Decree, dealing ${Math.round(damage)} damage to ${targetMask.name || 'Mask ' + targetMask.maskID}`;
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }
+          
+          if (skillName === "Commanding Presence") {
+            console.log(`Mask ${mask.maskID} has skill: Commanding Presence`);
+            const summons = Object.values(masksInBattle).filter(targetMask => targetMask.team === mask.team && targetMask.maskID !== mask.maskID && targetMask.currentHealth > 0);
+            if (summons.length > 0) {
+              summons.forEach(summon => {
+                summon.attackDamage += mask.abilityDamage * 0.2;
+                summon.abilityDamage += mask.abilityDamage * 0.1;
+              });
+              battleMessage = `The Mirror King's Commanding Presence empowers all reflections!`;
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }
+          
+          // Mirror King Phase 2 Skills
+          if (skillName === "Cataclysmic Reflection" && mask.currentSpeed === 100) {
+            console.log(`Mask ${mask.maskID} has skill: Cataclysmic Reflection`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+            enemies.forEach(enemy => {
+              const damage = Math.max(mask.abilityDamage * 2 - enemy.magicResist, mask.abilityDamage);
+              enemy.currentHealth = Math.max(enemy.currentHealth - damage, 0);
+              enemy.stunStacks += 2;
+              enemy.burnStacks += 3;
+              console.log(`${enemy.name || 'Mask ' + enemy.maskID} took ${Math.round(damage)} damage and gained 2 stun stacks and 3 burn stacks!`);
+            });
+            battleMessage = `The Mirror King shatters reality with Cataclysmic Reflection, devastating all enemies!`;
+            console.log(battleMessage);
+            io.emit('battleMessage', battleMessage);
+          }
+          
+          if (skillName === "Royal Restoration") {
+            console.log(`Mask ${mask.maskID} has skill: Royal Restoration`);
+            const summons = Object.values(masksInBattle).filter(targetMask => targetMask.team === mask.team && targetMask.maskID !== mask.maskID && targetMask.currentHealth > 0);
+            if (summons.length > 0) {
+              summons.forEach(summon => {
+                const healing = mask.abilityDamage * 2;
+                summon.currentHealth = Math.min(summon.currentHealth + healing, summon.health);
+                summon.protections += mask.abilityDamage * 0.3;
+                summon.magicResist += mask.abilityDamage * 0.3;
+                console.log(`${summon.name || 'Mask ' + summon.maskID} healed for ${Math.round(healing)} and gained defenses!`);
+              });
+              battleMessage = `The Mirror King channels Royal Restoration, healing and empowering all reflections!`;
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }
+          
+          // Summon 1 (Shattered Reflection) Skills
+          if (skillName === "Mirror Shards" && mask.currentSpeed === 100) {
+            console.log(`Mask ${mask.maskID} has skill: Mirror Shards`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0 && !targetMask.untargetable);
+            const hitCount = Math.min(3, enemies.length);
+            for (let i = 0; i < hitCount; i++) {
+              const randomIndex = Math.floor(Math.random() * enemies.length);
+              const targetMask = enemies[randomIndex];
+              const damage = Math.max(mask.attackDamage * 0.8 - targetMask.protections, mask.attackDamage * 0.4);
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0);
+              targetMask.bleedStacks += 2;
+            }
+            battleMessage = `${mask.name || 'Mask ' + mask.maskID} launches Mirror Shards at multiple enemies!`;
+            console.log(battleMessage);
+            io.emit('battleMessage', battleMessage);
+          }
+          
+          if (skillName === "Reflective Barrier") {
+            console.log(`Mask ${mask.maskID} has skill: Reflective Barrier`);
+            const allies = Object.values(masksInBattle).filter(targetMask => targetMask.team === mask.team && targetMask.currentHealth > 0);
+            allies.forEach(ally => {
+              ally.protections += mask.abilityDamage * 0.2;
+              ally.magicResist += mask.abilityDamage * 0.2;
+            });
+            battleMessage = `${mask.name || 'Mask ' + mask.maskID} creates a Reflective Barrier, protecting all allies!`;
+            console.log(battleMessage);
+            io.emit('battleMessage', battleMessage);
+          }
+          
+          // Summon 2 (Fractured Echo) Skills
+          if (skillName === "Echo Strike" && mask.currentSpeed === 100) {
+            console.log(`Mask ${mask.maskID} has skill: Echo Strike`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0 && !targetMask.untargetable);
+            if (enemies.length > 0) {
+              const randomIndex = Math.floor(Math.random() * enemies.length);
+              const targetMask = enemies[randomIndex];
+              const damage = Math.max(mask.attackDamage * 1.2 - targetMask.protections, mask.attackDamage * 0.6);
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0);
+              
+              // Echo effect - 50% chance to hit again
+              if (Math.random() < 0.5) {
+                const echoDamage = Math.max(damage * 0.7, 0);
+                targetMask.currentHealth = Math.max(targetMask.currentHealth - echoDamage, 0);
+                battleMessage = `${mask.name || 'Mask ' + mask.maskID}'s Echo Strike resonates, hitting twice for ${Math.round(damage + echoDamage)} total damage!`;
+              } else {
+                battleMessage = `${mask.name || 'Mask ' + mask.maskID}'s Echo Strike deals ${Math.round(damage)} damage!`;
+              }
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }
+          
+          if (skillName === "Reverberating Wounds") {
+            console.log(`Mask ${mask.maskID} has skill: Reverberating Wounds`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+            enemies.forEach(enemy => {
+              enemy.poisonStacks += 3;
+              enemy.bleedStacks += 2;
+            });
+            battleMessage = `${mask.name || 'Mask ' + mask.maskID} inflicts Reverberating Wounds on all enemies!`;
+            console.log(battleMessage);
+            io.emit('battleMessage', battleMessage);
+          }
+          
+          // Summon 3 (Lightning Knight) Skills
+          if (skillName === "Phantom Slice" && mask.currentSpeed === 100) {
+            console.log(`Mask ${mask.maskID} has skill: Phantom Slice`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0 && !targetMask.untargetable);
+            if (enemies.length > 0) {
+              const randomIndex = Math.floor(Math.random() * enemies.length);
+              const targetMask = enemies[randomIndex];
+              const damage = Math.max(mask.attackDamage * 1.5 - targetMask.protections, mask.attackDamage * 0.7);
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0);
+              targetMask.stunStacks += 2;
+              battleMessage = `${mask.name || 'Mask ' + mask.maskID}'s lightning strike deals ${Math.round(damage)} damage and stuns the enemy with electrical shock!`;
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }
+          
+          if (skillName === "Vanish") {
+            console.log(`Mask ${mask.maskID} has skill: Vanish`);
+            if (!mask.untargetable) {
+              mask.untargetable = 2;
+              battleMessage = `${mask.name || 'Mask ' + mask.maskID} vanishes into shadows!`;
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }
+          
+          // Summon 4 (Poison Winged Knight) Skills
+          if (skillName === "Crystal Crush" && mask.currentSpeed === 100) {
+            console.log(`Mask ${mask.maskID} has skill: Crystal Crush`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0 && !targetMask.untargetable);
+            if (enemies.length > 0) {
+              const randomIndex = Math.floor(Math.random() * enemies.length);
+              const targetMask = enemies[randomIndex];
+              const damage = Math.max(mask.attackDamage * 1.3 - targetMask.protections, mask.attackDamage * 0.6);
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0);
+              targetMask.stunStacks += 1;
+              targetMask.poisonStacks += 3;
+              battleMessage = `${mask.name || 'Mask ' + mask.maskID} crashes down with toxic force, dealing ${Math.round(damage)} damage, stunning and poisoning the target!`;
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }
+          
+          if (skillName === "Fortify") {
+            console.log(`Mask ${mask.maskID} has skill: Fortify`);
+            const allies = Object.values(masksInBattle).filter(targetMask => targetMask.team === mask.team && targetMask.currentHealth > 0);
+            allies.forEach(ally => {
+              ally.protections += mask.abilityDamage * 0.3;
+              ally.magicResist += mask.abilityDamage * 0.15;
+            });
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+            enemies.forEach(enemy => {
+              enemy.poisonStacks += 2;
+            });
+            battleMessage = `${mask.name || 'Mask ' + mask.maskID} spreads toxic miasma, fortifying allies and poisoning enemies!`;
+            console.log(battleMessage);
+            io.emit('battleMessage', battleMessage);
+          }
+          
+          // Summon 5 (Prismatic Shadow) Skills
+          if (skillName === "Shadow Bolt" && mask.currentSpeed === 100) {
+            console.log(`Mask ${mask.maskID} has skill: Shadow Bolt`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0 && !targetMask.untargetable);
+            if (enemies.length > 0) {
+              const randomIndex = Math.floor(Math.random() * enemies.length);
+              const targetMask = enemies[randomIndex];
+              const damage = Math.max(mask.abilityDamage * 1.8 - targetMask.magicResist, mask.abilityDamage * 0.9);
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0);
+              battleMessage = `${mask.name || 'Mask ' + mask.maskID} fires a Shadow Bolt, dealing ${Math.round(damage)} magic damage!`;
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }
+          
+          if (skillName === "Drain Essence") {
+            console.log(`Mask ${mask.maskID} has skill: Drain Essence`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+            let totalDrained = 0;
+            enemies.forEach(enemy => {
+              const drain = Math.max(mask.abilityDamage * 0.3 - enemy.magicResist * 0.5, mask.abilityDamage * 0.15);
+              enemy.currentHealth = Math.max(enemy.currentHealth - drain, 0);
+              totalDrained += drain;
+            });
+            mask.currentHealth = Math.min(mask.currentHealth + totalDrained, mask.health);
+            battleMessage = `${mask.name || 'Mask ' + mask.maskID} drains ${Math.round(totalDrained)} essence from all enemies!`;
+            console.log(battleMessage);
+            io.emit('battleMessage', battleMessage);
+          }
+          
+          // Summon 6 (Refracted Soul) Skills
+          if (skillName === "Soul Rend" && mask.currentSpeed === 100) {
+            console.log(`Mask ${mask.maskID} has skill: Soul Rend`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0 && !targetMask.untargetable);
+            if (enemies.length > 0) {
+              const randomIndex = Math.floor(Math.random() * enemies.length);
+              const targetMask = enemies[randomIndex];
+              const damage = Math.max(mask.abilityDamage * 1.6 - targetMask.magicResist, mask.abilityDamage * 0.8);
+              targetMask.currentHealth = Math.max(targetMask.currentHealth - damage, 0);
+              // Reduce target's magic resist
+              targetMask.magicResist = Math.max(targetMask.magicResist * 0.8, 0);
+              battleMessage = `${mask.name || 'Mask ' + mask.maskID}'s Soul Rend tears through defenses, dealing ${Math.round(damage)} damage!`;
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }
+          
+          if (skillName === "Corruption Aura") {
+            console.log(`Mask ${mask.maskID} has skill: Corruption Aura`);
+            const enemies = Object.values(masksInBattle).filter(targetMask => targetMask.team !== mask.team && targetMask.currentHealth > 0);
+            if (enemies.length > 0) {
+              // Apply 1 poison stack to all enemies and reduce their protections by 5%
+              enemies.forEach(enemy => {
+                if (!enemy.poisonStacks) enemy.poisonStacks = 0;
+                enemy.poisonStacks += 1;
+                
+                const protectionReduction = Math.floor(enemy.protections * 0.05);
+                enemy.protections = Math.max(0, enemy.protections - protectionReduction);
+              });
+              battleMessage = `${mask.name || 'Mask ' + mask.maskID} emanates a corruption aura, poisoning and weakening all enemies!`;
+              console.log(battleMessage);
+              io.emit('battleMessage', battleMessage);
+            }
+          }
+        }
+      });
 
       if (mask.burnStacks > 0) {
         // Burn: More meaningful damage per stack, scales with stacks
@@ -5056,7 +5642,7 @@ app.post('/continue', async (req, res) => {
     } 
   });
   io.emit('masksInBattleUpdate', Object.values(masksInBattle)); // Emit updated masksInBattle
-  res.status(200).send('Continue request received');
+  res.status(200).json({ message: 'Continue request received' });
 });
 
 app.post('/end-battle', async (req, res) => {
