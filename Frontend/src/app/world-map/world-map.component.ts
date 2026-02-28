@@ -105,10 +105,10 @@ export class WorldMapComponent implements OnInit {
 
   async fetchPhotoPath(username: string): Promise<string> {
     try {
-      const characterIdRes = await fetch(`https://dungeonlair.ddns.net:443/character-id-username/${username}`);
+      const characterIdRes = await fetch(`https://${localIP}:443/character-id-username/${username}`);
       const characterIdData = await characterIdRes.json();
       if (!characterIdData.characterID) return 'default/path/to/photo.jpg';
-      const characterRes = await fetch(`https://dungeonlair.ddns.net:443/character-info/${characterIdData.characterID}`);
+      const characterRes = await fetch(`https://${localIP}:443/character-info/${characterIdData.characterID}`);
       const characterData = await characterRes.json();
       if (characterData.photo) {
         return `https://${localIP}:443${characterData.photo}`;
@@ -122,7 +122,7 @@ export class WorldMapComponent implements OnInit {
   // Remove onUserHover and replace with onUserClick
   async onUserClick(user: { username: string }, event: MouseEvent) {
     try {
-      const res = await fetch(`https://dungeonlair.ddns.net:443/character-id-username/${user.username}`);
+      const res = await fetch(`https://${localIP}:443/character-id-username/${user.username}`);
       const data = await res.json();
       this.selectedUser = {
         username: user.username,
@@ -150,7 +150,7 @@ export class WorldMapComponent implements OnInit {
       }
 
       // Fetch character details from backend and save to clickedCharacter
-      const detailsRes = await fetch('https://dungeonlair.ddns.net:443/click-character-id', {
+      const detailsRes = await fetch(`https://${localIP}:443/click-character-id`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ characterID: data.characterID })
@@ -199,7 +199,7 @@ export class WorldMapComponent implements OnInit {
     // Fetch equipment details if not already loaded
     if (!this.clickedCharacter.equippedItemDetails && this.selectedUser) {
       try {
-        const response = await fetch(`https://dungeonlair.ddns.net:443/equipped-item-details/${this.selectedUser.characterID}`);
+        const response = await fetch(`https://${localIP}:443/equipped-item-details/${this.selectedUser.characterID}`);
         if (response.ok) {
           const details = await response.json();
           this.clickedCharacter.equippedItemDetails = details;
